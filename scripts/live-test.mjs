@@ -105,6 +105,18 @@ async function raw(name, args = {}, timeoutMs = 45_000) {
 }
 
 /** 期望成功 */
+// 不变式:位图宽高必须等于工程的 UV 空间尺寸。
+// 曾经 pack_box_uv 扩容时写成 max(canvas, need) → 位图 64 宽 / UV 空间 16 宽
+// → 上色 scale=4 → 涂到画布外 → 半个模型全白(真机踩过)。
+async function expectBitmapMatchesUv(label) {
+  const textures = await ok("list_textures");
+  const layout = await ok("get_uv_layout", {});
+  const first = textures.result.textures[0];
+  expect(first, "工程里应有贴图");
+  expectEqual(first.width, layout.result.texture_size[0], `${label}:位图宽 = UV 空间宽`);
+  expectEqual(first.height, layout.result.texture_size[1], `${label}:位图高 = UV 空间高`);
+}
+
 async function ok(name, args = {}, timeoutMs) {
   const r = await raw(name, args, timeoutMs);
   if (!r.ok) throw new CaseFailed(`${name} 失败: ${r.error?.code} ${r.error?.message}`);
@@ -365,13 +377,7 @@ test("UV:pack_box_uv → get_uv_layout 无越界无意外重叠 → get_uv_map",
   expectEqual(layout.result.summary.unintended_overlaps, 0, "意外重叠");
   const map = await ok("get_uv_map", { max_edge: 512 });
   expect(map.images.length === 1, "UV map 返回图片");
-  // 回归:pack_box_uv 自动扩容后,位图尺寸必须等于 UV 空间。
-  // 曾经写成 max(canvas, need) → 位图 64 宽、UV 空间 16 宽 → 上色时 scale=4,
-  // 画面涂到画布外,半个模型全白(真机踩过)。
-  const textures = await ok("list_textures");
-  const first = textures.result.textures[0];
-  expectEqual(first.width, layout.result.texture_size[0], "位图宽 = UV 空间宽");
-  expectEqual(first.height, layout.result.texture_size[1], "位图高 = UV 空间高");
+  await expectBitmapMatchesUv("打包后");
   saveImages(map.images, "uvmap");
 });
 
@@ -477,6 +483,7 @@ test("resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_
   await ok("auto_uv_cubes", { cubes: ["bip_head_cube"] });
   const resized = await ok("resize_texture", { width: 128, height: 128 });
   expectEqual(resized.result.size, [128, 128], "纹理尺寸");
+  await expectBitmapMatchesUv("resize_texture 后");
 });
 
 /* ------------------------------- 4. 动画 ------------------------------- */
