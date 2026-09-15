@@ -762,6 +762,16 @@ pnpm --filter @anningui/blockbench-mcp exec vitest run test/bundle.test.mjs test
 "strict": true, "noImplicitAny": true
 ```
 
+插件包里有**两个 tsconfig**,因为两类文件的类型环境完全不同:
+
+| 配置 | 覆盖 | types |
+|---|---|---|
+| `packages/plugin/tsconfig.json` | `src/**`(跑在 Blockbench 渲染进程里) | `blockbench-types`(无 node、无 DOM) |
+| `packages/plugin/tsconfig.node.json` | `rolldown.config.ts`(跑在 Node 里) | `node` |
+
+`pnpm run typecheck` 会把两个都跑一遍,所以在编辑器里也不会出现
+"找不到名称 node:fs / ImportMeta.dirname 不存在" 这类假报错。
+
 `packages/plugin/types.d.ts` 只补两类官方包没有的东西:
 
 1. `require`(桌面端 scoped 模块)+ `Plugin.register` / `new Animation()` 两个**只有类型没有值**的运行时入口(类型仍取自官方包,例如动画片段用官方的 `_Animation`)

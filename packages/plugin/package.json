@@ -34,7 +34,7 @@
   ],
   "scripts": {
     "build": "rolldown -c rolldown.config.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "test": "vitest run test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs test/package.test.mjs",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build && npm run typecheck"
