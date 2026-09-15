@@ -317,6 +317,24 @@ npm login                # 登录 npmjs 账号(需要拥有 anningui 这个 scop
 npm whoami               # 确认身份
 ```
 
+### ⚠️ 不要在仓库根目录跑 `npm publish`
+
+npm 在 workspace 根目录执行 publish 时,会把**根包 + 所有非 private 的 workspace 一起发**,
+而且 `npm publish --prefix packages/plugin` 里的 `--prefix` 对 publish **无效**(只影响 `npm run`)。
+踩过一次的现场:根包 `blockbench-mcp-pro@1.0.0` 被误发到 registry,而真正的插件包没发出去。
+
+护栏(已配置):
+
+| 包 | 状态 |
+|---|---|
+| 根 `blockbench-mcp-pro` | `private: true` |
+| `@bbmcp/shared` | `private: true` |
+| `@bbmcp/gateway` | `private: true` |
+| `@anningui/blockbench-mcp` | **唯一可发布**(`publishConfig.access: public`) |
+
+根脚本 `pnpm run publish` 已经写成 `cd packages/plugin && npm publish --access public`,
+只会在插件目录里发布。
+
 ### 每个版本的发布流程
 
 ```bash

@@ -9,13 +9,13 @@
     "gateway"
   ],
   "scripts": {
-    "build": "npm --prefix packages/shared run build && npm --prefix packages/plugin run build && npm --prefix gateway run build",
-    "typecheck": "npm --prefix packages/shared run typecheck && npm --prefix packages/plugin run typecheck && npm --prefix gateway run typecheck",
-    "test:unit": "npm --prefix packages/shared run test && npm --prefix packages/plugin run test && npm --prefix gateway run test",
+    "build": "cd packages/shared && npm run build && cd ../plugin && npm run build && cd ../../gateway && npm run build",
+    "typecheck": "cd packages/shared && npm run typecheck && cd ../plugin && npm run typecheck && cd ../../gateway && npm run typecheck",
+    "test:unit": "cd packages/shared && npm test && cd ../plugin && npm test && cd ../../gateway && npm test",
     "test": "npm run build && npm run test:unit",
     "verify": "npm run build && npm run typecheck && npm run test:unit",
-    "pack:check": "npm --prefix packages/plugin pack --dry-run",
-    "publish": "npm --prefix packages/plugin publish --access public"
+    "pack:check": "cd packages/plugin && npm pack --dry-run",
+    "publish": "cd packages/plugin && npm publish --access public"
   },
   "engines": {
     "node": ">=18"
