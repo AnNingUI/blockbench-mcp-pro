@@ -1,29 +1,14 @@
 {
-  "when": "2026-09-15T23:19:58.946Z",
+  "when": "2026-09-15T23:22:53.846Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 30,
-  "failed": 4,
+  "passed": 33,
+  "failed": 1,
   "skipped": [],
   "failures": [
     {
-      "case": "UV:pack_box_uv → get_uv_layout 无越界无意外重叠 → get_uv_map",
-      "error": "打包后:位图宽 = UV 空间宽: 期望 64,实际 16",
-      "stack": "Error: 打包后:位图宽 = UV 空间宽: 期望 64,实际 16\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:119:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:383:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
-    },
-    {
-      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down",
-      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:465:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
-    },
-    {
       "case": "resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_uv_islands",
-      "error": "resize_texture 后:位图宽 = UV 空间宽: 期望 128,实际 64",
-      "stack": "Error: resize_texture 后:位图宽 = UV 空间宽: 期望 128,实际 64\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:119:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:494:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
-    },
-    {
-      "case": "人审门:request_review 返回 pending(卡片会自己到期关闭)",
-      "error": "超时不算回答",
-      "stack": "Error: 超时不算回答\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:643:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
+      "error": "resize_texture 后:位图宽 64 < UV 空间宽 128",
+      "stack": "Error: resize_texture 后:位图宽 64 < UV 空间宽 128\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:120:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:501:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:870:5"
     }
   ],
   "artifacts": [
@@ -41,7 +26,7 @@
     },
     {
       "file": "live-down-9.png",
-      "bytes": 8661
+      "bytes": 7370
     },
     {
       "file": "live-east-4.png",
@@ -53,11 +38,11 @@
     },
     {
       "file": "live-east-6.png",
-      "bytes": 8433
+      "bytes": 7701
     },
     {
       "file": "live-iso-10.png",
-      "bytes": 13749
+      "bytes": 10673
     },
     {
       "file": "live-iso-8.png",
@@ -77,11 +62,11 @@
     },
     {
       "file": "live-north-4.png",
-      "bytes": 8800
+      "bytes": 7437
     },
     {
       "file": "live-report.json",
-      "bytes": 7847
+      "bytes": 9257
     },
     {
       "file": "live-south-3.png",
@@ -93,11 +78,11 @@
     },
     {
       "file": "live-south-5.png",
-      "bytes": 9163
+      "bytes": 7578
     },
     {
       "file": "live-texture.png",
-      "bytes": 1678
+      "bytes": 2952
     },
     {
       "file": "live-up-6.png",
@@ -109,7 +94,7 @@
     },
     {
       "file": "live-up-8.png",
-      "bytes": 8499
+      "bytes": 7328
     },
     {
       "file": "live-west-5.png",
@@ -121,11 +106,11 @@
     },
     {
       "file": "live-west-7.png",
-      "bytes": 8462
+      "bytes": 7697
     },
     {
       "file": "live.bbmodel",
-      "bytes": 21448
+      "bytes": 23144
     },
     {
       "file": "live.geo.json",
@@ -133,11 +118,11 @@
     },
     {
       "file": "live.gltf",
-      "bytes": 25202
+      "bytes": 26898
     },
     {
       "file": "probe-scope.png",
-      "bytes": 1678
+      "bytes": 2952
     },
     {
       "file": "probe2.gltf",
@@ -149,7 +134,7 @@
     },
     {
       "file": "reference-compare-11.png",
-      "bytes": 5854
+      "bytes": 5199
     },
     {
       "file": "reference-compare-9.png",
@@ -157,7 +142,7 @@
     },
     {
       "file": "texture-3.png",
-      "bytes": 4657
+      "bytes": 1827
     },
     {
       "file": "texture-region-1.png",
@@ -169,7 +154,7 @@
     },
     {
       "file": "uvmap-1.png",
-      "bytes": 29417
+      "bytes": 29396
     },
     {
       "file": "views-10.png",

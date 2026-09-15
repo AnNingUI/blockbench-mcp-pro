@@ -109,13 +109,14 @@ async function raw(name, args = {}, timeoutMs = 45_000) {
 // (可以更大:Java 物品常见小 UV 空间 + 大贴图;此时上色 scale>1 是正确的)
 // 曾经 pack_box_uv 扩容时写成 max(canvas, need) → 位图 64 宽 / UV 空间 16 宽
 // → 上色 scale=4 → 涂到画布外 → 半个模型全白(真机踩过)。
-async function expectBitmapMatchesUv(label) {
+async function expectBitmapMatchesUv(label, textureName) {
   const layout = await ok("get_uv_layout", {});
-  // 取“模型实际在用”的贴图(与无参工具同一规则),而不是列表里第一张
-  const elements = await ok("get_elements", { refs: ["bip_body_cube"] });
-  const uuid = elements.result.cubes[0].faces.north.texture;
   const textures = await ok("list_textures");
-  const used = textures.result.textures.find((t) => t.uuid === uuid);
+  // 默认检查“模型实际在用”的那张(与无参工具同一规则);也可以点名检查某张
+  const uuid = (await ok("get_elements", { refs: ["bip_body_cube"] })).result.cubes[0].faces.north.texture;
+  const used = textureName
+    ? textures.result.textures.find((t) => t.name === textureName)
+    : textures.result.textures.find((t) => t.uuid === uuid);
   expect(used, `${label}:模型在用的贴图应在 list_textures 里`);
   expect(
     used.width >= layout.result.texture_size[0],
@@ -496,9 +497,11 @@ test("resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_
   await ok("set_face_uv", { entries: [{ cube: "bip_body_cube", face: "north", uv: [0, 0, 8, 8], rotation: 0 }] });
   await ok("transform_uv_islands", { faces: [{ cube: "bip_body_cube", face: "north" }], translate: [1, 1] });
   await ok("auto_uv_cubes", { cubes: ["bip_head_cube"] });
-  const resized = await ok("resize_texture", { width: 128, height: 128 });
+  // 点名 resize_texture 动的那张贴图:它按“引用最多的贴图”解析,可能与
+  // 上面 assign_texture 显式指派给 bip_body_cube 的那张不是同一张
+  const resized = await ok("resize_texture", { texture: "live_skin", width: 128, height: 128 });
   expectEqual(resized.result.size, [128, 128], "纹理尺寸");
-  await expectBitmapMatchesUv("resize_texture 后");
+  await expectBitmapMatchesUv("resize_texture 后", "live_skin");
 });
 
 /* ------------------------------- 4. 动画 ------------------------------- */
