@@ -580,6 +580,7 @@ blockbench-mcp-pro/
 │       ├── src/rpc.ts      # MCP JSON-RPC + resources + prompts + 图片内容块
 │       ├── src/dispatch.ts # 校验 → 执行 → 统一信封
 │       ├── src/tools/      # 按域拆分的 95 个工具
+│       ├── types.d.ts      # 宿主类型:官方 blockbench-types + 少量浏览器 API 补齐(无 any 全局)
 │       ├── bin/            # npm bin:blockbench-mcp(网关 + --plugin-path/--cdn-url)
 │       ├── rolldown.config.ts   # 构建配置(插件 IIFE / 测试入口 ESM / 网关 ESM)
 │       ├── test/           # 宿主 mock + 分发/HTTP/产物/打包 测试
@@ -616,6 +617,30 @@ node --test packages/plugin/test/bundle.test.mjs packages/plugin/test/package.te
 ```
 
 ---
+
+## 类型来源
+
+插件的宿主类型来自官方 **`blockbench-types`**(devDependency),不是手写 any:
+
+```jsonc
+// packages/plugin/tsconfig.json
+"types": ["blockbench-types"],   // Cube / Group / Texture / Animation / Preview / Undo / Canvas /
+                                 // Project / Format(s) / BarItems / Modes / Dialog / Action /
+                                 // Codecs / Settings / Plugin(s) / newProject ... 全部是真类型
+"strict": true, "noImplicitAny": true
+```
+
+`packages/plugin/types.d.ts` 只补两类官方包没有的东西:
+
+1. `require`(桌面端 scoped 模块)+ `Plugin.register` / `new Animation()` 两个**只有类型没有值**的运行时入口(类型仍取自官方包,例如动画片段用官方的 `_Animation`)
+2. 极简浏览器 API —— 本项目刻意不引 `lib.dom`(Blockbench 的 `Animation`/`Image` 与 DOM 同名),只声明用到的那几个成员
+
+> `blockbench-types` 依赖 `electron`,npm 安装时会去下 Electron 二进制。CI/离线环境用
+> `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install` 跳过(类型不受影响)。
+
+这套类型当场抓出了 5 个真实 API 错误:`Canvas.updateSelection`(应为 `updateSelected`)、
+`Settings.add`(应为 `new Setting(id, data)`)、`Timeline.setAnimation`(应为 `animation.select()`)、
+`Texture.setDataURL`(不存在)、`Screencam.NoAAPreview.resize`(不存在,尺寸由 `screenshotPreview` 的 options 决定)。
 
 ## 已知取舍
 

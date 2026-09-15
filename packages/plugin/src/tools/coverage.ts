@@ -73,7 +73,7 @@ export const coverageTools: Record<string, ToolHandler> = {
         if (!element) throw new CommandError("E_NOT_FOUND", `Element not found: ${ref}`);
         element.select?.();
       }
-      Canvas?.updateSelection?.();
+      Canvas.updateSelected(undefined);
       return { ok: true, selected: args.refs.length };
     } catch (err) {
       if (err instanceof CommandError) throw err;
@@ -82,7 +82,8 @@ export const coverageTools: Record<string, ToolHandler> = {
   },
 
   list_modes: () => {
-    const modes = (Modes ?? {}) as Record<string, any>;
+    // Modes.options 是运行时真正的注册表
+    const modes = Modes.options as unknown as Record<string, Mode>;
     return {
       modes: Object.entries(modes).map(([id, mode]) => ({
         id: mode?.id ?? id,
@@ -93,7 +94,7 @@ export const coverageTools: Record<string, ToolHandler> = {
   },
 
   set_mode: (args: { id: string }) => {
-    const mode = (Modes ?? {})[args?.id];
+    const mode = (Modes.options as unknown as Record<string, Mode | undefined>)[args?.id];
     if (!mode) throw new CommandError("E_NOT_FOUND", `Unknown mode: ${args?.id}. Use list_modes.`);
     try {
       mode.select?.();
@@ -138,7 +139,7 @@ export const coverageTools: Record<string, ToolHandler> = {
   },
 
   list_plugins: () => ({
-    plugins: ((Plugins as any)?.all ?? Plugin?.all ?? []).map((plugin: any) => ({
+    plugins: Plugins.all.map((plugin) => ({
       id: plugin.id ?? plugin.title,
       title: plugin.title ?? plugin.id,
       version: plugin.version ?? null,
@@ -149,16 +150,15 @@ export const coverageTools: Record<string, ToolHandler> = {
   install_plugin: (args: { id?: string; url?: string }) => {
     const target = args?.url ?? args?.id;
     if (!target) throw new CommandError("E_INVALID_PARAM", "Pass id (a plugin store id) or url.");
-    const installer =
-      (Blockbench as any)?.installPlugin ??
-      (Plugins as any)?.install ??
-      (Plugin as any)?.install;
+    // Blockbench 没有统一的插件安装 API,只在确实存在时调用,否则让用户手动装
+    const installer = (Blockbench as unknown as { installPlugin?: (target: string) => void })
+      .installPlugin;
     if (typeof installer !== "function")
       throw new CommandError(
         "E_BLOCKBENCH_ERROR",
         "This Blockbench build exposes no programmatic plugin installer. Ask the user to install it from File ▸ Plugins and retry.",
       );
-    installer.call(Blockbench, target);
+    installer(target);
     return {
       ok: true,
       requested: target,
@@ -167,8 +167,8 @@ export const coverageTools: Record<string, ToolHandler> = {
   },
 
   uninstall_plugin: (args: { id: string }) => {
-    const plugin = ((Plugins as any)?.all ?? Plugin?.all ?? []).find(
-      (entry: any) => entry.id === args?.id || entry.title === args?.id,
+    const plugin = Plugins.all.find(
+      (entry) => entry.id === args?.id || entry.title === args?.id,
     );
     if (!plugin) throw new CommandError("E_NOT_FOUND", `Plugin not installed: ${args?.id}`);
     if (typeof plugin.uninstall !== "function")
@@ -179,8 +179,8 @@ export const coverageTools: Record<string, ToolHandler> = {
 
   undo: () => {
     try {
-      Undo?.undo?.(false);
-      return { ok: true, action: "undo", undo_stack: Undo?.undo_queue?.length ?? null };
+      Undo.undo(false);
+      return { ok: true, action: "undo" };
     } catch {
       throw new CommandError("E_BLOCKBENCH_ERROR", "Undo is unavailable right now.");
     }
@@ -188,7 +188,7 @@ export const coverageTools: Record<string, ToolHandler> = {
 
   redo: () => {
     try {
-      Undo?.redo?.(false);
+      Undo.redo(false);
       return { ok: true, action: "redo" };
     } catch {
       throw new CommandError("E_BLOCKBENCH_ERROR", "Redo is unavailable right now.");

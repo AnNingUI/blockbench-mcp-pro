@@ -76,8 +76,7 @@ function registerActions(): void {
   ];
   for (const spec of actions) {
     try {
-      const action = new Action({
-        id: spec.id,
+      const action = new Action(spec.id, {
         name: spec.name,
         description: spec.name,
         icon: spec.icon,

@@ -133,10 +133,9 @@ async function captureViewsSafe(
     if (time !== null) {
       try {
         if (animation) {
-          const found = (Animation?.all ?? []).find((a: any) => a.name === animation);
-          if (found) Timeline?.setAnimation?.(found, false);
+          Animation.all.find((item) => item.name === animation)?.select();
         }
-        Timeline?.setTime?.(time);
+        Timeline.setTime(time);
       } catch {
         /* optional */
       }

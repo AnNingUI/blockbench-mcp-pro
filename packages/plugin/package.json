@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@bbmcp/shared": "*",
+    "blockbench-types": "^5.1.0",
     "rolldown": "^1.2.8",
     "typescript": "^5.5.0",
     "zod": "^3.23.8"

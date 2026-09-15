@@ -20,11 +20,6 @@ export function ensureSecret(): string {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   if (settings?.bbmcp_secret) settings.bbmcp_secret.value = secret;
-  try {
-    settings?.bbmcp_secret?.save?.();
-  } catch {
-    /* ignore */
-  }
   return secret;
 }
 
@@ -40,15 +35,15 @@ export function readConfig(): RuntimeConfig {
 }
 
 export function registerSettings(): void {
-  if (typeof Settings?.add !== "function") return;
-  Settings.add("bbmcp_port", {
+  if (typeof Setting !== "function") return;
+  new Setting("bbmcp_port", {
     value: DEFAULTS.mcpPort,
     category: "general",
     name: "MCP Server Port",
     description: "Loopback HTTP port for the in-process MCP server (127.0.0.1).",
     type: "number",
   });
-  Settings.add("bbmcp_secret", {
+  new Setting("bbmcp_secret", {
     value: "",
     category: "general",
     name: "MCP Access Token",
@@ -56,14 +51,14 @@ export function registerSettings(): void {
       "Bearer token every MCP client must send. Generated randomly on first load — copy it into your client config.",
     type: "text",
   });
-  Settings.add("bbmcp_autostart", {
+  new Setting("bbmcp_autostart", {
     value: true,
     category: "general",
     name: "Start MCP Server on launch",
     description: "Listen for MCP clients as soon as the plugin loads.",
     type: "toggle",
   });
-  Settings.add("bbmcp_allow_execute_script", {
+  new Setting("bbmcp_allow_execute_script", {
     value: false,
     category: "general",
     name: "Allow execute_script",

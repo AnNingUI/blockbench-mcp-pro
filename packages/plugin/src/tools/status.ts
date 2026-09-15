@@ -40,17 +40,16 @@ function probeCapabilities(): CapabilityId[] {
   } catch {
     /* none */
   }
-  if (Screencam?.screenshotPreview) caps.push("screenshots");
-  if (Painter?.edit) caps.push("painter");
+  if (typeof Screencam.screenshotPreview === "function") caps.push("screenshots");
+  if ("edit" in Painter) caps.push("painter");
   if (hasGeckoLib()) caps.push("geckolib");
   if (Animation?.all) caps.push("animations");
-  if (Blockbench?.isApp) {
-    try {
-      requireNodeModule("fs");
-      caps.push("filesystem");
-    } catch {
-      /* no fs */
-    }
+  // 桌面端才有 scoped require;Web 版拿不到 —— 按能力探测,不猜布尔标志
+  try {
+    requireNodeModule("fs");
+    caps.push("filesystem");
+  } catch {
+    /* web build */
   }
   return caps;
 }

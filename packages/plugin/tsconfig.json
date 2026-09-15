@@ -6,9 +6,11 @@
     "lib": [
       "ES2022"
     ],
-    "types": [],
+    "types": [
+      "blockbench-types"
+    ],
     "strict": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noEmit": true

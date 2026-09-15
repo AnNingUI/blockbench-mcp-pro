@@ -37,6 +37,18 @@ function descendants(root: any): any[] {
   return out;
 }
 
+type V3 = [number, number, number];
+
+/** Blockbench 的几何字段是定长元组,统一在这里收窄(比到处写 as 更清楚) */
+const v3 = (value: number[]): V3 => [value[0], value[1], value[2]];
+const v2 = (value: number[]): [number, number] => [value[0], value[1]];
+const v4 = (value: number[]): [number, number, number, number] => [
+  value[0],
+  value[1],
+  value[2],
+  value[3],
+];
+
 const DEFAULT_SKIN = "#8a8a8a";
 
 export const geometryTools: Record<string, ToolHandler> = {
@@ -201,10 +213,10 @@ export const geometryTools: Record<string, ToolHandler> = {
           );
           const cube = new Cube({
             name,
-            from: from.map((v: number, i: number) => Math.min(v, to[i])),
-            to: from.map((v: number, i: number) => Math.max(v, to[i])),
-            origin,
-            rotation: mirroredRotation,
+            from: v3(from.map((v: number, i: number) => Math.min(v, to[i]))),
+            to: v3(from.map((v: number, i: number) => Math.max(v, to[i]))),
+            origin: v3(origin),
+            rotation: v3(mirroredRotation),
             inflate: source.inflate ?? 0,
             autouv: 1,
             box_uv: boxUv,
@@ -217,7 +229,7 @@ export const geometryTools: Record<string, ToolHandler> = {
           created.push(row);
           track.addElements([cube]);
         } else {
-          const group = new Group({ name, origin, rotation: [0, 0, 0] }).init().addTo(parent);
+          const group = new Group({ name, origin: v3(origin), rotation: [0, 0, 0] }).init().addTo(parent);
           group.createUniqueName?.();
           const row = { uuid: group.uuid, name: group.name, type: "group" };
           created.push(row);
@@ -251,11 +263,11 @@ export const geometryTools: Record<string, ToolHandler> = {
             from: source.from.map((v: number, i: number) => v + delta[i]),
             to: source.to.map((v: number, i: number) => v + delta[i]),
             origin: source.origin.map((v: number, i: number) => v + delta[i]),
-            rotation: [...source.rotation],
+            rotation: v3([...source.rotation]),
             inflate: source.inflate ?? 0,
             autouv: args.uv_policy === "auto" ? 1 : 0,
             box_uv: source.box_uv ?? boxUv,
-            uv_offset: source.uv_offset ? [...source.uv_offset] : undefined,
+            uv_offset: source.uv_offset ? v2([...source.uv_offset]) : undefined,
           })
             .init()
             .addTo(parent === "root" ? "root" : requireGroup(parent));
@@ -263,7 +275,7 @@ export const geometryTools: Record<string, ToolHandler> = {
           else
             for (const [faceName, face] of Object.entries(source.faces ?? {}) as any[])
               if (cube.faces?.[faceName] && face?.uv)
-                cube.faces[faceName].uv = [...face.uv];
+                cube.faces[faceName].uv = v4([...face.uv]);
           const row = { uuid: cube.uuid, name: cube.name, type: "cube" };
           created.push(row);
           track.addElements([cube]);
@@ -310,10 +322,10 @@ export const geometryTools: Record<string, ToolHandler> = {
             .replace("{index}", String(index));
           const cube = new Cube({
             name,
-            from: nextCenter.map((v: number, i: number) => v - half[i]),
-            to: nextCenter.map((v: number, i: number) => v + half[i]),
-            origin: rotateAround(source.origin, degrees),
-            rotation,
+            from: v3(nextCenter.map((v: number, i: number) => v - half[i])),
+            to: v3(nextCenter.map((v: number, i: number) => v + half[i])),
+            origin: v3(rotateAround(source.origin, degrees)),
+            rotation: v3(rotation),
             inflate: source.inflate ?? 0,
             autouv: args.uv_policy === "auto" ? 1 : 0,
             box_uv: source.box_uv,
@@ -344,7 +356,7 @@ export const geometryTools: Record<string, ToolHandler> = {
         const group = new Group({
           name: `${source.name}${suffix}`,
           origin: source.origin.map((v: number, i: number) => v + delta[i]),
-          rotation: [...source.rotation],
+          rotation: v3([...source.rotation]),
         })
           .init()
           .addTo(parent);
@@ -358,7 +370,7 @@ export const geometryTools: Record<string, ToolHandler> = {
               from: child.from.map((v: number, i: number) => v + delta[i]),
               to: child.to.map((v: number, i: number) => v + delta[i]),
               origin: child.origin.map((v: number, i: number) => v + delta[i]),
-              rotation: [...child.rotation],
+              rotation: v3([...child.rotation]),
               inflate: child.inflate ?? 0,
               autouv: 1,
               box_uv: child.box_uv ?? boxUv,
@@ -392,15 +404,15 @@ export const geometryTools: Record<string, ToolHandler> = {
               pivot[2] + size[2] / 2,
             ],
           };
-      const group = new Group({ name, origin: [...pivot], rotation: [0, 0, 0] })
+      const group = new Group({ name, origin: v3([...pivot]), rotation: [0, 0, 0] })
         .init()
         .addTo(parentOf(args.parent));
       group.createUniqueName?.();
       const cube = new Cube({
         name: `${group.name}_cube`,
-        from: box.from,
-        to: box.to,
-        origin: [...pivot],
+        from: v3(box.from),
+        to: v3(box.to),
+        origin: v3([...pivot]),
         autouv: 1,
         box_uv: boxUv,
       })
@@ -470,7 +482,7 @@ export const geometryTools: Record<string, ToolHandler> = {
         track.addElements([element]);
       };
       const bone = (name: string, origin: number[], parent: any) => {
-        const group = new Group({ name, origin, rotation: [0, 0, 0] }).init().addTo(parent);
+        const group = new Group({ name, origin: v3(origin), rotation: [0, 0, 0] }).init().addTo(parent);
         group.createUniqueName?.();
         return group;
       };
@@ -484,9 +496,9 @@ export const geometryTools: Record<string, ToolHandler> = {
       ) => {
         const cube = new Cube({
           name,
-          from,
+          from: v3(from),
           to: [from[0] + size[0], from[1] + size[1], from[2] + size[2]],
-          origin,
+          origin: v3(origin),
           inflate,
           autouv: 1,
           box_uv: uvMode === "box",

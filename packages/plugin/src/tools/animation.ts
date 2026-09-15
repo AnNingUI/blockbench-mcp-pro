@@ -184,30 +184,18 @@ function buildCycle(
   }
 }
 
-type Animator = { group?: any; rotations?: any[]; position?: any[]; scale?: any[] };
-type AnimationRecord = {
-  name: string;
-  length: number;
-  loop: string;
-  animators?: Record<string, Animator>;
-  getBoneAnimator?: (group: any) => any;
-  setLength?: (length: number) => void;
-  add?: (undo?: boolean) => any;
-  remove?: (undo?: boolean) => void;
-};
-
-function animationApi(): any {
-  if (!Animation?.all)
+function requireAnimations(): void {
+  if (!Array.isArray(Animation.all))
     throw new CommandError(
       "E_UNSUPPORTED_FORMAT",
       "Animations are unavailable in this format/plugin set. Create a bedrock or geckolib_model project.",
     );
-  return Animation;
 }
 
-function findAnimation(name: string): AnimationRecord {
+function findAnimation(name: string): _Animation {
   requireProject();
-  const animation = (Animation?.all ?? []).find((a: any) => a.name === name);
+  requireAnimations();
+  const animation = Animation.all.find((item) => item.name === name);
   if (!animation)
     throw new CommandError("E_NOT_FOUND", `Animation not found: ${name}. Call list_animations.`);
   return animation;
@@ -219,7 +207,7 @@ function writeChannels(
 ): number {
   let keyframes = 0;
   for (const { group, channels } of bones) {
-    const animator = animation.getBoneAnimator?.(group);
+    const animator = animation.getBoneAnimator(group);
     if (!animator)
       throw new CommandError("E_BLOCKBENCH_ERROR", `Cannot create an animator for bone: ${group.name}`);
     for (const channel of ["rotation", "position", "scale"] as const) {
@@ -237,22 +225,23 @@ function writeChannels(
   return keyframes;
 }
 
-function replaceAnimation(name: string, length: number, loop: string, replace?: boolean) {
-  const Api = animationApi();
-  const existing = Api.all.find((animation: any) => animation.name === name);
+function replaceAnimation(
+  name: string,
+  length: number,
+  loop: "once" | "hold" | "loop",
+  replace?: boolean,
+) {
+  const existing = Animation.all.find((animation) => animation.name === name);
   if (existing && replace !== true)
     throw new CommandError(
       "E_INVALID_PARAM",
       `Animation "${name}" already exists; pass replace:true to overwrite it.`,
     );
-  if (existing) {
-    if (typeof existing.remove === "function") existing.remove(false);
-    else Api.all.splice(Api.all.indexOf(existing), 1);
-  }
-  const animation = new Api({ name, length, loop });
-  animation.add?.(false);
-  animation.setLength?.(length);
-  return animation;
+  if (existing) existing.remove(false, true);
+  const created = new Animation({ name, length, loop });
+  created.add(false);
+  created.setLength(length);
+  return created;
 }
 
 export const animationTools: Record<string, ToolHandler> = {
@@ -419,8 +408,7 @@ export const animationTools: Record<string, ToolHandler> = {
   delete_animation: (args: { name: string }) => {
     const animation = findAnimation(args?.name);
     return withUndo({ animations: [animation] }, `delete_animation ${args.name}`, () => {
-      if (typeof animation.remove === "function") animation.remove(false);
-      else Animation.all.splice(Animation.all.indexOf(animation), 1);
+      animation.remove(false, true);
       return { ok: true, undo_label: `delete_animation ${args.name}`, deleted: args.name };
     });
   },
@@ -429,22 +417,19 @@ export const animationTools: Record<string, ToolHandler> = {
     requireProject();
     if (args?.animation) {
       const animation = findAnimation(args.animation);
-      try {
-        Timeline?.setAnimation?.(animation, false);
-      } catch {
-        /* optional */
-      }
+      // Blockbench 切换当前动画 = 选中它(没有 Timeline.setAnimation)
+      animation.select();
     }
     try {
-      Timeline?.setTime?.(args?.time ?? 0);
-      Canvas?.updateAll?.();
+      Timeline.setTime(args?.time ?? 0);
+      Canvas.updateAll();
     } catch {
       throw new CommandError("E_BLOCKBENCH_ERROR", "Timeline API unavailable in this format.");
     }
     return {
       ok: true,
       time: args?.time ?? 0,
-      animation: args?.animation ?? Timeline?.animation?.name ?? null,
+      animation: args?.animation ?? null,
       note: "The model is now posed at this time — call capture_views to look at the frame.",
     };
   },

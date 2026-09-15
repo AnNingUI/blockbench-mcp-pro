@@ -173,7 +173,7 @@ export function wrapTexture(tex: any): TextureHandle {
       const cube = Cube?.all?.find?.((c: any) => c.uuid === cubeUuid);
       if (!cube)
         throw new CommandError("E_NOT_FOUND", `Cube not found: ${cubeUuid}`);
-      cube.applyTexture(tex, faces);
+      cube.applyTexture(tex, faces as true | CubeFaceDirection[]);
     },
     toDataURL(maxEdge = 256) {
       const canvas = canvasOf(tex);
@@ -229,7 +229,6 @@ export function createTexture(opts: {
   tex.height = canvas.height;
   const dataUrl = canvas.toDataURL("image/png");
   if (typeof tex.fromDataURL === "function") tex.fromDataURL(dataUrl);
-  else if (typeof tex.setDataURL === "function") tex.setDataURL(dataUrl);
   else throw new CommandError("E_BLOCKBENCH_ERROR", "Texture.fromDataURL missing — need Blockbench ≥ 5.1");
   tex.add(false);
   return wrapTexture(tex);
@@ -386,15 +385,12 @@ export function captureView(
     );
     try {
       const frame = framing(view);
-      preview.resize?.(size, size);
-      preview.loadAnglePreset?.(frame.preset);
+      preview.loadAnglePreset(frame.preset);
       const cam = preview.camOrtho;
-      if (cam) {
-        cam.zoom = Math.min(cam.right - cam.left, cam.top - cam.bottom) / frame.span;
-        cam.near = 0.01;
-        cam.far = Math.max(1000, frame.span * 10 + 128);
-        cam.updateProjectionMatrix?.();
-      }
+      cam.zoom = Math.min(cam.right - cam.left, cam.top - cam.bottom) / frame.span;
+      cam.near = 0.01;
+      cam.far = Math.max(1000, frame.span * 10 + 128);
+      cam.updateProjectionMatrix();
       preview.render?.();
       Screencam.screenshotPreview(
         preview,
@@ -415,8 +411,8 @@ export function captureView(
   });
 }
 
-/** 视野取景(基于可见几何的世界包围盒) */
-function framing(view: string): { preset: Record<string, unknown>; span: number } {
+/** 视野取景(基于可见几何的世界包围盒),返回官方 AnglePreset */
+function framing(view: string): { preset: AnglePreset; span: number } {
   const cubes: any[] = (Cube?.all ?? []).filter((cube: any) => {
     if (cube.visibility === false) return false;
     let parent = cube.parent;
@@ -459,8 +455,8 @@ function framing(view: string): { preset: Record<string, unknown>; span: number 
   return {
     preset: {
       projection: "orthographic",
-      position: center.map((v, i) => v + (dir[i] / length) * distance),
-      target: center,
+      position: center.map((v, i) => v + (dir[i] / length) * distance) as ArrayVector3,
+      target: center as ArrayVector3,
     },
     span: radius * 2.3,
   };
@@ -521,7 +517,8 @@ export function showBlockingDialog(opts: {
           confirm: 0,
           cancel: opts.buttons.length - 1,
         },
-        (index: number) => resolve({ index }),
+        (button: string | number) =>
+          resolve({ index: typeof button === "number" ? button : Number(button) }),
       );
     } catch {
       resolve({ index: -1 });

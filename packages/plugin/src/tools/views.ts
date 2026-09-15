@@ -129,14 +129,20 @@ export const viewTools: Record<string, ToolHandler> = {
     if (!position)
       throw new CommandError("E_INVALID_PARAM", "Pass a preset, or an explicit position (+ target).");
     try {
-      const camera = Canvas?.camera ?? Screencam?.camera;
-      if (!camera?.position) throw new Error("no camera");
-      camera.position.set(position[0], position[1], position[2]);
-      if (target && camera.controls?.target) {
-        camera.controls.target.set(target[0], target[1], target[2]);
-        camera.lookAt?.({ x: target[0], y: target[1], z: target[2] });
+      // 视口相机挂在 Preview 上(Canvas 没有 camera);对每个打开的 preview 设置
+      const previews = Preview.all;
+      if (!previews.length) throw new Error("no preview");
+      for (const preview of previews) {
+        const camera = preview.camera as unknown as {
+          position: { set(x: number, y: number, z: number): void };
+          lookAt(x: number, y: number, z: number): void;
+        };
+        camera.position.set(position[0], position[1], position[2]);
+        const lookAt = target ?? [0, 0, 0];
+        camera.lookAt(lookAt[0], lookAt[1], lookAt[2]);
+        preview.render();
       }
-      Canvas?.updateAll?.();
+      Canvas.updateAll();
     } catch {
       throw new CommandError(
         "E_BLOCKBENCH_ERROR",
