@@ -1,0 +1,28 @@
+{
+  "faces": [
+    {
+      "cube": "skull",
+      "face": "north",
+      "ops": [
+        { "type": "rect", "x": 2, "y": 1, "width": 1, "height": 1, "color": "#3b2412" },
+        { "type": "rect", "x": 4, "y": 1, "width": 1, "height": 1, "color": "#3b2412" },
+        { "type": "rect", "x": 1, "y": 2, "width": 2, "height": 2, "color": "#ffffff" },
+        { "type": "rect", "x": 5, "y": 2, "width": 2, "height": 2, "color": "#ffffff" },
+        { "type": "rect", "x": 2, "y": 3, "width": 1, "height": 1, "color": "#2b56c8" },
+        { "type": "rect", "x": 5, "y": 3, "width": 1, "height": 1, "color": "#2b56c8" },
+        { "type": "rect", "x": 2, "y": 6, "width": 4, "height": 1, "color": "#c98a63" }
+      ]
+    },
+    {
+      "cube": "cap_dome",
+      "face": "north",
+      "ops": [
+        { "type": "rect", "x": 2, "y": 0, "width": 1, "height": 4, "color": "#ffffff" },
+        { "type": "rect", "x": 6, "y": 0, "width": 1, "height": 4, "color": "#ffffff" },
+        { "type": "rect", "x": 3, "y": 1, "width": 1, "height": 1, "color": "#ffffff" },
+        { "type": "rect", "x": 5, "y": 1, "width": 1, "height": 1, "color": "#ffffff" },
+        { "type": "rect", "x": 4, "y": 2, "width": 1, "height": 1, "color": "#ffffff" }
+      ]
+    }
+  ]
+}

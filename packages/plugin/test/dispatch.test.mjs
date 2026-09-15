@@ -660,6 +660,25 @@ test("transform_animation_keys retimes and mirrors", async () => {
   expect(inspected.length).toBe(Number(cycle.length) * 2);
 });
 
+test("set_timeline_time really poses (animate mode + bone selection + setup + preview)", async () => {
+  mock.reset();
+  newProject();
+  await ok("scaffold_biped");
+  const cycle = await ok("generate_animation", { type: "idle", replace: true });
+  mock.state.timelineCalls.length = 0;
+  mock.state.animatorPreviews = 0;
+  const posed = await ok("set_timeline_time", { time: 0.5, animation: cycle.name });
+  expect(posed.time).toBe(0.5);
+  // 真机实测:只调 setTime 是空操作,必须切 animate 模式 + 选骨骼 + setup + preview
+  expect(mock.state.modeCalls).toContain("animate");
+  expect(mock.state.timelineCalls).toContain("setup");
+  expect(mock.state.timelineCalls).toContain("setTime:0.5");
+  expect(mock.state.animatorPreviews, "Animator.preview 必须被调用").toBe(1);
+  expect(posed.animators_loaded, "时间轴装载了 animator(说明骨骼确实被选中)").toBeGreaterThan(0);
+  expect(posed.previous_mode).toBeTruthy();
+  await ok("delete_animation", { name: cycle.name });
+});
+
 test("set_timeline_time poses a frame and delete_animation removes a clip", async () => {
   mock.reset();
   newProject();

@@ -162,6 +162,9 @@ export function makeCanvas(width = 1, height = 1) {
   return canvas;
 }
 
+/** 模块级调用收集器:类定义在模块作用域,无法访问 installMockBlockbench 内部的 state */
+const calls = { animationSelects: [] };
+
 let uuidSeq = 0;
 const nextUuid = () => `uuid-${(uuidSeq += 1)}`;
 
@@ -200,6 +203,7 @@ class MockGroup extends MockElement {
     if (this.parent && this.parent !== "root") this.parent.children = this.parent.children.filter((c) => c !== this);
   }
   select() {
+    this.__selected = true;
     return this;
   }
 }
@@ -325,6 +329,12 @@ class MockAnimation {
     this.length = length;
     return this;
   }
+  // 真 Blockbench 的 _Animation 有 select()(切换当前动画)
+  select() {
+    this.__selected = true;
+    calls.animationSelects.push(this.name);
+    return this;
+  }
   getBoneAnimator(group) {
     if (!this.animators[group.uuid]) {
       // 真机实测:Blockbench 的 animator 通道叫 rotation / position / scale(单数)
@@ -357,6 +367,13 @@ export function installMockBlockbench() {
     persisted: {},
     pluginInstalls: [],
     pluginUninstalls: [],
+    timelineCalls: [],
+    get animationSelects() {
+      return calls.animationSelects;
+    },
+    timelineAnimators: 0,
+    animatorPreviews: 0,
+    modeCalls: [],
   };
 
   const canvas = makeCanvas(1, 1);
@@ -517,7 +534,25 @@ export function installMockBlockbench() {
     updateSelection: () => {},
     camera: { position: { set: (x, y, z) => (state.viewport.position = [x, y, z]) } },
   };
-  globalThis.Timeline = { setTime: (t) => (state.timelineTime = t), setAnimation: () => {} };
+  globalThis.Timeline = {
+    animators: [],
+    setTime: (t) => {
+      state.timelineTime = t;
+      state.timelineCalls.push(`setTime:${t}`);
+    },
+    setup: () => {
+      state.timelineCalls.push("setup");
+      // 真机行为:只有被选中的元素才会把 animator 装进时间轴
+      const selected = Group.all.filter((g) => g.__selected);
+      Timeline.animators = selected.slice();
+      state.timelineAnimators = Timeline.animators.length;
+    },
+  };
+  globalThis.Animator = {
+    preview: () => {
+      state.animatorPreviews += 1;
+    },
+  };
   globalThis.BarItems = {
     mirror_model: { name: "Mirror", description: "Mirror the model", click: () => true },
     undo: { name: "Undo", click: () => true },
@@ -532,6 +567,7 @@ export function installMockBlockbench() {
       name: id[0].toUpperCase() + id.slice(1),
       select() {
         modes.selected = mode;
+        state.modeCalls.push(id);
         return mode;
       },
     };
@@ -584,6 +620,7 @@ export function installMockBlockbench() {
     globalThis.Project = null;
     state.dialogs = [];
     state.lastDialog = null;
+    calls.animationSelects.length = 0;
   };
 
   return { state, reset, MockCube, MockGroup, MockTexture, MockAnimation, canvas, storage };

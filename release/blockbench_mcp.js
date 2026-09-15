@@ -4019,7 +4019,7 @@ Work is not done because you looked at your own screenshot.
 			from: vec3.optional(),
 			mirror: enumType(["none", "x"]).optional()
 		}).strict(), { mutation: true }),
-		spec("scaffold_biped", "geometry", "Build a correctly-pivoted classical biped (root -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture, and return a check_model summary of the result. Start here for anything humanoid.", objectType({
+		spec("scaffold_biped", "geometry", "Build a correctly-pivoted classical biped (root_bone -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture, and return a check_model summary of the result. Start here for anything humanoid.", objectType({
 			scale: N.optional(),
 			texture_size: N.optional(),
 			name_prefix: S.optional(),
@@ -7329,7 +7329,10 @@ Work is not done because you looked at your own screenshot.
 		const label = opts.undo_label ?? "blockbench-mcp batch";
 		const pendingGroups = new Set([...(opts.create_groups ?? []).map((g) => g.name), ...(opts.generated_groups ?? []).map((g) => g.name)]);
 		const known = (ref) => !ref || ref === "root" || pendingGroups.has(ref) || Boolean(findGroup(ref));
-		for (const group of [...opts.generated_groups ?? [], ...opts.create_groups ?? []]) if (!known(group.parent)) throw new CommandError("E_PARTIAL_FORBIDDEN", `Missing parent group: ${group.parent}`);
+		for (const group of [...opts.generated_groups ?? [], ...opts.create_groups ?? []]) {
+			if (group.name === "root") throw new CommandError("E_INVALID_PARAM", "A group cannot be named \"root\": that name means the project root in Blockbench. Name it \"root_bone\" (or give a name_prefix).");
+			if (!known(group.parent)) throw new CommandError("E_PARTIAL_FORBIDDEN", `Missing parent group: ${group.parent}`);
+		}
 		for (const cube of opts.create_cubes ?? []) {
 			if (!known(cube.parent)) throw new CommandError("E_PARTIAL_FORBIDDEN", `Missing parent group for cube ${cube.name}: ${cube.parent}`);
 			assertSide(cube.side, cube.from[0], `Cube "${cube.name}"`);
@@ -7811,7 +7814,7 @@ Work is not done because you looked at your own screenshot.
 						guard += 1;
 					}
 				}
-				if (element.from && (update.from || update.to || update.inflate !== void 0)) throw new CommandError("E_INVALID_PARAM", `Group ${element.name} does not support from/to/inflate.`);
+				if (!element.from && (update.from || update.to || update.inflate !== void 0)) throw new CommandError("E_INVALID_PARAM", `"${element.name}" is a group/bone, which does not support from/to/inflate.`);
 				return {
 					update,
 					element
@@ -8333,7 +8336,7 @@ Work is not done because you looked at your own screenshot.
 					skin.applyToCube(cube.uuid, true);
 					return cube;
 				};
-				const root = bone(`${prefix}root`, [
+				const root = bone(`${prefix}root_bone`, [
 					0,
 					0,
 					0
@@ -10893,11 +10896,11 @@ Work is not done because you looked at your own screenshot.
 					"position",
 					"scale"
 				].map((channel) => [channel, (animator[channel] ?? []).map((key) => ({
-					time: key.time,
+					time: Number(key.time),
 					value: key.data_points?.[0] ? [
-						key.data_points[0].x,
-						key.data_points[0].y,
-						key.data_points[0].z
+						Number(key.data_points[0].x),
+						Number(key.data_points[0].y),
+						Number(key.data_points[0].z)
 					] : null,
 					interpolation: key.interpolation
 				}))]))
@@ -10967,20 +10970,27 @@ Work is not done because you looked at your own screenshot.
 				};
 			});
 		},
-		set_timeline_time: (args) => {
+		set_timeline_time: async (args) => {
 			requireProject();
-			if (args?.animation) findAnimation(args.animation).select();
-			try {
-				Timeline.setTime(args?.time ?? 0);
-				Canvas.updateAll();
-			} catch {
-				throw new CommandError("E_BLOCKBENCH_ERROR", "Timeline API unavailable in this format.");
-			}
+			const previousMode = Modes.selected?.id ?? null;
+			Modes.options.animate?.select?.();
+			if (typeof unselectAll === "function") unselectAll();
+			for (const group of Group.all) group.select?.();
+			const animation = args?.animation ? findAnimation(args.animation) : void 0;
+			animation?.select();
+			Timeline.setup?.();
+			await new Promise((resolve) => setTimeout(resolve, 120));
+			Timeline.setTime(args?.time ?? 0);
+			globalThis.Animator?.preview?.();
+			Canvas.updateAll();
+			const loaded = Timeline.animators?.length ?? 0;
 			return {
 				ok: true,
 				time: args?.time ?? 0,
-				animation: args?.animation ?? null,
-				note: "The model is now posed at this time — call capture_views to look at the frame."
+				animation: args?.animation ?? animation?.name ?? null,
+				previous_mode: previousMode,
+				animators_loaded: loaded,
+				note: loaded > 0 ? "Posed. capture_views now renders this frame. The editor was switched to animate mode and the bones selected (that is what loads the timeline) — use set_mode {id:'edit'} to go back." : "No animator loaded — check that the animation has keys for these bones (inspect_animation) and that this format supports animations."
 			};
 		}
 	};

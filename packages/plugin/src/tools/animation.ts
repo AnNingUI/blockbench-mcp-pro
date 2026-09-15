@@ -332,9 +332,14 @@ export const animationTools: Record<string, ToolHandler> = {
         (["rotation", "position", "scale"] as const).map((channel) => [
           channel,
           (animator[channel] ?? []).map((key: any) => ({
-            time: key.time,
+            time: Number(key.time),
+            // 真机实测:Blockbench 的 data_points 可能是字符串,统一成数字
             value: key.data_points?.[0]
-              ? [key.data_points[0].x, key.data_points[0].y, key.data_points[0].z]
+              ? [
+                  Number(key.data_points[0].x),
+                  Number(key.data_points[0].y),
+                  Number(key.data_points[0].z),
+                ]
               : null,
             interpolation: key.interpolation,
           })),
@@ -413,24 +418,41 @@ export const animationTools: Record<string, ToolHandler> = {
     });
   },
 
-  set_timeline_time: (args: { time: number; animation?: string }) => {
+  set_timeline_time: async (args: { time: number; animation?: string }) => {
     requireProject();
-    if (args?.animation) {
-      const animation = findAnimation(args.animation);
-      // Blockbench 切换当前动画 = 选中它(没有 Timeline.setAnimation)
-      animation.select();
-    }
-    try {
-      Timeline.setTime(args?.time ?? 0);
-      Canvas.updateAll();
-    } catch {
-      throw new CommandError("E_BLOCKBENCH_ERROR", "Timeline API unavailable in this format.");
-    }
+    // 真机实测(5.1.6):只调 Timeline.setTime 是**空操作** —— 渲染仍是 rest pose。
+    // 必须按 Blockbench 自己的顺序做:
+    //   ① 切到 animate 模式  ② 选中骨骼(时间轴只装载"被选中元素"的 animator!)
+    //   ③ 选动画 ④ Timeline.setup() ⑤ setTime ⑥ Animator.preview() ⑦ 重绘
+    const previousMode = (Modes.selected as { id?: string } | undefined)?.id ?? null;
+    const animateMode = (Modes.options as unknown as Record<string, { select?: () => void } | undefined>)
+      .animate;
+    animateMode?.select?.();
+
+    if (typeof unselectAll === "function") unselectAll();
+    for (const group of Group.all) group.select?.();
+
+    const animation = args?.animation ? findAnimation(args.animation) : undefined;
+    animation?.select();
+    (Timeline as unknown as { setup?: () => void }).setup?.();
+    // Timeline 的装载是 Vue 驱动的,要等一个 tick 才会填好 animators
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    Timeline.setTime(args?.time ?? 0);
+    (globalThis as { Animator?: { preview?: () => void } }).Animator?.preview?.();
+    Canvas.updateAll();
+
+    const loaded = (Timeline as unknown as { animators?: unknown[] }).animators?.length ?? 0;
     return {
       ok: true,
       time: args?.time ?? 0,
-      animation: args?.animation ?? null,
-      note: "The model is now posed at this time — call capture_views to look at the frame.",
+      animation: args?.animation ?? animation?.name ?? null,
+      previous_mode: previousMode,
+      animators_loaded: loaded,
+      note:
+        loaded > 0
+          ? "Posed. capture_views now renders this frame. The editor was switched to animate mode and the bones selected (that is what loads the timeline) — use set_mode {id:'edit'} to go back."
+          : "No animator loaded — check that the animation has keys for these bones (inspect_animation) and that this format supports animations.",
     };
   },
 };
