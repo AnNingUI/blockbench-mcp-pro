@@ -657,6 +657,17 @@ blockbench-mcp-pro/
 
 ## 真机验证(需要 Blockbench)
 
+> 一键打包 + 安装 + 全量测试的说明也在 [`release/INSTALL.md`](release/INSTALL.md)(`release/` 里已经放好插件文件)。
+
+**两套脚本**:
+
+| 脚本 | 用途 |
+|---|---|
+| `scripts/live-test.mjs` | **全量**:10 组 / 30+ 用例 = 正式流程 + 边缘用例 + 传输层硬化 + 协议 + 并发,落盘截图/模型/报告(`live-report.json`) |
+| `scripts/live-smoke.mjs` | 快速冒烟(约 10 秒):一条顺畅路径,确认装好了没 |
+| `scripts/configure-pi-mcp.mjs` | 从 Blockbench 设置存储里读令牌,自动写 `~/.pi/agent/mcp.json`(先备份) |
+
+
 **先说清楚自动化测试的边界**:`pnpm test` 里的 102 个测试跑的是**纯逻辑 + 我写的 mock 宿主**
 (假的 `Cube`/`Group`/`Texture`/`Codecs`,假的截图 data URL)。它验证的是
 参数校验、批次语义、UV 打包数学、审计规则、HTTP/鉴权/MCP 协议、交付产物能否加载,

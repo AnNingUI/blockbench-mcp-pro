@@ -4,6 +4,7 @@ import { requireProject } from "../bb.js";
 import { captureView, showBlockingDialog } from "../host.js";
 import {
   answerReview,
+  dismissReview,
   latestOpenReview,
   openReview,
   reviewPayload,
@@ -21,12 +22,22 @@ async function showCard(
   question: string,
   details: string | undefined,
 ): Promise<void> {
-  const result = await showBlockingDialog({
+  const dialog = showBlockingDialog({
     id: review.id,
     title,
     message: `${question}${details ? `\n\n${details}` : ""}`,
     buttons: review.options,
   });
+  // 卡片到期必须自己消失,否则会在 Blockbench 里越堆越多
+  const expiry = setTimeout(
+    () => {
+      dialog.close();
+      dismissReview(review);
+    },
+    Math.max(1000, review.expiresAt - Date.now()),
+  );
+  const result = await dialog.result;
+  clearTimeout(expiry);
   answerReview(review.id, result.index, result.comment);
 }
 

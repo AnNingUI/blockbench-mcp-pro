@@ -485,14 +485,23 @@ export type DialogResult = { index: number; comment?: string };
  * 优先用 Blockbench Dialog(可以带图片),不可用时退化为原生消息框。
  * ponytail: 富面板(缩略图 + 评论框 + 活动日志)是升级路径;这里先保证"人能回答"。
  */
+export type DialogHandle = {
+  result: Promise<DialogResult>;
+  /** 主动关闭对话框(人审卡片到期时用,否则会一直挂在屏幕上) */
+  close: () => void;
+};
+
 export function showBlockingDialog(opts: {
   id: string;
   title: string;
   message: string;
   lines?: string[];
   buttons: string[];
-}): Promise<DialogResult> {
-  return new Promise((resolve) => {
+}): DialogHandle {
+  let close = () => {
+    /* 由下面赋值 */
+  };
+  const result = new Promise<DialogResult>((resolve) => {
     // 1) 原生 Dialog(支持 HTML,可放 <img>)
     if (typeof Dialog === "function") {
       try {
@@ -515,13 +524,20 @@ export function showBlockingDialog(opts: {
           onButton: (index: number) => finish(index),
           onCancel: () => finish(-1),
         });
+        close = () => {
+          try {
+            dialog.hide?.();
+          } catch {
+            /* ignore */
+          }
+        };
         dialog.show?.();
         return;
       } catch {
         /* fall through to message box */
       }
     }
-    // 2) 原生消息框
+    // 2) 原生消息框(无法主动关闭,close 退化为 no-op)
     try {
       Blockbench.showMessageBox(
         {
@@ -538,6 +554,7 @@ export function showBlockingDialog(opts: {
       resolve({ index: -1 });
     }
   });
+  return { result, close: () => close() };
 }
 
 /** 收集评论(可选,用户取消则返回 undefined) */

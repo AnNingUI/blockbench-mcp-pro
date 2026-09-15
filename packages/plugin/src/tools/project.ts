@@ -116,12 +116,13 @@ export const projectTools: Record<string, ToolHandler> = {
     const resolved = paths.resolve(args.path);
     if (!fsApi().existsSync(resolved))
       throw new CommandError("E_NOT_FOUND", `Directory does not exist: ${resolved}`);
-    const result = await showBlockingDialog({
+    const scopeDialog = showBlockingDialog({
       id: "bbmcp_scope",
       title: "Blockbench MCP — file access",
       message: `Allow MCP file access for this session?\n\n${resolved}\n\nOnly this folder becomes readable/writable by AI tools; nothing outside it is reachable.`,
       buttons: ["Allow this folder", "Deny"],
     });
+    const result = await scopeDialog.result;
     if (result.index !== 0)
       throw new CommandError("E_SCOPE_DENIED", "User denied scoped directory access.");
     session.scopedDirectory = resolved;

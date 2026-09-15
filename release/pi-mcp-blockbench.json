@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "blockbench": {
+      "type": "http",
+      "url": "http://127.0.0.1:39742/mcp",
+      "headers": {
+        "Authorization": "Bearer <把 Blockbench 里的 MCP Access Token 填这里>"
+      }
+    }
+  }
+}
