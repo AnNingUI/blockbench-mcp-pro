@@ -272,7 +272,8 @@ export const geometryTools: Record<string, ToolHandler> = {
             uv_offset: source.uv_offset ? v2([...source.uv_offset]) : undefined,
           })
             .init()
-            .addTo(parent === "root" ? "root" : requireGroup(parent));
+            // parent 可能已经是活着的 Group 对象(来自源 cube 的 parent),只有字符串才需要解析
+            .addTo(parent === "root" || typeof parent !== "string" ? parent : requireGroup(parent));
           if (args.uv_policy === "auto") cube.mapAutoUV?.();
           else
             for (const [faceName, face] of Object.entries(source.faces ?? {}) as any[])
@@ -333,7 +334,8 @@ export const geometryTools: Record<string, ToolHandler> = {
             box_uv: source.box_uv,
           })
             .init()
-            .addTo(parent === "root" ? "root" : requireGroup(parent));
+            // parent 可能已经是活着的 Group 对象(来自源 cube 的 parent),只有字符串才需要解析
+            .addTo(parent === "root" || typeof parent !== "string" ? parent : requireGroup(parent));
           if (args.uv_policy === "auto") cube.mapAutoUV?.();
           const row = { uuid: cube.uuid, name: cube.name, type: "cube" };
           created.push(row);

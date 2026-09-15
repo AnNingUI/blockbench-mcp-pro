@@ -73,7 +73,8 @@ export const coverageTools: Record<string, ToolHandler> = {
         if (!element) throw new CommandError("E_NOT_FOUND", `Element not found: ${ref}`);
         element.select?.();
       }
-      Canvas.updateSelected([]);
+      // 5.1.6 实测:Canvas.updateSelected 不存在,全局 updateSelection() 才是刷新入口
+      (globalThis as { updateSelection?: () => void }).updateSelection?.();
       return { ok: true, selected: args.refs.length };
     } catch (err) {
       if (err instanceof CommandError) throw err;
@@ -258,7 +259,16 @@ export const coverageTools: Record<string, ToolHandler> = {
     try {
       serialized = JSON.parse(JSON.stringify(result ?? null));
     } catch {
-      serialized = String(result);
+      // 返回了循环引用/Blockbench 对象时,别只丢一个 "[object Object]" —— 那是没法调试的
+      serialized =
+        typeof result === "object" && result !== null
+          ? {
+              note:
+                "Return value is not JSON-serializable (circular or a Blockbench object). Return primitives (numbers, strings, arrays of plain objects).",
+              keys: Object.keys(result as object).slice(0, 20),
+              ctor: (result as object).constructor?.name ?? "unknown",
+            }
+          : String(result);
     }
     return { ok: true, result: serialized };
   },

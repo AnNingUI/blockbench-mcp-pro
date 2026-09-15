@@ -327,10 +327,10 @@ class MockAnimation {
   }
   getBoneAnimator(group) {
     if (!this.animators[group.uuid]) {
-      const animator = { group, rotations: [], position: [], scale: [] };
+      // 真机实测:Blockbench 的 animator 通道叫 rotation / position / scale(单数)
+      const animator = { group, rotation: [], position: [], scale: [] };
       animator.addKeyframe = ({ channel, time, interpolation, data_points }) => {
-        const list = channel === "rotation" ? animator.rotations : animator[channel];
-        list.push({ time, interpolation, data_points });
+        animator[channel].push({ time, interpolation, data_points });
       };
       this.animators[group.uuid] = animator;
     }

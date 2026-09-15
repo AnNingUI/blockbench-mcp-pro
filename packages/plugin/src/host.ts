@@ -65,10 +65,17 @@ export function withUndo<T>(
     addTextures: (texs) => created.textures.push(...texs),
     addAnimations: (anims) => created.animations.push(...anims),
   };
-  const init: Record<string, unknown> = { ...aspects };
-  for (const key of ["elements", "textures", "groups"]) {
-    if (Array.isArray(init[key]) && (init[key] as unknown[]).length === 0)
-      delete init[key];
+  // 关键(真机验证):Blockbench 的 UndoSystem 只有在 aspects.elements/textures/animations
+  //   **存在**时才会建立 before 快照;缺了它,撤销无法识别"这些元素是新建的",于是新建的 cube
+  //   根本撤不掉(实测:17 → 17)。空数组必须保留,不能像参考实现那样删掉。
+  const init: Record<string, unknown> = {
+    elements: [],
+    textures: [],
+    animations: [],
+    ...aspects,
+  };
+  for (const key of ["elements", "textures", "animations"]) {
+    if (!Array.isArray(init[key])) init[key] = [];
   }
   let started = false;
   try {
@@ -82,7 +89,7 @@ export function withUndo<T>(
     const result = fn(track);
     if (started) {
       const finish: Record<string, unknown> = { ...init };
-      const existing = (finish.elements as unknown[]) ?? [];
+      const existing = Array.isArray(finish.elements) ? (finish.elements as unknown[]) : [];
       const native = created.elements.filter(
         (el) => el && typeof el === "object" && "getUndoCopy" in (el as object),
       );

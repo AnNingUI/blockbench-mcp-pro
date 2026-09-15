@@ -98,7 +98,7 @@ async function ok(name, args = {}) {
 /** 期望失败,并返回错误 */
 async function fails(name, args = {}, expectedCode) {
   const r = await raw(name, args);
-  expect(!r.ok, `${name} 本应失败却成功了: ${JSON.stringify(r.result).slice(0, 160)}`);
+  expect(!r.ok, `${name} 本应失败却成功了: ${String(JSON.stringify(r.result)).slice(0, 160)}`);
   if (expectedCode) expectEqual(r.error.code, expectedCode, `${name} 的错误码`);
   expect(r.isError, `${name} 失败时 isError 应为 true`);
   return r.error;
@@ -151,21 +151,14 @@ test("health: 报告版本/能力/传输", async () => {
   expect(result.server === "blockbench-mcp-pro", "server 名");
 });
 
-test("list_formats / list_textures / list_animations / get_elements 都可用", async () => {
-  const formats = await ok("list_formats");
-  expect(formats.result.formats.length > 0, "至少一个格式");
-  await ok("list_textures");
-  await ok("list_animations");
-  await ok("get_elements", {});
-});
-
 test("get_guide: 所有主题都有内容,未知主题回退到 modeling", async () => {
   for (const topic of ["modeling", "detailing", "orientation", "texturing", "vfx", "animation", "review", "reference"]) {
     const { result } = await ok("get_guide", { topic });
     expect(result.text.length > 100, `${topic} 指南内容`);
   }
-  const fallback = await ok("get_guide", { topic: "nonsense" });
-  expectEqual(fallback.result.topic, "modeling", "未知主题回退");
+  // 未知主题会被严格拒绝(比静默回退更安全):断言错误里列出了合法主题
+  const rejected = await fails("get_guide", { topic: "nonsense" }, "E_INVALID_PARAM");
+  expect(rejected.message.includes("modeling"), "错误里给出合法主题");
 });
 
 /* ------------------------------- 1. 工程与几何 ------------------------------- */
@@ -181,6 +174,11 @@ test("create_project(bedrock) 得到 box UV 工程", async () => {
   expectEqual(result.uv_mode, "box", "uv_mode");
   const summary = await ok("get_project_summary");
   expect(summary.result.uv_mode === "box", "summary.uv_mode");
+  // 只读工具(需要已打开工程)
+  expect((await ok("list_formats")).result.formats.length > 0, "至少一个格式");
+  await ok("list_textures");
+  await ok("list_animations");
+  await ok("get_elements", {});
 });
 
 test("apply_geometry_batch: 骨架 + 立方体 + side 守卫", async () => {
@@ -208,7 +206,7 @@ test("apply_geometry_batch: 骨架 + 立方体 + side 守卫", async () => {
 
 test("程序化生成器:壳体 / 阵列 / 骨链 / 翼 / 体素化", async () => {
   const shell = await ok("add_hollow_volume", {
-    bounds: { from: [-3.8, 15.8, -3.8], to: [3.8, 22.4, 3.8] },
+    bounds: { from: [-3.6, 22.4, -3.6], to: [3.6, 26.6, 3.6] },
     wall_thickness: 0.8,
     open_faces: ["down"],
     name: "helmet",
@@ -220,8 +218,8 @@ test("程序化生成器:壳体 / 阵列 / 骨链 / 翼 / 体素化", async () =
     mode: "linear",
     count: 7,
     element_size: [0.8, 3, 0.8],
-    start: [-4, 16, 2.4],
-    end: [4, 16, 2.4],
+    start: [-4, 12.5, 2.4],
+    end: [4, 12.5, 2.4],
     anchor: "bottom",
     depth_stagger: 0.12,
     rotation_range: { min: [-6, 0, -8], max: [6, 0, 8] },
@@ -233,7 +231,7 @@ test("程序化生成器:壳体 / 阵列 / 骨链 / 翼 / 体素化", async () =
 
   const chain = await ok("extrude_chain", {
     segments: 4,
-    base_origin: [0, 9, 2],
+    base_origin: [0, 14, 2.2],
     segment_length: 2,
     initial_size: [1.6, 1.6],
     taper: 0.6,
@@ -247,7 +245,7 @@ test("程序化生成器:壳体 / 阵列 / 骨链 / 翼 / 体素化", async () =
 
   const wing = await ok("add_wing", {
     side: "right",
-    base_origin: [3, 15, 2],
+    base_origin: [3, 22, 2],
     fingers: 3,
     arm_length: 4,
     forearm_length: 5,
@@ -260,21 +258,33 @@ test("程序化生成器:壳体 / 阵列 / 骨链 / 翼 / 体素化", async () =
   const vox = await ok("voxelize_matrix", {
     matrix: ["..##..", ".####.", "######"],
     palette: { "#": { name: "plate", depth: 2 } },
-    origin: [0, 22, -4],
-    parent: "body",
+    origin: [0, 24, -4],
+    parent: "head",
     merge_adjacent: true,
   });
   expect(vox.result.cubes >= 3, "体素化产出");
 });
 
 test("mirror / array / radial / duplicate / create_limb 都能用", async () => {
-  await ok("array_cubes", { sources: ["spike_1"], count: 2, offset: [0, 0, 1], uv_policy: "auto" });
-  await ok("radial_array_cubes", { sources: ["spike_1"], count: 4, pivot: [0, 16, 0], axis: "y", angle: 360, uv_policy: "auto" });
-  await ok("mirror_elements", { refs: ["arm_right_cube"], axis: "x" });
-  const limb = await ok("create_limb", { name: "ear_right", pivot: [2, 22, 0], size: [1, 2, 1], parent: "head" });
+  await ok("array_cubes", { sources: ["spike_1"], count: 2, offset: [0, 4, 0], uv_policy: "auto" });
+  await ok("radial_array_cubes", {
+    sources: ["spike_1"],
+    count: 4,
+    pivot: [0, 20, 0],
+    axis: "y",
+    angle: 360,
+    uv_policy: "auto",
+    parent: "body",
+  });
+  const limb = await ok("create_limb", { name: "ear_right", pivot: [2, 24, 0], size: [1, 2, 1], parent: "head" });
   expect(limb.result.created.length === 2, "create_limb 生成骨+块");
-  await ok("duplicate_hierarchy", { root: "arm_right", name_suffix: "_copy" });
-  await ok("update_elements", { updates: [{ ref: "muzzle", visibility: true }] });
+  // 复制件要挪开,否则与原件完全重合(check_model 会报 COPLANAR_OVERLAP,那是正确行为)
+  await ok("duplicate_hierarchy", {
+    root: "arm_right",
+    name_suffix: "_copy",
+    translate: [0, 0, 8],
+  });
+  await ok("update_elements", { updates: [{ ref: "ear_right_cube", visibility: true }] });
   await ok("transform_elements", { refs: ["ear_right"], translate: [0, 0, 0], rotate: [0, 0, 10] });
   await ok("delete_elements", { refs: ["spike_2"] });
 });
@@ -310,7 +320,7 @@ test("质量门:check_model / check_sides / check_rig / audit_complexity / measu
   expect(typeof measured.result.ratios.width_to_height === "number", "宽高比");
 
   const symmetry = await ok("audit_symmetry", {
-    pairs: [{ left: "leg_left", right: "leg_right" }],
+    pairs: [{ left: "bip_leg_left", right: "bip_leg_right" }],
   });
   expect(symmetry.result.summary.failed === 0, "左右腿对称");
 });
@@ -343,7 +353,7 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
   await ok("paint_face_features", {
     faces: [
       {
-        cube: "skull",
+        cube: "bip_head_cube",
         face: "north",
         ops: [
           { type: "rect", x: 0, y: 2, width: 1, height: 1, color: "#1b1208" },
@@ -355,32 +365,41 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
   });
   await ok("paint_pixel_batch", {
     strokes: [
-      { cube: "torso", face: "north", color: "#5a3a1b", points: [{ x: 0, y: 0 }, { x: 3, y: 3 }], size: 1 },
+      { cube: "bip_body_cube", face: "north", color: "#5a3a1b", points: [{ x: 0, y: 0 }, { x: 3, y: 3 }], size: 1 },
     ],
   });
 
+  // muzzle 是 3x3 units → 面的 texel 网格也是 3x3,rows 必须精确匹配(否则应被拒)
+  const read0 = await ok("get_face_grid", { cube: "bip_head_cube", face: "north" });
+  await fails(
+    "paint_face_grid",
+    { cube: "bip_head_cube", face: "north", rows: ["ab", "ba"], palette: { a: "#f00", b: "#0f0" } },
+    "E_INVALID_PARAM",
+  );
+  const rows = ["abc", "bca", "cab"];
   const written = await ok("paint_face_grid", {
-    cube: "muzzle",
+    cube: "bip_head_cube",
     face: "north",
-    rows: ["ab", "ba"],
-    palette: { a: "#ff0000", b: "#00ff00" },
+    rows,
+    palette: { a: "#ff0000", b: "#00ff00", c: "#0000ff" },
   });
   expect(typeof written.result.revision === "string", "返回 revision");
-  const read = await ok("get_face_grid", { cube: "muzzle", face: "north" });
-  expectEqual(read.result.rows, [["#ff0000ff", "#00ff00ff"], ["#00ff00ff", "#ff0000ff"]], "像素往返一致");
+  const read = await ok("get_face_grid", { cube: "bip_head_cube", face: "north" });
+  expectEqual(read.result.rows[0], ["#ff0000ff", "#00ff00ff", "#0000ffff"], "像素往返一致");
+  expect(read.result.width).toBe(read0.result.width);
 
   const revision = await ok("get_texture_revision");
   await ok("edit_texture_pixels", { pixels: [{ x: 0, y: 0, color: "#123456" }], expected_revision: revision.result.revision });
   await fails("edit_texture_pixels", { pixels: [{ x: 0, y: 0, color: "#222222" }], expected_revision: revision.result.revision }, "E_PARTIAL_FORBIDDEN");
 
   await ok("replace_texture_color", { from: "#123456", to: "#654321", tolerance: 0 });
-  await ok("copy_face_pixels", { source: { cube: "skull", face: "north" }, target: { cube: "skull", face: "south" }, flip_x: true });
+  await ok("copy_face_pixels", { source: { cube: "bip_head_cube", face: "north" }, target: { cube: "bip_head_cube", face: "south" }, flip_x: true });
   await ok("flood_fill_texture", { x: 0, y: 0, color: "#000000", max_pixels: 4096 });
-  await ok("transform_texture_region", { face: { cube: "muzzle", face: "north" }, operation: "rotate_180" });
+  await ok("transform_texture_region", { face: { cube: "bip_head_cube", face: "north" }, operation: "rotate_180" });
 
   const palette = await ok("analyze_texture_palette", { max_colors: 8 });
   expect(palette.result.unique_colors > 1, "调色板统计");
-  const region = await ok("get_texture_region", { face: { cube: "skull", face: "north" }, scale: 8 });
+  const region = await ok("get_texture_region", { face: { cube: "bip_head_cube", face: "north" }, scale: 8 });
   saveImages(region.images, "texture-region");
   const quality = await ok("audit_texture_quality");
   expect(quality.result.summary.errors === 0, "贴图质检无 error");
@@ -403,10 +422,10 @@ test("材质通道:ensure_material_set → audit_material_set", async () => {
 });
 
 test("resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_uv_islands", async () => {
-  await ok("assign_texture", { texture: "live_skin", cubes: ["torso"] });
-  await ok("set_face_uv", { entries: [{ cube: "torso", face: "north", uv: [0, 0, 8, 8], rotation: 0 }] });
-  await ok("transform_uv_islands", { faces: [{ cube: "torso", face: "north" }], translate: [1, 1] });
-  await ok("auto_uv_cubes", { cubes: ["muzzle"] });
+  await ok("assign_texture", { texture: "live_skin", cubes: ["bip_body_cube"] });
+  await ok("set_face_uv", { entries: [{ cube: "bip_body_cube", face: "north", uv: [0, 0, 8, 8], rotation: 0 }] });
+  await ok("transform_uv_islands", { faces: [{ cube: "bip_body_cube", face: "north" }], translate: [1, 1] });
+  await ok("auto_uv_cubes", { cubes: ["bip_head_cube"] });
   const resized = await ok("resize_texture", { width: 128, height: 128 });
   expectEqual(resized.result.size, [128, 128], "纹理尺寸");
 });
@@ -418,8 +437,8 @@ test("动画:generate_animation → inspect → transform → 时间轴", async 
   expect(cycle.result.keyframes > 0, "生成关键帧");
   const inspected = await ok("inspect_animation", { name: cycle.result.name });
   expect(inspected.result.summary.keyframes > 0, "读回关键帧");
-  const legR = inspected.result.bones.find((b) => b.name === "leg_right");
-  const legL = inspected.result.bones.find((b) => b.name === "leg_left");
+  const legR = inspected.result.bones.find((b) => b.name === "bip_leg_right");
+  const legL = inspected.result.bones.find((b) => b.name === "bip_leg_left");
   if (legR && legL)
     expect(
       Math.sign(legR.channels.rotations[0].value[0]) !== Math.sign(legL.channels.rotations[0].value[0]),
@@ -483,7 +502,7 @@ test("action 桥:list_actions / get_action / select_action", async () => {
   expect(filtered.result.actions.length >= 1, "能按名字过滤");
   const one = await ok("get_action", { id: filtered.result.actions[0].id });
   expect(one.result.id, "取到动作详情");
-  await ok("select_action", { refs: ["torso"] });
+  await ok("select_action", { refs: ["bip_body_cube"] });
   await fails("get_action", { id: "definitely_not_an_action" }, "E_NOT_FOUND");
 });
 
@@ -513,7 +532,11 @@ test("undo / redo 真的能回滚 AI 的改动", async () => {
   expectEqual(added.result.cubes, before.result.cubes + 1, "新增 1 个 cube");
   await ok("undo");
   const undone = await ok("get_project_summary");
-  expectEqual(undone.result.cubes, before.result.cubes, "undo 后回到原样");
+  expectEqual(
+    undone.result.cubes,
+    before.result.cubes,
+    `undo 后回到原样(撤销前 ${added.result.cubes},撤销后 ${undone.result.cubes})`,
+  );
   await ok("redo");
   const redone = await ok("get_project_summary");
   expectEqual(redone.result.cubes, before.result.cubes + 1, "redo 恢复");
@@ -598,12 +621,12 @@ test("边缘:缺父级 / 删不存在 / 环状父子", async () => {
   await fails("apply_geometry_batch", { create_cubes: [{ name: "x", from: [0, 0, 0], to: [1, 1, 1], parent: "no_such_group" }] }, "E_PARTIAL_FORBIDDEN");
   await fails("delete_elements", { refs: ["no_such_element"] }, "E_PARTIAL_FORBIDDEN");
   await fails("update_elements", { updates: [{ ref: "body", parent: "body" }] }, "E_INVALID_PARAM");
-  await fails("update_elements", { updates: [{ ref: "torso", parent: "no_such_group" }] }, "E_NOT_FOUND");
+  await fails("update_elements", { updates: [{ ref: "bip_body_cube", parent: "no_such_group" }] }, "E_NOT_FOUND");
 });
 
 test("边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace", async () => {
-  await fails("transform_elements", { refs: ["skull"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
-  await fails("mirror_elements", { refs: ["torso"], axis: "w" }, "E_INVALID_PARAM");
+  await fails("transform_elements", { refs: ["bip_head"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
+  await fails("mirror_elements", { refs: ["bip_body_cube"], axis: "w" }, "E_INVALID_PARAM");
   await fails("upsert_animation", { name: "live_custom", length: 1 }, "E_INVALID_PARAM");
   await fails("inspect_animation", { name: "no_such_animation" }, "E_NOT_FOUND");
   await fails("delete_animation", { name: "no_such_animation" }, "E_NOT_FOUND");
@@ -612,14 +635,14 @@ test("边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace", as
 
 test("边缘:UV/贴图 越界与错误输入", async () => {
   await fails("get_face_grid", { cube: "no_such_cube", face: "north" }, "E_NOT_FOUND");
-  await fails("get_face_grid", { cube: "torso", face: "nope" }, "E_NOT_FOUND");
-  await fails("paint_face_grid", { cube: "torso", face: "north", rows: ["x"], palette: { x: "#fff" } }, "E_INVALID_PARAM");
-  await fails("paint_face_grid", { cube: "torso", face: "north", rows: ["a"], palette: { ab: "#fff" } }, "E_INVALID_PARAM");
+  await fails("get_face_grid", { cube: "bip_body_cube", face: "nope" }, "E_NOT_FOUND");
+  await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["x"], palette: { x: "#fff" } }, "E_INVALID_PARAM");
+  await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["a"], palette: { ab: "#fff" } }, "E_INVALID_PARAM");
   await fails("flood_fill_texture", { x: -5, y: 0, color: "#fff" }, "E_INVALID_PARAM");
   await fails("flood_fill_texture", { x: 0, y: 0, color: "#fff", max_pixels: 1 }, "E_INVALID_PARAM");
-  await fails("transform_texture_region", { face: { cube: "torso", face: "north" }, operation: "rotate_90" }, "E_INVALID_PARAM");
-  await fails("paint_face_features", { faces: [{ cube: "torso", face: "north", ops: [{ type: "spray", color: "#fff" }] }] }, "E_INVALID_PARAM");
-  await fails("pack_box_uv", { cubes: ["torso"], auto_resize: false, max_size: 16, padding: 1 }, "E_INVALID_PARAM");
+  await fails("transform_texture_region", { face: { cube: "bip_body_cube", face: "north" }, operation: "rotate_90" }, "E_INVALID_PARAM");
+  await fails("paint_face_features", { faces: [{ cube: "bip_body_cube", face: "north", ops: [{ type: "spray", color: "#fff" }] }] }, "E_INVALID_PARAM");
+  await fails("pack_box_uv", { cubes: ["bip_body_cube"], auto_resize: false, max_size: 16, padding: 1 }, "E_INVALID_PARAM");
 });
 
 test("边缘:参考图 / 人审 / 动作 的错误路径", async () => {

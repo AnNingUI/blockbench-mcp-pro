@@ -590,7 +590,7 @@ test("upsert_animation writes keys, inspect reads them back", async () => {
   const inspected = await ok("inspect_animation", { name: "animation.test.wave" });
   expect(inspected.bones.length).toBe(1);
   expect(inspected.summary.keyframes).toBe(3);
-  expect(inspected.bones[0].channels.rotations[1].value).toEqual([45, 0, 0]);
+  expect(inspected.bones[0].channels.rotation[1].value).toEqual([45, 0, 0]);
 
   await fails("upsert_animation", { name: "animation.test.wave", length: 1 }, "E_INVALID_PARAM");
 });
@@ -607,8 +607,8 @@ test("generate_animation produces a direction-correct walk cycle on a real rig",
   const legL = inspected.bones.find((b) => b.name === "leg_left");
   expect(legR && legL, "both legs keyed").toBeTruthy();
   // 对侧相位:同样时间点旋转符号相反 (+X 让下垂的腿向前)
-  expect(Math.sign(legR.channels.rotations[0].value[0]) === -Math.sign(legL.channels.rotations[0].value[0]), "limbs are in opposite phase").toBeTruthy();
-  expect(legR.channels.rotations[0].value[0]).not.toBe(0);
+  expect(Math.sign(legR.channels.rotation[0].value[0]) === -Math.sign(legL.channels.rotation[0].value[0]), "limbs are in opposite phase").toBeTruthy();
+  expect(legR.channels.rotation[0].value[0]).not.toBe(0);
   const body = inspected.bones.find((b) => b.name === "body");
   expect(body.channels.position.length >= 3, "body bobs").toBeTruthy();
   for (const type of ["idle", "run", "attack", "cast", "jump", "hurt", "death", "fly"]) {

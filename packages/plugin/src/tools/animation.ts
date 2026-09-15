@@ -329,7 +329,7 @@ export const animationTools: Record<string, ToolHandler> = {
       id,
       name: animator.group?.name ?? id,
       channels: Object.fromEntries(
-        (["rotations", "position", "scale"] as const).map((channel) => [
+        (["rotation", "position", "scale"] as const).map((channel) => [
           channel,
           (animator[channel] ?? []).map((key: any) => ({
             time: key.time,

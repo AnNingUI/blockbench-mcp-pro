@@ -6723,12 +6723,17 @@ Work is not done because you looked at your own screenshot.
 			addTextures: (texs) => created.textures.push(...texs),
 			addAnimations: (anims) => created.animations.push(...anims)
 		};
-		const init = { ...aspects };
+		const init = {
+			elements: [],
+			textures: [],
+			animations: [],
+			...aspects
+		};
 		for (const key of [
 			"elements",
 			"textures",
-			"groups"
-		]) if (Array.isArray(init[key]) && init[key].length === 0) delete init[key];
+			"animations"
+		]) if (!Array.isArray(init[key])) init[key] = [];
 		let started = false;
 		try {
 			Undo.initEdit(init);
@@ -6740,7 +6745,7 @@ Work is not done because you looked at your own screenshot.
 			const result = fn(track);
 			if (started) {
 				const finish = { ...init };
-				const existing = finish.elements ?? [];
+				const existing = Array.isArray(finish.elements) ? finish.elements : [];
 				const native = created.elements.filter((el) => el && typeof el === "object" && "getUndoCopy" in el);
 				if (native.length) finish.elements = [...existing, ...native];
 				const nativeTex = created.textures.filter((t) => t && typeof t === "object" && "getUndoCopy" in t);
@@ -8038,7 +8043,7 @@ Work is not done because you looked at your own screenshot.
 						autouv: args.uv_policy === "auto" ? 1 : 0,
 						box_uv: source.box_uv ?? boxUv,
 						uv_offset: source.uv_offset ? v2([...source.uv_offset]) : void 0
-					}).init().addTo(parent === "root" ? "root" : requireGroup(parent));
+					}).init().addTo(parent === "root" || typeof parent !== "string" ? parent : requireGroup(parent));
 					if (args.uv_policy === "auto") cube.mapAutoUV?.();
 					else for (const [faceName, face] of Object.entries(source.faces ?? {})) if (cube.faces?.[faceName] && face?.uv) cube.faces[faceName].uv = v4([...face.uv]);
 					const row = {
@@ -8094,7 +8099,7 @@ Work is not done because you looked at your own screenshot.
 							inflate: source.inflate ?? 0,
 							autouv: args.uv_policy === "auto" ? 1 : 0,
 							box_uv: source.box_uv
-						}).init().addTo(parent === "root" ? "root" : requireGroup(parent));
+						}).init().addTo(parent === "root" || typeof parent !== "string" ? parent : requireGroup(parent));
 						if (args.uv_policy === "auto") cube.mapAutoUV?.();
 						const row = {
 							uuid: cube.uuid,
@@ -10884,7 +10889,7 @@ Work is not done because you looked at your own screenshot.
 				id,
 				name: animator.group?.name ?? id,
 				channels: Object.fromEntries([
-					"rotations",
+					"rotation",
 					"position",
 					"scale"
 				].map((channel) => [channel, (animator[channel] ?? []).map((key) => ({
@@ -11521,7 +11526,7 @@ Work is not done because you looked at your own screenshot.
 					if (!element) throw new CommandError("E_NOT_FOUND", `Element not found: ${ref}`);
 					element.select?.();
 				}
-				Canvas.updateSelected([]);
+				globalThis.updateSelection?.();
 				return {
 					ok: true,
 					selected: args.refs.length
@@ -11687,7 +11692,11 @@ Work is not done because you looked at your own screenshot.
 			try {
 				serialized = JSON.parse(JSON.stringify(result ?? null));
 			} catch {
-				serialized = String(result);
+				serialized = typeof result === "object" && result !== null ? {
+					note: "Return value is not JSON-serializable (circular or a Blockbench object). Return primitives (numbers, strings, arrays of plain objects).",
+					keys: Object.keys(result).slice(0, 20),
+					ctor: result.constructor?.name ?? "unknown"
+				} : String(result);
 			}
 			return {
 				ok: true,
