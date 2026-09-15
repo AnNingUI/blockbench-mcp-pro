@@ -26,9 +26,31 @@ declare const Animation: {
   new (data?: AnimationOptions): _Animation;
   all: _Animation[];
 };
-declare const Plugin: {
-  register(id: string, options: Record<string, unknown>): unknown;
-};
+/**
+ * blockbench-types 把 Plugin 类export 成模块成员,没有声明全局值 —— 但运行时的 `Plugin`
+ * 确实存在(静态 register + 实例 install/uninstall/loadFromURL/...)。
+ * 这里声明成 **类** 而不是 const:值(构造/静态)和类型(参数标注)都需要。
+ * 成员按官方 class Plugin 的形状声明(见 generated/plugin_loader.d.ts)。
+ */
+declare class Plugin {
+  constructor(id?: string, data?: Record<string, unknown>);
+  static register(id: string, options: Record<string, unknown>): unknown;
+  id: string;
+  title: string;
+  version?: string;
+  author?: string;
+  description?: string;
+  installed: boolean;
+  disabled?: boolean;
+  isInstallable?(): string | true;
+  install(): Promise<void>;
+  uninstall(): void;
+  loadFromURL(url: string, first?: boolean): Promise<Plugin>;
+  loadFromFile(
+    file: { path: string; name?: string; content?: string },
+    first?: boolean,
+  ): Promise<Plugin>;
+}
 
 /* --------------------------- browser API(用到多少写多少) --------------------------- */
 

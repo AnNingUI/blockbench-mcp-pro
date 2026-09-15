@@ -241,6 +241,19 @@ export function startHttpServer(config: RuntimeConfig): ServerHandle {
         }
       }
       if (tooLarge || headerEnd === -1) return;
+      // 只支持 Content-Length(绝大多数 MCP 客户端都发它);chunked 直接给出明确原因,
+      // 否则客户端只会看到一个莫名的 JSON parse error
+      if (/chunked/i.test(headers["transfer-encoding"] ?? "")) {
+        respond(
+          socket,
+          411,
+          JSON.stringify({
+            error:
+              "Chunked request bodies are not supported. Send Content-Length with the JSON body.",
+          }),
+        );
+        return;
+      }
       if (buffer.length < headerEnd + contentLength) {
         socket.setTimeout(120_000, () => socket.destroy());
         return;

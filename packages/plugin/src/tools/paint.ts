@@ -952,8 +952,11 @@ export const paintTools: Record<string, ToolHandler> = {
     const target = args?.face ? faceSpaceOf(args.face.cube, args.face.face) : undefined;
     const width = target?.space.width ?? texture.width;
     const height = target?.space.height ?? texture.height;
-    if (args.x >= width || args.y >= height)
-      throw new CommandError("E_INVALID_PARAM", `Seed outside ${width}x${height}.`);
+    if (args.x < 0 || args.y < 0 || args.x >= width || args.y >= height)
+      throw new CommandError(
+        "E_INVALID_PARAM",
+        `Seed (${args.x},${args.y}) outside ${width}x${height}.`,
+      );
     const fill = rgbaOf(args.color ?? null);
     const tolerance = args?.tolerance ?? 0;
     const cap = args?.max_pixels ?? 65536;

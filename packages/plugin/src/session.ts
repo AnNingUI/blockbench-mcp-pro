@@ -12,6 +12,8 @@ export type PendingReview = {
   expiresAt: number;
   /** 已经回答时存在 */
   answer?: { index: number; option: string; comment?: string; at: number };
+  /** 用户直接关掉了对话框(不算回答) */
+  dismissed?: boolean;
   resolve?: (answer: { index: number; option: string; comment?: string; at: number }) => void;
 };
 
@@ -158,10 +160,21 @@ export function answerReview(
 ): PendingReview | undefined {
   const review = session.pending.get(id);
   if (!review) return undefined;
+  if (index < 0) {
+    // 用户把对话框关掉了(ESC / X):这不是回答,卡片仍然算没答完
+    dismissReview(review);
+    return review;
+  }
   const option = review.options[index] ?? String(index);
   review.answer = { index, option, comment, at: Date.now() };
   review.resolve?.(review.answer);
   return review;
+}
+
+/** 用户关掉对话框:标记 dismissed 并唤醒等待者,但不算回答 */
+export function dismissReview(review: PendingReview): void {
+  review.dismissed = true;
+  review.resolve?.({ index: -1, option: "dismissed", at: Date.now() });
 }
 
 export function latestOpenReview(includeAnswered = false): PendingReview | undefined {
@@ -181,6 +194,7 @@ export function reviewPayload(review: PendingReview, waitSeconds: number) {
     answer_index: review.answer?.index ?? null,
     comment: review.answer?.comment ?? null,
     pending: !review.answer,
+    dismissed: Boolean(review.dismissed),
     waited_seconds: waitSeconds,
     seconds_until_card_closes: Math.max(
       0,

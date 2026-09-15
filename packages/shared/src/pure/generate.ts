@@ -702,7 +702,7 @@ export function addWing(params: WingParams): GeneratorResult {
   const armLen = params.arm_length ?? 8;
   const foreLen = params.forearm_length ?? 10;
   const thickness = params.bone_thickness ?? 2;
-  const membrane = params.membrane ?? "auto";
+  const membrane = params.membrane ?? "cubes";
   const attachToBody = params.attach_to_body !== false;
   const membraneThickness = params.membrane_thickness ?? 0.5;
   const name = params.name ?? "wing";

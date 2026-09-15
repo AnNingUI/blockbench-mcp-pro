@@ -111,6 +111,22 @@ test("DNS-rebinding style Host headers are refused", async () => {
   expect(allowed).toMatch(/"tools"/);
 });
 
+test("chunked request bodies get a clear 411 instead of a confusing parse error", async () => {
+  const response = await rawRequest(
+    PORT,
+    "POST /mcp HTTP/1.1",
+    [
+      "Host: 127.0.0.1",
+      "Content-Type: application/json",
+      "Transfer-Encoding: chunked",
+      `Authorization: Bearer ${TOKEN}`,
+    ],
+    ["0", "", ""].join(CRLF),
+  );
+  expect(response).toMatch(/^HTTP\/1\.1 411/);
+  expect(response).toMatch(/Chunked request bodies are not supported/);
+});
+
 test("non-JSON bodies are refused", async () => {
   const response = await fetch(URL, {
     method: "POST",

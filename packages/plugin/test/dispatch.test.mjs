@@ -243,6 +243,52 @@ test("mirror_elements renames left/right and check_sides agrees", async () => {
   expect(sides.summary.unpaired).toBe(0);
 });
 
+test("duplicate_hierarchy keeps original UVs by default, regenerates on uv_policy:auto", async () => {
+  mock.reset();
+  newProject();
+  await ok("apply_geometry_batch", {
+    create_groups: [{ name: "arm_right", origin: [5, 14, 0] }],
+    create_cubes: [{ name: "arm_right_cube", from: [4, 8, -1], to: [6, 14, 1], parent: "arm_right" }],
+  });
+  const source = mock.MockCube.all.find((c) => c.name === "arm_right_cube");
+  source.faces.north.uv = [1, 2, 3, 4]; // 人为标记
+  await ok("duplicate_hierarchy", { root: "arm_right", name_suffix: "_copy" });
+  const shared = mock.MockCube.all.find((c) => c.name === "arm_right_cube_copy");
+  expect(shared.faces.north.uv, "share 模式下沿用原 UV").toEqual([1, 2, 3, 4]);
+  await ok("duplicate_hierarchy", { root: "arm_right", name_suffix: "_auto", uv_policy: "auto" });
+  const regenerated = mock.MockCube.all.find((c) => c.name === "arm_right_cube_auto");
+  expect(regenerated.faces.north.uv, "auto 模式下重新生成").not.toEqual([1, 2, 3, 4]);
+});
+
+test("paint_face_features rejects unknown paint ops instead of silently doing nothing", async () => {
+  mock.reset();
+  newProject();
+  await ok("apply_geometry_batch", { create_cubes: [{ name: "c", from: [0, 0, 0], to: [2, 2, 2] }] });
+  await ok("ensure_texture", { name: "skin", width: 32, height: 32, fill: "#111111" });
+  await ok("pack_box_uv", { cubes: ["c"] });
+  const bad = await call("paint_face_features", {
+    faces: [{ cube: "c", face: "north", ops: [{ type: "spray", color: "#fff" }] }],
+  });
+  expect(bad.ok).toBe(false);
+  expect(bad.error.code).toBe("E_INVALID_PARAM");
+  // 合法 op 仍然工作
+  const good = await ok("paint_face_features", {
+    faces: [{ cube: "c", face: "north", ops: [{ type: "rect", x: 0, y: 0, width: 1, height: 1, color: "#ff0000" }] }],
+  });
+  expect(good.painted).toBe(1);
+});
+
+test("flood_fill_texture rejects seeds outside the texture", async () => {
+  mock.reset();
+  newProject();
+  await ok("apply_geometry_batch", { create_cubes: [{ name: "c", from: [0, 0, 0], to: [2, 2, 2] }] });
+  await ok("ensure_texture", { name: "skin", width: 16, height: 16, fill: "#222222" });
+  await fails("flood_fill_texture", { x: -1, y: 0, color: "#ff0000" }, "E_INVALID_PARAM");
+  await fails("flood_fill_texture", { x: 0, y: 99, color: "#ff0000" }, "E_INVALID_PARAM");
+  const filled = await ok("flood_fill_texture", { x: 0, y: 0, color: "#ff0000", max_pixels: 4096 });
+  expect(filled.filled).toBeGreaterThan(0);
+});
+
 test("scaffold_biped builds a real rig, packs UVs and returns check_model", async () => {
   mock.reset();
   newProject();
@@ -259,6 +305,32 @@ test("scaffold_biped builds a real rig, packs UVs and returns check_model", asyn
   expect(uvs.size, "every cube got its own atlas region").toBe(cubes.length);
   const rig = await ok("check_rig");
   expect(rig.summary.ready, JSON.stringify(rig.findings)).toBe(true);
+  // 描述承诺返回 check_model 摘要 —— 断言它真的在结果里
+  expect(result.check, "scaffold_biped returns a check_model summary").toBeTruthy();
+  expect(result.check.summary.errors).toBe(0);
+});
+
+test("declared params that the implementation ignores are gone from the contract", async () => {
+  // compare_reference / load_reference 曾经声明了 position/target/overlay/opacity 但没用
+  await fails("compare_reference", { position: [1, 2, 3] }, "E_INVALID_PARAM");
+  await fails("load_reference", { data_url: "data:image/png;base64,x", overlay: true }, "E_INVALID_PARAM");
+  // add_wing 曾经声明 membrane:\"mesh\",但没有 mesh 实现
+  await fails("add_wing", { side: "right", base_origin: [3, 22, 2], membrane: "mesh" }, "E_INVALID_PARAM");
+});
+
+test("analyze_view_silhouette really forwards luminance_threshold", async () => {
+  mock.reset();
+  newProject();
+  await ok("scaffold_biped");
+  // 阈值极高 → 几乎所有像素都被判为背景,覆盖率必须明显下降
+  const strict = await ok("analyze_view_silhouette", {
+    views: ["north"],
+    max_edge: 64,
+    luminance_threshold: 0,
+  });
+  const normal = await ok("analyze_view_silhouette", { views: ["north"], max_edge: 64 });
+  expect(normal.views[0].coverage).toBeGreaterThanOrEqual(strict.views[0].coverage);
+  expect(strict.views[0].foreground_pixels).toBe(0);
 });
 
 test("measure_model / audit_symmetry report numbers", async () => {
@@ -609,6 +681,22 @@ test("request_review returns pending and wait_review resolves once answered", as
   expect(answered.comment).toBe("elbows too straight");
 });
 
+test("dismissing the review dialog is NOT an answer (stays pending)", async () => {
+  mock.reset();
+  const pending = await ok("ask_user", { question: "Pick one", wait_seconds: 0.05 });
+  // 用户按了 ESC / 关掉对话框:Blockbench 会回调 -1
+  api.answerReview(pending.review_id, -1);
+  const after = await ok("wait_review", { review_id: pending.review_id, wait_seconds: 0.05 });
+  expect(after.pending, "关闭对话框不算回答").toBe(true);
+  expect(after.dismissed).toBe(true);
+  expect(after.answer).toBe(null);
+  // 之后仍然可以被正常回答
+  api.answerReview(pending.review_id, 0, "还是选第一个");
+  const answered = await ok("wait_review", { review_id: pending.review_id, wait_seconds: 1 });
+  expect(answered.pending).toBe(false);
+  expect(answered.answer).toBe("Yes");
+});
+
 test("ask_user offers custom options", async () => {
   mock.reset();
   const pending = await ok("ask_user", {
@@ -666,9 +754,41 @@ test("settings, plugins and history tools work through the mock", async () => {
   expect(one.value).toBe(39742);
   const updated = await ok("set_setting", { id: "bbmcp_port", value: 40000 });
   expect(updated.value).toBe(40000);
+  // 必须经 Setting.set() 写存储,否则重启就丢(和令牌那个 bug 同一类)
+  expect(mock.state.persisted.bbmcp_port).toBe(40000);
   await ok("set_setting", { id: "bbmcp_port", value: 39742 });
+  // 插件:list_plugins 要区分"已安装"和"商店里可见"
   const plugins = await ok("list_plugins");
-  expect(Array.isArray(plugins.plugins)).toBeTruthy();
+  expect(plugins.summary.installed).toBe(1);
+  expect(plugins.summary.available).toBe(2);
+  expect(plugins.plugins.find((p) => p.id === "animated_java").installed).toBe(true);
+  expect(plugins.plugins.find((p) => p.id === "geckolib").installed).toBe(false);
+
+  // 按商店 id 安装(真 API = plugin.install())
+  const installed = await ok("install_plugin", { id: "geckolib" });
+  expect(installed.installed).toBe(true);
+  expect(installed.title).toBe("GeckoLib");
+  expect(mock.state.pluginInstalls).toContain("geckolib");
+
+  // 平台不支持时给出原因而不是静默失败
+  const unsupported = await call("install_plugin", { id: "hytale" });
+  expect(unsupported.ok).toBe(false);
+  expect(unsupported.error.code).toBe("E_UNSUPPORTED_FORMAT");
+  expect(unsupported.error.message).toMatch(/web app/);
+
+  // 按 URL 安装
+  const fromUrl = await ok("install_plugin", { url: "https://example.com/p.js" });
+  expect(fromUrl.source).toBe("url");
+  expect(mock.state.pluginInstalls).toContain("url:https://example.com/p.js");
+
+  await fails("install_plugin", { id: "nope" }, "E_NOT_FOUND");
+  await fails("install_plugin", {}, "E_INVALID_PARAM");
+
+  // 未安装的不能下架
+  await fails("uninstall_plugin", { id: "hytale" }, "E_INVALID_PARAM");
+  const uninstalled = await ok("uninstall_plugin", { id: "animated_java" });
+  expect(uninstalled.uninstalled).toBe("animated_java");
+  expect(mock.state.pluginUninstalls).toContain("animated_java");
   const undo = await ok("undo");
   expect(undo.action).toBe("undo");
   expect(mock.state.undoCalls).toBe(1);

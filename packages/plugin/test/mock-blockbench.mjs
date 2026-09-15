@@ -355,6 +355,8 @@ export function installMockBlockbench() {
     registered: null,
     settingsSaved: 0,
     persisted: {},
+    pluginInstalls: [],
+    pluginUninstalls: [],
   };
 
   const canvas = makeCanvas(1, 1);
@@ -399,7 +401,55 @@ export function installMockBlockbench() {
       Object.assign(this, typeof args[0] === "string" ? { id: args[0], ...args[1] } : args[0]);
     }
   };
-  globalThis.Plugins = { all: [] };
+  // 真 Plugin 是类:静态 register + 实例 install / uninstall / loadFromURL / loadFromFile / isInstallable
+  class MockPlugin {
+    constructor(id, data = {}) {
+      this.id = id;
+      Object.assign(this, data);
+      this.title = data.title ?? id;
+      this.installed = data.installed ?? false;
+    }
+    static register(id, options) {
+      state.registered = { id, options };
+    }
+    isInstallable() {
+      return this.installableReason ?? true;
+    }
+    async install() {
+      if (this.installableReason) throw new Error(this.installableReason);
+      this.installed = true;
+      state.pluginInstalls.push(this.id);
+    }
+    uninstall() {
+      this.installed = false;
+      state.pluginUninstalls.push(this.id);
+    }
+    async loadFromURL(url) {
+      this.installed = true;
+      state.pluginInstalls.push(`url:${url}`);
+      return this;
+    }
+    async loadFromFile(file) {
+      this.installed = true;
+      state.pluginInstalls.push(`file:${file?.path}`);
+      return this;
+    }
+  }
+  globalThis.Plugin = MockPlugin;
+  globalThis.Plugins = {
+    all: [
+      new MockPlugin("animated_java", { title: "Animated Java", version: "1.0.0", installed: true }),
+      new MockPlugin("geckolib", { title: "GeckoLib", version: "3.0.0", installed: false }),
+      new MockPlugin("hytale", {
+        title: "Hytale",
+        version: "0.1.0",
+        installed: false,
+        installableReason: "only available in the web app",
+      }),
+    ],
+    installed: [],
+    loading_promise: Promise.resolve(),
+  };
   globalThis.Settings = {
     add: (id, options) => {
       globalThis.settings[id] = options;

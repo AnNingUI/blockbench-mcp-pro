@@ -1,6 +1,7 @@
 /** 几何工具 —— 组装 / 编辑 / 变换 / 镜像 / 阵列 / 肢体 / 骨架 / 测量 */
 import {
   auditSymmetry as auditSymmetryPure,
+  checkModel as checkModelPure,
   composeRotation,
   measureModel as measureModelPure,
   planUvPack,
@@ -22,6 +23,7 @@ import {
   resolveUvMode,
   sideSuffix,
   snapshotElements,
+  uvIslands,
   withUndo,
 } from "../bb.js";
 import { createTexture, findTexture } from "../host.js";
@@ -377,7 +379,11 @@ export const geometryTools: Record<string, ToolHandler> = {
             })
               .init()
               .addTo(group);
-            cube.mapAutoUV?.();
+            // uv_policy 决定新副本是共用原 UV 还是重新生成(默认 share,与文档一致)
+            if (args?.uv_policy === "auto") cube.mapAutoUV?.();
+            else
+              for (const [faceName, face] of Object.entries(child.faces ?? {}) as any[])
+                if (cube.faces?.[faceName] && face?.uv) cube.faces[faceName].uv = v4(face.uv);
             created.push({ uuid: cube.uuid, name: cube.name, type: "cube" });
             track.addElements([cube]);
           }
@@ -582,7 +588,19 @@ export const geometryTools: Record<string, ToolHandler> = {
         }
       }
       refreshCanvas(created.map((c) => ({ uuid: c.uuid })));
-      return { ok: true, undo_label: label, uv_mode: uvMode, created };
+      // 描述承诺返回 check_model 摘要,所以这里真的跑一遍(误差早发现早修)
+      const check = checkModelPure(snapshotElements(), {
+        textureWidth: Project?.texture_width ?? 16,
+        textureHeight: Project?.texture_height ?? 16,
+        uvIslands: uvIslands(),
+      });
+      return {
+        ok: true,
+        undo_label: label,
+        uv_mode: uvMode,
+        created,
+        check: { summary: check.summary, findings: check.findings },
+      };
     });
   },
 

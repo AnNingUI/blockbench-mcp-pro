@@ -73,7 +73,7 @@ export const coverageTools: Record<string, ToolHandler> = {
         if (!element) throw new CommandError("E_NOT_FOUND", `Element not found: ${ref}`);
         element.select?.();
       }
-      Canvas.updateSelected(undefined);
+      Canvas.updateSelected([]);
       return { ok: true, selected: args.refs.length };
     } catch (err) {
       if (err instanceof CommandError) throw err;
@@ -135,36 +135,73 @@ export const coverageTools: Record<string, ToolHandler> = {
   set_setting: (args: { id: string; value: unknown }) => {
     const setting = settingsMap()[args?.id];
     if (!setting) throw new CommandError("E_NOT_FOUND", `Unknown setting: ${args?.id}. Use list_settings.`);
-    setting.value = args?.value;
-    setting.save?.();
+    // 必须走 Setting.set():直接赋 .value 只改内存,Blockbench 不会保存(与令牌那个 bug 同一类);
+    // 而且真 Setting 上并没有 save()
+    if (typeof setting.set === "function") setting.set(args?.value);
+    else setting.value = args?.value;
     return { ok: true, id: args.id, value: setting.value };
   },
 
-  list_plugins: () => ({
-    plugins: Plugins.all.map((plugin) => ({
-      id: plugin.id ?? plugin.title,
-      title: plugin.title ?? plugin.id,
+  list_plugins: () => {
+    // Plugins.all 同时包含"已安装"和"商店里可见但未安装"的条目(官方类型的注释也这么写)
+    const describe = (plugin: Plugin) => ({
+      id: plugin.id,
+      title: plugin.title,
       version: plugin.version ?? null,
       author: plugin.author ?? null,
-    })),
-  }),
+      installed: Boolean(plugin.installed),
+      disabled: Boolean((plugin as { disabled?: boolean }).disabled),
+    });
+    const all = Plugins.all.map(describe);
+    return {
+      plugins: all,
+      summary: {
+        total: all.length,
+        installed: all.filter((entry) => entry.installed).length,
+        available: all.filter((entry) => !entry.installed).length,
+      },
+      note: "installed:true 的是已安装;其余是商店里可安装的(用 install_plugin {id} 装)。",
+    };
+  },
 
-  install_plugin: (args: { id?: string; url?: string }) => {
+  install_plugin: async (args: { id?: string; url?: string }) => {
     const target = args?.url ?? args?.id;
-    if (!target) throw new CommandError("E_INVALID_PARAM", "Pass id (a plugin store id) or url.");
-    // Blockbench 没有统一的插件安装 API,只在确实存在时调用,否则让用户手动装
-    const installer = (Blockbench as unknown as { installPlugin?: (target: string) => void })
-      .installPlugin;
-    if (typeof installer !== "function")
+    if (!target)
+      throw new CommandError("E_INVALID_PARAM", "Pass id (a plugin store id, e.g. 'geckolib') or url.");
+
+    // 商店列表可能还在加载,等一次(与官方 Plugin 类同名的 loading_promise)
+    const plugins = Plugins as unknown as { all: Plugin[]; loading_promise?: Promise<unknown> };
+    if (plugins.loading_promise) await plugins.loading_promise.catch(() => undefined);
+
+    if (args?.url) {
+      await new Plugin().loadFromURL(args.url, true);
+      return {
+        ok: true,
+        source: "url",
+        url: args.url,
+        note: "如果 Blockbench 弹出权限/确认对话框,用户需要点同意后格式才会出现。",
+      };
+    }
+
+    const plugin = Plugins.all.find((entry) => entry.id === args.id);
+    if (!plugin)
       throw new CommandError(
-        "E_BLOCKBENCH_ERROR",
-        "This Blockbench build exposes no programmatic plugin installer. Ask the user to install it from File ▸ Plugins and retry.",
+        "E_NOT_FOUND",
+        `Plugin "${args.id}" not found. Call list_plugins to see store entries (installed:false).`,
       );
-    installer(target);
+    if (plugin.installed) return { ok: true, already: true, id: plugin.id, title: plugin.title };
+
+    const installable = plugin.isInstallable?.();
+    if (installable !== true && typeof installable === "string")
+      throw new CommandError("E_UNSUPPORTED_FORMAT", `Cannot install "${args.id}" here: ${installable}`);
+
+    await plugin.install();
     return {
       ok: true,
-      requested: target,
-      note: "If a permission dialog appears, the user must accept it before the format becomes available.",
+      installed: Boolean(plugin.installed),
+      id: plugin.id,
+      title: plugin.title,
+      note: "安装完成后相关格式才会出现在 list_formats;必要时让用户重启 Blockbench。",
     };
   },
 
@@ -172,7 +209,9 @@ export const coverageTools: Record<string, ToolHandler> = {
     const plugin = Plugins.all.find(
       (entry) => entry.id === args?.id || entry.title === args?.id,
     );
-    if (!plugin) throw new CommandError("E_NOT_FOUND", `Plugin not installed: ${args?.id}`);
+    if (!plugin) throw new CommandError("E_NOT_FOUND", `Plugin not found: ${args?.id}`);
+    if (!plugin.installed)
+      throw new CommandError("E_INVALID_PARAM", `Plugin is not installed: ${args?.id}`);
     if (typeof plugin.uninstall !== "function")
       throw new CommandError("E_BLOCKBENCH_ERROR", "This plugin cannot be uninstalled programmatically.");
     plugin.uninstall();

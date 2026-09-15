@@ -4,6 +4,7 @@
  */
 import { z } from "zod";
 import { GUIDE_TOPICS } from "./guides.js";
+import { paintOpSchema } from "./contracts.js";
 
 const N = z.number();
 const S = z.string();
@@ -122,7 +123,7 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec(
     "export_model",
     "project",
-    "Export through the ACTIVE format codec (Bedrock geometry JSON, Java model, GeckoLib). Scoped directory required. Use codec:'gltf' for a self-contained .gltf that imports into Godot/Unity/Blender.",
+    "Export to a file. By default it uses the ACTIVE format's codec (Bedrock geometry JSON, Java model, GeckoLib); pass codec:'gltf' for a self-contained .gltf that imports into Godot/Unity/Blender. Requires propose_scoped_directory.",
     z.object({ path: S, overwrite: B.optional(), codec: S.optional(), format: S.optional(), options: z.record(z.unknown()).optional() }).strict(),
     { mutation: true },
   ),
@@ -252,7 +253,7 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec(
     "scaffold_biped",
     "geometry",
-    "Build a correctly-pivoted classical biped (root -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture and run check_model. Start here for anything humanoid.",
+    "Build a correctly-pivoted classical biped (root -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture, and return a check_model summary of the result. Start here for anything humanoid.",
     z.object({ scale: N.optional(), texture_size: N.optional(), name_prefix: S.optional(), include_outer_layers: B.optional() }).strict(),
     { mutation: true },
   ),
@@ -372,7 +373,7 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
       forearm_angle: N.optional(),
       finger_spread: vec2.optional(),
       finger_angles: z.array(N).optional(),
-      membrane: z.enum(["auto", "cubes", "none"]).optional(),
+      membrane: z.enum(["cubes", "none"]).optional(),
       membrane_attach: vec3.optional(),
       attach_to_body: B.optional(),
       membrane_thickness: N.optional(),
@@ -460,7 +461,12 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
     "paint_face_features",
     "texture",
     "Paint features in FACE-RELATIVE coordinates (eyes, nose, mouth, trim, runes) with fill/rect/ellipse/line ops, honoring the face's UV rotation and flips. Whole batch = one undo step. This is the tool that stops you computing absolute UVs by hand.",
-    z.object({ texture: textureRef, faces: z.array(z.object({ cube: S, face, ops: z.array(z.any()).min(1) })).min(1) }).strict(),
+    z.object({
+      texture: textureRef,
+      faces: z
+        .array(z.object({ cube: S, face, ops: z.array(paintOpSchema).min(1) }))
+        .min(1),
+    }).strict(),
     { mutation: true },
   ),
   spec(
@@ -652,7 +658,7 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec("set_camera_angle", "views", "Aim the viewport camera with an angle preset or an explicit position/target.", z.object({ preset: z.enum(["north", "south", "east", "west", "up", "down", "iso"]).optional(), position: vec3.optional(), target: vec3.optional() }).strict(), { mutation: true }),
 
   /* ---------------- reference matching ---------------- */
-  spec("load_reference", "reference", "Load a reference image (disk path or data URL) for compare_reference. It is stored with a name and, best effort, pinned behind the model.", z.object({ path: S.optional(), data_url: S.optional(), name: S.optional(), overlay: B.optional(), opacity: N.optional() }).strict(), { mutation: true }),
+  spec("load_reference", "reference", "Load a reference image (path inside the approved directory, or a data URL) and keep it in memory for compare_reference / get_reference. Note: it is NOT drawn as a viewport overlay — comparison is done numerically by compare_reference.", z.object({ path: S.optional(), data_url: S.optional(), name: S.optional() }).strict(), { mutation: true }),
   spec("list_references", "reference", "List loaded reference images (id, name, size, source).", z.object({}).strict()),
   spec("get_reference", "reference", "Return the reference image(s) as inline images so you can actually SEE what to build.", z.object({ name: S.optional(), id: S.optional() }).strict()),
   spec("clear_references", "reference", "Remove all loaded references and their overlays.", z.object({}).strict(), { mutation: true }),
@@ -660,20 +666,24 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
     "compare_reference",
     "reference",
     "THE reference-matching tool: renders your model from the same angle, extracts both silhouettes, normalises them (so viewport framing does not matter) and returns match_percent (silhouette IoU), aspect_delta_pct, ref_only_pct (MISSING mass), model_only_pct (EXTRA mass), a verdict, concrete advice and a composite [reference | model] image. Iterate until match_percent >= 85 — do not judge by eye.",
-    z.object({ reference: S.optional(), view: z.enum(["north", "south", "east", "west", "up", "down", "iso"]).optional(), position: vec3.optional(), target: vec3.optional(), alpha_threshold: N.optional() }).strict(),
+    z.object({
+      reference: S.optional(),
+      view: z.enum(["north", "south", "east", "west", "up", "down", "iso"]).optional(),
+      alpha_threshold: N.optional(),
+    }).strict(),
   ),
 
   /* ---------------- human review ---------------- */
   spec(
     "ask_user",
     "review",
-    "Ask the user a question and wait for the answer without ending your turn — for decisions that are genuinely theirs. Optional one-click options and reference views. Returns pending:true + review_id when unanswered; keep polling with wait_review.",
+    "Ask the user a question through a dialog inside Blockbench and wait for the answer without ending your turn — for decisions that are genuinely theirs. Optional one-click options and reference views. Returns pending:true + review_id when unanswered; keep polling with wait_review (pending is not an answer).",
     z.object({ question: S, title: S.optional(), details: S.optional(), options: z.array(S).optional(), views: z.array(S).optional(), wait_seconds: N.optional(), timeout_seconds: N.optional() }).strict(),
   ),
   spec(
     "request_review",
     "review",
-    "Show the user your current work and WAIT for their verdict (Approve / Needs changes + comment). Call it after every user-visible milestone and before claiming a task is finished. Run the objective gates first — do not spend the user's attention on something a tool would catch. pending or a timeout is NOT approval.",
+    "Show the user your current work in a dialog inside Blockbench and WAIT for their verdict (Approve / Needs changes). Call it after every user-visible milestone and before claiming a task is finished. Run the objective gates first — do not spend the user's attention on something a tool would catch. pending or a timeout is NOT approval.",
     z.object({ question: S, title: S.optional(), details: S.optional(), views: z.array(S).optional(), animation: S.optional(), times: z.array(N).optional(), options: z.array(S).optional(), wait_seconds: N.optional(), timeout_seconds: N.optional() }).strict(),
   ),
   spec("wait_review", "review", "Keep waiting for a review/question the user has not answered yet. Call in a loop with the review_id — that is how a minutes-long human review fits inside a client's request timeout.", z.object({ review_id: S.optional(), wait_seconds: N.optional() }).strict()),
@@ -688,8 +698,8 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec("list_settings", "coverage", "List Blockbench settings (id, name, value, type, category).", z.object({ category: S.optional() }).strict()),
   spec("get_setting", "coverage", "Read one Blockbench setting.", z.object({ id: S }).strict()),
   spec("set_setting", "coverage", "Write one Blockbench setting (validated by Blockbench itself).", z.object({ id: S, value: z.unknown() }).strict(), { mutation: true }),
-  spec("list_plugins", "coverage", "List installed Blockbench plugins (id, title, version).", z.object({}).strict()),
-  spec("install_plugin", "coverage", "Install a Blockbench plugin by store id or URL (e.g. 'geckolib' before creating a geckolib_model project).", z.object({ id: S.optional(), url: S.optional() }).strict(), { mutation: true }),
+  spec("list_plugins", "coverage", "List plugins: installed:true entries plus the store catalog the user could install (id, title, version, author, installed, disabled).", z.object({}).strict()),
+  spec("install_plugin", "coverage", "Install a Blockbench plugin from the store by id (e.g. 'geckolib' before creating a geckolib_model project) or from a URL. If the entry is not installable on this platform the reason is returned instead of a silent failure.", z.object({ id: S.optional(), url: S.optional() }).strict(), { mutation: true }),
   spec("uninstall_plugin", "coverage", "Uninstall a Blockbench plugin by id.", z.object({ id: S }).strict(), { mutation: true }),
 
   /* ---------------- history & escape hatch ---------------- */

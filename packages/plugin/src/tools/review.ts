@@ -57,7 +57,9 @@ export const reviewTools: Record<string, ToolHandler> = {
       views,
       note: review.answer
         ? "The user answered."
-        : "pending:true means the card is still open. Call wait_review with this review_id to keep waiting — pending is NOT approval.",
+        : review.dismissed
+          ? "The user closed the dialog without answering (dismissed) — still pending. Re-ask with a shorter question, or keep waiting with wait_review."
+          : "pending:true means the card is still open. Call wait_review with this review_id to keep waiting — pending is NOT approval.",
     };
   },
 
@@ -97,7 +99,9 @@ export const reviewTools: Record<string, ToolHandler> = {
         ? review.answer.index === 0
           ? "Approved. Continue."
           : "Needs changes: fix exactly what the user said, then ask again. Do not argue with the verdict."
-        : "pending:true — the card stays open in Blockbench. Poll with wait_review; pending is not approval and neither is a timeout.",
+        : review.dismissed
+          ? "The user dismissed the dialog without answering — still pending, not approval. Ask again later or keep polling with wait_review."
+          : "pending — the dialog stays open in Blockbench. Poll with wait_review; pending is not approval and neither is a timeout.",
     };
   },
 

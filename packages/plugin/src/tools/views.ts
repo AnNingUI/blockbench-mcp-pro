@@ -26,7 +26,11 @@ async function loadImage(dataUrl: string): Promise<Image> {
   });
 }
 
-export async function silhouetteOf(dataUrl: string, alphaThreshold = 8): Promise<{
+export async function silhouetteOf(
+  dataUrl: string,
+  alphaThreshold = 8,
+  luminanceThreshold = 245,
+): Promise<{
   mask: Uint8Array;
   width: number;
   height: number;
@@ -40,7 +44,13 @@ export async function silhouetteOf(dataUrl: string, alphaThreshold = 8): Promise
   if (!ctx) throw new CommandError("E_BLOCKBENCH_ERROR", "No 2d context for silhouette analysis.");
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const silhouette = silhouetteFromRgba(data.data, canvas.width, canvas.height, alphaThreshold, 245);
+  const silhouette = silhouetteFromRgba(
+    data.data,
+    canvas.width,
+    canvas.height,
+    alphaThreshold,
+    luminanceThreshold,
+  );
   return { ...silhouette, dataUrl };
 }
 
@@ -77,6 +87,7 @@ export const viewTools: Record<string, ToolHandler> = {
     views?: ViewPreset[];
     max_edge?: number;
     alpha_threshold?: number;
+    luminance_threshold?: number;
   }) => {
     requireProject();
     const views = args?.views?.length ? args.views : DEFAULT_VIEWS;
@@ -84,7 +95,11 @@ export const viewTools: Record<string, ToolHandler> = {
     const rows: Array<Record<string, unknown>> = [];
     for (const view of views) {
       const raw = await captureView(view, maxEdge);
-      const silhouette = await silhouetteOf(raw.dataUrl, args?.alpha_threshold);
+      const silhouette = await silhouetteOf(
+        raw.dataUrl,
+        args?.alpha_threshold,
+        args?.luminance_threshold,
+      );
       const bounds = silhouetteBounds(silhouette);
       const foreground = silhouette.mask.reduce((sum, v) => sum + v, 0);
       rows.push({
