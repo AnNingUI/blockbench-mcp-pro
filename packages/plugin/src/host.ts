@@ -364,6 +364,18 @@ export function createProject(opts: {
 
 /* ------------------------------------------------------------------- preview */
 
+/** 正交相机的最小结构(只声明我们真的读写的成员,避免依赖 three 的类型) */
+type OrthoCamera = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  zoom: number;
+  near: number;
+  far: number;
+  updateProjectionMatrix(): void;
+};
+
 export function captureView(
   view: string,
   size: number,
@@ -386,7 +398,9 @@ export function captureView(
     try {
       const frame = framing(view);
       preview.loadAnglePreset(frame.preset);
-      const cam = preview.camOrtho;
+      // 只用到正交相机的这几个成员:收窄成本地结构类型,
+      // 这样插件不依赖 three 的类型(preview.camOrtho 的真实类型来自 THREE)
+      const cam = preview.camOrtho as unknown as OrthoCamera;
       cam.zoom = Math.min(cam.right - cam.left, cam.top - cam.bottom) / frame.span;
       cam.near = 0.01;
       cam.far = Math.max(1000, frame.span * 10 + 128);

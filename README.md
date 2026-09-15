@@ -659,7 +659,12 @@ node --test packages/plugin/test/bundle.test.mjs packages/plugin/test/package.te
 2. 极简浏览器 API —— 本项目刻意不引 `lib.dom`(Blockbench 的 `Animation`/`Image` 与 DOM 同名),只声明用到的那几个成员
 
 > `blockbench-types` 依赖 `electron`,npm 安装时会去下 Electron 二进制。CI/离线环境用
-> `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install` 跳过(类型不受影响)。
+> `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install` 跳过(类型不受影响);pnpm 侧见 `pnpm-workspace.yaml` 的 `ignoredBuiltDependencies`。
+
+**three.js 不是本项目的依赖。** 它只是 `blockbench-types → wintersky → three` 带进来的 dev 传递依赖,
+运行时由 Blockbench 自己提供。插件代码不引用 `THREE`,产物里 0 处 three(`packages/plugin` 的
+`dependencies` 是空的)。唯一会碰到相机的地方(`captureView` 的正交相机)用本地结构类型 `OrthoCamera` 收窄,
+连 three 的**类型**也不依赖。
 
 这套类型当场抓出了 5 个真实 API 错误:`Canvas.updateSelection`(应为 `updateSelected`)、
 `Settings.add`(应为 `new Setting(id, data)`)、`Timeline.setAnimation`(应为 `animation.select()`)、
