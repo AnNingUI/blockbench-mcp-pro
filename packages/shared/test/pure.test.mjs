@@ -377,6 +377,57 @@ const ELEMENTS = [
   { uuid: "c4", name: "arm_left", type: "cube", parent: "g1", origin: [-5, 14, 0], rotation: [0, 0, 0], from: [-6.5, 10, -1], to: [-4.5, 16, 1] },
 ];
 
+test("checkModel rules are tuned for thin details and base-pivot props (real-machine findings)", () => {
+  const group = {
+    uuid: "g",
+    name: "prop",
+    type: "group",
+    parent: null,
+    origin: [0, 0, 0],
+    rotation: [0, 0, 0],
+  };
+  // 0.9 单位厚(≈1 像素)的细带/扣子:不该报 SLIVER
+  const thin = checkModel(
+    [
+      group,
+      { uuid: "c1", name: "strap", type: "cube", parent: "g", origin: [0, 0, 0], rotation: [0, 0, 0], from: [0, 0, 0], to: [1, 4, 0.9] },
+    ],
+    { textureWidth: 64, textureHeight: 64 },
+  );
+  expect(thin.findings.some((f) => f.code === "SLIVER")).toBe(false);
+  // 0.3 单位:仍然报
+  const superThin = checkModel(
+    [
+      group,
+      { uuid: "c1", name: "shard", type: "cube", parent: "g", origin: [0, 0, 0], rotation: [0, 0, 0], from: [0, 0, 0], to: [1, 4, 0.3] },
+    ],
+    { textureWidth: 64, textureHeight: 64 },
+  );
+  expect(superThin.findings.some((f) => f.code === "SLIVER")).toBe(true);
+
+  // pivot 在整组几何底部(道具)= 正确,不报 BAD_PIVOT
+  const prop = checkModel(
+    [
+      group,
+      { uuid: "s", name: "stem", type: "cube", parent: "g", origin: [0, 0, 0], rotation: [0, 0, 0], from: [-2, 0, -2], to: [2, 6, 2] },
+      { uuid: "c", name: "cap", type: "cube", parent: "g", origin: [0, 0, 0], rotation: [0, 0, 0], from: [-3, 6, -3], to: [3, 12, 3] },
+      { uuid: "dot", name: "spot", type: "cube", parent: "g", origin: [0, 0, 0], rotation: [0, 0, 0], from: [3, 8, -1], to: [4.8, 9.6, 0.8] },
+    ],
+    { textureWidth: 64, textureHeight: 64 },
+  );
+  expect(prop.findings.some((f) => f.code === "BAD_PIVOT"), JSON.stringify(prop.findings)).toBe(false);
+
+  // pivot 明显跑出该组几何之外:仍然报
+  const badPivot = checkModel(
+    [
+      { ...group, uuid: "g2", name: "leg", origin: [0, 40, 0] },
+      { uuid: "l1", name: "leg_cube", type: "cube", parent: "g2", origin: [0, 40, 0], rotation: [0, 0, 0], from: [0, 0, 0], to: [2, 4, 2] },
+    ],
+    { textureWidth: 64, textureHeight: 64 },
+  );
+  expect(badPivot.findings.some((f) => f.code === "BAD_PIVOT")).toBe(true);
+});
+
 test("checkModel flags zero volume, untextured faces, orphan parents and z-fighting", () => {
   const clean = checkModel(ELEMENTS, { textureWidth: 64, textureHeight: 64 });
   expect(clean.summary.errors, JSON.stringify(clean.findings)).toBe(0);

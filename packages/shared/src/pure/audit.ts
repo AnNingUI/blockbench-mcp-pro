@@ -196,12 +196,14 @@ export function checkModel(
         message: `Cube "${cube.name}" has zero volume.`,
       });
     const size = boundsSize(box);
-    if (size.some((s) => s > 0 && s < 1))
+    // 阈值 0.5:在 16px/格的尺度下 1 单位 ≈ 1 像素,0.9 厚的肩带/扣子/眼睛是有意的细节。
+    // (真机上马里奥的 strap/button/eye 全被原来的 <1 规则误报)
+    if (size.some((s) => s > 0 && s < 0.5))
       findings.push({
         severity: "warn",
         code: "SLIVER",
         element: cube.name,
-        message: `Cube "${cube.name}" has a sub-1 unit thickness — often reads as noise.`,
+        message: `Cube "${cube.name}" is thinner than half a unit — often reads as noise.`,
       });
     if (cube.untexturedFaces?.length)
       findings.push({
@@ -217,19 +219,47 @@ export function checkModel(
         element: cube.name,
         message: `Cube "${cube.name}" has ${cube.faceUvOutOfBounds} face UV(s) outside ${opts.textureWidth}×${opts.textureHeight}.`,
       });
-    if (cube.parent) {
-      const parent = byUuid.get(cube.parent);
-      if (parent && parent.type === "group") {
-        const d = dist(boundsCenter(box), parent.origin);
-        const diag = dist(box.min, box.max);
-        if (diag > 0 && d > diag * 2.5)
-          findings.push({
-            severity: "warn",
-            code: "BAD_PIVOT",
-            element: cube.name,
-            message: `Cube "${cube.name}" is far from its parent pivot — animation will look wrong.`,
-          });
+
+  }
+
+  // Pivot 检查:拿"父组名下所有立方体的联合包围盒"比,而不是单个立方体。
+  // 道具(蘑菇)的 pivot 在底部是正确的,用单块对角线比会误报。
+  {
+    const unionByGroup = new Map<string, Bounds3>();
+    for (const { cube, box } of boxes) {
+      let parent = cube.parent ? byUuid.get(cube.parent) : undefined;
+      let guard = 0;
+      while (parent && parent.type === "group" && guard < 64) {
+        const current = unionByGroup.get(parent.uuid);
+        unionByGroup.set(
+          parent.uuid,
+          current
+            ? {
+                min: [0, 1, 2].map((i) => Math.min(current.min[i], box.min[i])) as Vec3,
+                max: [0, 1, 2].map((i) => Math.max(current.max[i], box.max[i])) as Vec3,
+              }
+            : box,
+        );
+        parent = parent.parent ? byUuid.get(parent.parent) : undefined;
+        guard += 1;
       }
+    }
+    for (const { cube, box } of boxes) {
+      if (!cube.parent) continue;
+      const parent = byUuid.get(cube.parent);
+      if (!parent || parent.type !== "group") continue;
+      const union = unionByGroup.get(parent.uuid);
+      if (!union) continue;
+      const d = dist(boundsCenter(box), parent.origin);
+      const diag = dist(union.min, union.max);
+      // 只有"pivot 明显跑出整组几何之外"才算问题(2.5 倍联合对角线)
+      if (diag > 0 && d > diag * 2.5)
+        findings.push({
+          severity: "warn",
+          code: "BAD_PIVOT",
+          element: cube.name,
+          message: `Cube "${cube.name}" is far outside its bone's geometry — the pivot is not on the joint.`,
+        });
     }
   }
 
