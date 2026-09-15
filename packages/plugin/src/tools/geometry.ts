@@ -137,6 +137,16 @@ export const geometryTools: Record<string, ToolHandler> = {
     const trees = roots.map((root: any) => ({ root, nodes: descendants(root) }));
     const nodes = trees.flatMap((tree) => tree.nodes);
     const uniform = Math.abs(scale[0] - scale[1]) < 1e-8 && Math.abs(scale[0] - scale[2]) < 1e-8;
+    // 非均匀缩放 + 任何旋转(组的或 cube 的)都会产生剪切,立方体表达不了。
+    // 原来只检查 cube 自身的 rotation,漏掉了"旋转的骨骼组"(真机用 head 组做非均匀缩放到才暴露)。
+    const anyRotated = nodes.some((node: any) =>
+      (node.rotation ?? []).some((value: number) => Math.abs(value) > 1e-8),
+    );
+    if (!uniform && anyRotated)
+      throw new CommandError(
+        "E_INVALID_PARAM",
+        "Non-uniform scaling of rotated geometry (a bone group or a cube) would introduce shear; use a uniform scale or reset the rotation first.",
+      );
     const radial = (point: number[]) => {
       let [x, y, z] = [point[0] - pivot[0], point[1] - pivot[1], point[2] - pivot[2]];
       for (let axis = 0; axis < 3; axis += 1) {

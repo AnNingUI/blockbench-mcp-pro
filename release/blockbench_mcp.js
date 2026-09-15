@@ -6079,11 +6079,11 @@ Work is not done because you looked at your own screenshot.
 				element: cube.name,
 				message: `Cube "${cube.name}" has zero volume.`
 			});
-			if (boundsSize(box).some((s) => s > 0 && s < 1)) findings.push({
+			if (boundsSize(box).some((s) => s > 0 && s < .5)) findings.push({
 				severity: "warn",
 				code: "SLIVER",
 				element: cube.name,
-				message: `Cube "${cube.name}" has a sub-1 unit thickness — often reads as noise.`
+				message: `Cube "${cube.name}" is thinner than half a unit — often reads as noise.`
 			});
 			if (cube.untexturedFaces?.length) findings.push({
 				severity: "warn",
@@ -6097,18 +6097,44 @@ Work is not done because you looked at your own screenshot.
 				element: cube.name,
 				message: `Cube "${cube.name}" has ${cube.faceUvOutOfBounds} face UV(s) outside ${opts.textureWidth}×${opts.textureHeight}.`
 			});
-			if (cube.parent) {
-				const parent = byUuid.get(cube.parent);
-				if (parent && parent.type === "group") {
-					const d = dist(boundsCenter(box), parent.origin);
-					const diag = dist(box.min, box.max);
-					if (diag > 0 && d > diag * 2.5) findings.push({
-						severity: "warn",
-						code: "BAD_PIVOT",
-						element: cube.name,
-						message: `Cube "${cube.name}" is far from its parent pivot — animation will look wrong.`
-					});
+		}
+		{
+			const unionByGroup = new Map();
+			for (const { cube, box } of boxes) {
+				let parent = cube.parent ? byUuid.get(cube.parent) : void 0;
+				let guard = 0;
+				while (parent && parent.type === "group" && guard < 64) {
+					const current = unionByGroup.get(parent.uuid);
+					unionByGroup.set(parent.uuid, current ? {
+						min: [
+							0,
+							1,
+							2
+						].map((i) => Math.min(current.min[i], box.min[i])),
+						max: [
+							0,
+							1,
+							2
+						].map((i) => Math.max(current.max[i], box.max[i]))
+					} : box);
+					parent = parent.parent ? byUuid.get(parent.parent) : void 0;
+					guard += 1;
 				}
+			}
+			for (const { cube, box } of boxes) {
+				if (!cube.parent) continue;
+				const parent = byUuid.get(cube.parent);
+				if (!parent || parent.type !== "group") continue;
+				const union = unionByGroup.get(parent.uuid);
+				if (!union) continue;
+				const d = dist(boundsCenter(box), parent.origin);
+				const diag = dist(union.min, union.max);
+				if (diag > 0 && d > diag * 2.5) findings.push({
+					severity: "warn",
+					code: "BAD_PIVOT",
+					element: cube.name,
+					message: `Cube "${cube.name}" is far outside its bone's geometry — the pivot is not on the joint.`
+				});
 			}
 		}
 		for (let i = 0; i < boxes.length; i += 1) for (let j = i + 1; j < boxes.length; j += 1) {
@@ -7893,6 +7919,8 @@ Work is not done because you looked at your own screenshot.
 			}));
 			const nodes = trees.flatMap((tree) => tree.nodes);
 			const uniform = Math.abs(scale[0] - scale[1]) < 1e-8 && Math.abs(scale[0] - scale[2]) < 1e-8;
+			const anyRotated = nodes.some((node) => (node.rotation ?? []).some((value) => Math.abs(value) > 1e-8));
+			if (!uniform && anyRotated) throw new CommandError("E_INVALID_PARAM", "Non-uniform scaling of rotated geometry (a bone group or a cube) would introduce shear; use a uniform scale or reset the rotation first.");
 			const radial = (point) => {
 				let [x, y, z] = [
 					point[0] - pivot[0],

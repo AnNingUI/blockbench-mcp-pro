@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { findToken } from "./lib/mcp-token.mjs";
 
 const args = process.argv.slice(2);
 const positional = args.filter((a) => !a.startsWith("--"));
@@ -23,37 +24,13 @@ const TOOL = positional[0];
 const PARAMS = positional[1] ? JSON.parse(positional[1]) : {};
 const SAVE = arg("save", "");
 const URL_ = arg("url", process.env.BBMCP_URL ?? "http://127.0.0.1:39742/mcp");
-const LEVELDB = path.join(process.env.APPDATA ?? "", "Blockbench", "Local Storage", "leveldb");
 
 if (!TOOL) {
   console.error("用法: node scripts/mcp-call.mjs <tool> ['{json args}'] [--save dir] [--token t]");
   process.exit(2);
 }
 
-async function findToken() {
-  if (arg("token", "") || process.env.BBMCP_TOKEN) return arg("token", process.env.BBMCP_TOKEN);
-  const candidates = new Set();
-  for (const f of readdirSync(LEVELDB)) {
-    if (!f.endsWith(".log") && !f.endsWith(".ldb")) continue;
-    const data = readFileSync(path.join(LEVELDB, f), "latin1");
-    for (const m of data.matchAll(/[0-9a-f]{48}/g)) candidates.add(m[0]);
-  }
-  for (const token of candidates) {
-    try {
-      const r = await fetch(URL_, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
-      });
-      if (r.status === 200) return token;
-    } catch {
-      /* 继续试 */
-    }
-  }
-  return "";
-}
-
-const token = await findToken();
+const token = await findToken(URL_, arg("token", ""));
 if (!token) {
   console.error("❌ 没找到可用令牌(--token 或 BBMCP_TOKEN 指定;并确认 Blockbench 里的插件在运行)");
   process.exit(2);

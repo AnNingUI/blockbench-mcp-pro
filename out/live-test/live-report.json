@@ -1,141 +1,91 @@
 {
-  "when": "2026-09-15T16:59:42.238Z",
+  "when": "2026-09-15T17:43:16.493Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 14,
-  "failed": 18,
-  "skipped": [
-    "作用域:未授权时保存被拒",
-    "作用域:授权后可保存 .bbmodel 与导出几何",
-    "纹理 PNG 导入导出(作用域内)"
-  ],
+  "passed": 26,
+  "failed": 8,
+  "skipped": [],
   "failures": [
     {
-      "case": "list_formats / list_textures / list_animations / get_elements 都可用",
-      "error": "list_animations 失败: E_NOT_FOUND No project is open. Call create_project first.",
-      "stack": "Error: list_animations 失败: E_NOT_FOUND No project is open. Call create_project first.\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:93:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:158:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "get_guide: 所有主题都有内容,未知主题回退到 modeling",
-      "error": "get_guide 失败: E_INVALID_PARAM Invalid parameters for get_guide — topic: Invalid enum value. Expected 'modeling' | 'detailing' | 'orientation' | 'texturing' | 'vfx' | 'animation' | 'review' | 'reference', received 'nonsense'",
-      "stack": "Error: get_guide 失败: E_INVALID_PARAM Invalid parameters for get_guide — topic: Invalid enum value. Expected 'modeling' | 'detailing' | 'orientation' | 'texturing' | 'vfx' | 'animation' | 'review' | 'reference', received 'nonsense'\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:93:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:167:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "mirror / array / radial / duplicate / create_limb 都能用",
-      "error": "array_cubes 失败: E_NOT_FOUND Group/bone not found: [object Object]",
-      "stack": "Error: array_cubes 失败: E_NOT_FOUND Group/bone not found: [object Object]\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:93:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:271:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
       "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
-      "error": "check_model errors: 期望 0,实际 8",
-      "stack": "Error: check_model errors: 期望 0,实际 8\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:54:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:285:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "check_model errors: 期望 0,实际 5",
+      "stack": "Error: check_model errors: 期望 0,实际 5\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:297:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
       "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
-      "error": "check_model 无 error: 期望 0,实际 8",
-      "stack": "Error: check_model 无 error: 期望 0,实际 8\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:54:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:297:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "check_model 无 error: 期望 0,实际 5",
+      "stack": "Error: check_model 无 error: 期望 0,实际 5\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:309:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
       "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 3x3 face-local texels (rows=2, widths=2/2).",
-      "stack": "Error: paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 3x3 face-local texels (rows=2, widths=2/2).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:93:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:362:19)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 8x8 face-local texels (rows=3, widths=3/3/3).",
+      "stack": "Error: paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 8x8 face-local texels (rows=3, widths=3/3/3).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:382:19)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
       "case": "动画:generate_animation → inspect → transform → 时间轴",
-      "error": "Cannot read properties of undefined (reading 'value')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'value')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:425:44)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "upsert_animation 失败: E_NOT_FOUND Group/bone not found: torso",
+      "stack": "Error: upsert_animation 失败: E_NOT_FOUND Group/bone not found: torso\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:451:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
-      "case": "action 桥:list_actions / get_action / select_action",
-      "error": "select_action 失败: E_BLOCKBENCH_ERROR Could not change the selection in this build.",
-      "stack": "Error: select_action 失败: E_BLOCKBENCH_ERROR Could not change the selection in this build.\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:93:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:486:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "case": "作用域:授权后可保存 .bbmodel 与导出几何",
+      "error": "propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben",
+      "stack": "Error: propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben\n    at raw (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:76:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:94:13)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:581:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
-      "case": "modes / settings 读写",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:497:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "插件:list_plugins 区分已装/商店;install 未知 id 报错",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:503:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "undo / redo 真的能回滚 AI 的改动",
-      "error": "undo 后回到原样: 期望 41,实际 42",
-      "stack": "Error: undo 后回到原样: 期望 41,实际 42\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:54:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:516:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "execute_script 默认关闭,打开后可用,再关掉",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:524:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "边缘:未知工具 / 未知参数 / 类型错误都会被拒绝",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:577:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "边缘:side 声明与坐标矛盾会被拒且不写入",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:585:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "边缘:缺父级 / 删不存在 / 环状父子",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:598:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "case": "纹理 PNG 导入导出(作用域内)",
+      "error": "export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).",
+      "stack": "Error: export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:593:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
       "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
-      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"1d0b7cb9-f64f-9330-d9f8-af0f5be292f3\"]}",
-      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"1d0b7cb9-f64f-9330-d9f8-af0f5be292f3\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:50:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:605:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"b1abab5f-c28c-08ec-fa15-77802d1b9f40\",\"7d159c26-8243-9d3f-1216-637e6291fa08\"]}",
+      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"b1abab5f-c28c-08ec-fa15-77802d1b9f40\",\"7d159c26-8243-9d3f-1216-637e6291fa08\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:52:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:103:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:630:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     },
     {
       "case": "边缘:UV/贴图 越界与错误输入",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:614:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
-    },
-    {
-      "case": "边缘:参考图 / 人审 / 动作 的错误路径",
-      "error": "Cannot read properties of undefined (reading 'slice')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:101:62)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:626:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:712:5"
+      "error": "get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"",
+      "stack": "Error: get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:640:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
     }
   ],
   "artifacts": [
     {
+      "file": "live-report.json",
+      "bytes": 38010
+    },
+    {
       "file": "reference-compare-9.png",
-      "bytes": 5335
+      "bytes": 5396
     },
     {
       "file": "uvmap-1.png",
-      "bytes": 101173
+      "bytes": 109873
     },
     {
       "file": "views-2.png",
-      "bytes": 7808
+      "bytes": 8131
     },
     {
       "file": "views-3.png",
-      "bytes": 7965
+      "bytes": 8945
     },
     {
       "file": "views-4.png",
-      "bytes": 8336
+      "bytes": 8641
     },
     {
       "file": "views-5.png",
-      "bytes": 8365
+      "bytes": 8674
     },
     {
       "file": "views-6.png",
-      "bytes": 8004
+      "bytes": 8214
     },
     {
       "file": "views-7.png",
-      "bytes": 8376
+      "bytes": 8949
     },
     {
       "file": "views-8.png",
-      "bytes": 13507
+      "bytes": 14837
     }
   ]
 }

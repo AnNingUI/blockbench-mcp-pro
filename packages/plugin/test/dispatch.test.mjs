@@ -260,6 +260,12 @@ test("transform_elements moves a subtree and rejects non-uniform scale of rotate
   expect(torso.from[1]).toBe(20);
   expect(torso.to[0]).toBe(6);
   await fails("transform_elements", { refs: ["body"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
+  // 只旋转"组"也必须被拒(真机发现:原来只检查 cube 自身 rotation)
+  await ok("update_elements", { updates: [{ ref: "body", rotation: [8, 0, 0] }] });
+  const rotatedGroup = await fails("transform_elements", { refs: ["body"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
+  expect(rotatedGroup.message).toMatch(/shear/i);
+  // 均匀缩放仍然可以
+  await ok("transform_elements", { refs: ["body"], scale: [1.5, 1.5, 1.5] });
 });
 
 test("mirror_elements renames left/right and check_sides agrees", async () => {
