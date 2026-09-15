@@ -102,7 +102,9 @@ function registerActions(): void {
   }
 }
 
-Plugin.register("blockbench_mcp_pro", {
+// 注意:Blockbench 要求**文件名(去掉 .js)等于插件 id**。
+// 产物是 dist/blockbench_mcp.js,所以这里必须是 "blockbench_mcp"。
+Plugin.register("blockbench_mcp", {
   title: "Blockbench MCP",
   author: "blockbench-mcp-pro",
   description:

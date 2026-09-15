@@ -10,7 +10,7 @@
  * 环境变量:BBMCP_URL / BBMCP_TOKEN / BBMCP_TIMEOUT_MS / BBMCP_QUIET
  */
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -51,6 +51,7 @@ if (flags.has("--help") || flags.has("-h")) {
     "https://cdn.jsdelivr.net/npm/@anningui/blockbench-mcp/dist/blockbench_mcp.js\n",
   );
 } else {
-  const { startGateway } = await import(gatewayPath);
+  // Windows 上 import() 不接受裸的盘符路径,必须转成 file:// URL
+  const { startGateway } = await import(pathToFileURL(gatewayPath).href);
   startGateway();
 }

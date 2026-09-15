@@ -18,7 +18,7 @@ registered.options.onload();
 await new Promise((resolve) => setTimeout(resolve, 400));
 
 test("the shipped bundle registers a desktop plugin with settings and menu actions", () => {
-  assert.equal(registered.id, "blockbench_mcp_pro");
+  assert.equal(registered.id, "blockbench_mcp");
   assert.equal(registered.options.variant, "desktop");
   assert.equal(registered.options.version, "1.0.0");
   assert.match(registered.options.min_version, /^5\./);

@@ -81,6 +81,10 @@ npm run build          # rolldown 打包
 ### 2. 在 Blockbench 里加载
 
 1. 打开 **Blockbench 桌面版** → `File ▸ Plugins ▸ Load Plugin from File` → 选 `packages/plugin/dist/blockbench_mcp.js`
+   > ⚠️ Blockbench 要求**文件名(去掉 `.js`)等于 `Plugin.register()` 里的插件 id**。
+   > 本项目的产物是 `blockbench_mcp.js`、id 是 `blockbench_mcp`,两者必须一致;
+   > 改文件名会让它加载失败并提示 "确保插件的基本文件名与 Plugin.register() 中定义的插件ID匹配"。
+   > `packages/plugin/test/package.test.mjs` 里有断言守住这条。
 2. 首次会请求 **network(net)权限** → 选 **Always allow for this plugin**
 3. 插件自动启动服务,右下角提示 `Blockbench MCP ready → http://127.0.0.1:39742/mcp`
 4. 菜单:`Tools ▸ Start / Stop MCP Server`、`Tools ▸ MCP Server Status / Token`

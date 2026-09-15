@@ -37,7 +37,18 @@ test("build outputs all three artifacts the package needs", () => {
   for (const file of ["blockbench_mcp.js", "gateway.mjs", "testing.mjs"])
     assert.ok(existsSync(path.join(pkgRoot, "dist", file)), `missing dist/${file}`);
   const plugin = readFileSync(path.join(pkgRoot, "dist", "blockbench_mcp.js"), "utf8");
-  assert.ok(plugin.includes("blockbench_mcp_pro"), "the plugin registers itself");
+  // Blockbench 按文件名推导插件 id:dist/blockbench_mcp.js ↔ Plugin.register("blockbench_mcp")
+  const registeredId = /Plugin\.register\("([^"]+)"/.exec(plugin)?.[1];
+  assert.equal(
+    registeredId,
+    "blockbench_mcp",
+    "the plugin registers itself under an id equal to the bundle file name",
+  );
+  assert.equal(
+    path.basename(path.join(pkgRoot, "dist", "blockbench_mcp.js"), ".js"),
+    registeredId,
+    "Blockbench requires the file name (minus .js) to equal the plugin id",
+  );
   const gateway = readFileSync(path.join(pkgRoot, "dist", "gateway.mjs"), "utf8");
   assert.match(gateway, /startGateway/);
   assert.match(gateway, /^#!\/usr\/bin\/env node/);
