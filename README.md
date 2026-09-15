@@ -651,6 +651,47 @@ blockbench-mcp-pro/
 
 ---
 
+## 真机验证(需要 Blockbench)
+
+**先说清楚自动化测试的边界**:`npm test` 里的 91 个测试跑的是**纯逻辑 + 我写的 mock 宿主**
+(假的 `Cube`/`Group`/`Texture`/`Codecs`,假的截图 data URL)。它验证的是
+参数校验、批次语义、UV 打包数学、审计规则、HTTP/鉴权/MCP 协议、交付产物能否加载,
+**不验证**真 Blockbench 的 `mapAutoUV`、`Texture.edit`、undo 行为、离屏渲染、权限对话框与文件导出。
+所以 mock 测试**不会**产出 `.bbmodel` 之类的模型文件。
+
+要真跑一遍并拿到真实产物,用 `scripts/live-smoke.mjs`:它对着**正在运行的 Blockbench** 里的插件
+走完整流程并把结果落盘。
+
+```bash
+# 1) 在 Blockbench 里加载插件(或把 dist/blockbench_mcp.js 放进 Blockbench 的 plugins 目录后重启)
+#    File ▸ Plugins ▸ Load Plugin from File → packages/plugin/dist/blockbench_mcp.js
+#    允许 net 权限,等到提示 "Blockbench MCP ready"
+
+# 2) 跑真机冒烟(令牌见 Tools ▸ MCP Server Status / Token)
+pnpm run smoke:live -- --token <MCP Access Token> --out ./out/live-smoke
+
+# 或
+BBMCP_TOKEN=<token> node scripts/live-smoke.mjs
+```
+
+它会依次执行并**断言**:health → create_project → apply_geometry_batch(side 守卫) →
+add_hollow_volume / generate_array / extrude_chain → check_model / check_sides / check_rig / audit_complexity
+→ ensure_texture → pack_box_uv → get_uv_layout(越界/重叠必须为 0)→ shade_model_base →
+paint_face_features → audit_texture_quality → generate_animation(双腿对侧相位)→ set_timeline_time →
+capture_views(**PNG 落盘**)→ analyze_view_silhouette → propose_scoped_directory →
+`save_project`(**真 .bbmodel**)→ `export_model`(**真 .geo.json**)。
+
+产物(默认 `out/live-smoke/`):
+
+| 文件 | 说明 |
+|---|---|
+| `view-*.png` | 真渲染的多视角截图 |
+| `smoke.bbmodel` | 真工程文件,可直接拖回 Blockbench |
+| `smoke.geo.json` | 用当前格式 codec 导出的几何 JSON |
+| `report.json` | 本次运行的摘要(版本/尺寸/UV 统计/动画名) |
+
+常用参数:`--no-blocks`(只做基础形体)、`--no-save`(不弹权限对话框)、`--views north,east,iso`、`--url`、`--out`。
+
 ## 开发与验证
 
 npm 与 pnpm 都支持(仓库里提交的是 `pnpm-lock.yaml`;用 npm 时它会自己生成 `package-lock.json`):
