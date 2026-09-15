@@ -58,20 +58,34 @@ const expectEqual = (actual, expected, message) => {
 };
 
 let requestSeq = 0;
-async function raw(name, args = {}) {
-  const response = await fetch(URL_, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: `live-${++requestSeq}`,
-      method: "tools/call",
-      params: { name, arguments: args },
-    }),
-  });
+async function raw(name, args = {}, timeoutMs = 45_000) {
+  // 单次调用超时:像 propose_scoped_directory 这种等人点按钮的调用,
+  // 不设超时就会白等插件的 120 秒兜底(真机踩过)
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(URL_, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: `live-${++requestSeq}`,
+        method: "tools/call",
+        params: { name, arguments: args },
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    clearTimeout(timer);
+    if (error?.name === "AbortError")
+      throw new Error(`${name}: 客户端超时(${timeoutMs / 1000}s)—— 需要人点按钮的调用请先把对话框点掉`);
+    throw error;
+  }
+  clearTimeout(timer);
   if (!response.ok) {
     const text = await response.text();
     throw new Error(
@@ -91,16 +105,16 @@ async function raw(name, args = {}) {
 }
 
 /** 期望成功 */
-async function ok(name, args = {}) {
-  const r = await raw(name, args);
+async function ok(name, args = {}, timeoutMs) {
+  const r = await raw(name, args, timeoutMs);
   if (!r.ok) throw new CaseFailed(`${name} 失败: ${r.error?.code} ${r.error?.message}`);
   expect(!r.isError, `${name} 返回了 isError`);
   return r;
 }
 
 /** 期望失败,并返回错误 */
-async function fails(name, args = {}, expectedCode) {
-  const r = await raw(name, args);
+async function fails(name, args = {}, expectedCode, timeoutMs) {
+  const r = await raw(name, args, timeoutMs);
   expect(!r.ok, `${name} 本应失败却成功了: ${String(JSON.stringify(r.result)).slice(0, 160)}`);
   if (expectedCode) expectEqual(r.error.code, expectedCode, `${name} 的错误码`);
   expect(r.isError, `${name} 失败时 isError 应为 true`);
@@ -293,8 +307,9 @@ test("mirror / array / radial / duplicate / create_limb 都能用", async () => 
 });
 
 test("scaffold_biped 建出可用骨架并返回 check 摘要", async () => {
-  // 先把前面手搭的骨架挪到一边:两个骨架放到同一处会被 check_model 正确判为 COPLANAR_OVERLAP
-  await ok("transform_elements", { refs: ["body"], translate: [40, 0, 0] });
+  // 前面的手搭骨架用完就删:留着会和 biped 重叠(COPLANAR_OVERLAP),
+  // 而"整体挪到 +40"又会把 arm_left 挪到正 x 让 check_sides 正确地报错。
+  await ok("delete_elements", { refs: ["body", "helmet", "tail", "wing_right_arm"] });
   const { result } = await ok("scaffold_biped", { texture_size: 64, name_prefix: "bip_" });
   expect(result.check, "返回 check 摘要");
   expectEqual(result.check.summary.errors, 0, "check_model errors");
@@ -598,7 +613,7 @@ test("作用域:未授权时保存被拒(先显式撤销,保证确定性)", asyn
 
 test("作用域:授权后可保存 .bbmodel 与导出几何", async () => {
   console.log(C.warn(`      ⚠ Blockbench 会弹权限对话框,请点 "Allow this folder":${SCOPED}`));
-  const proposed = await raw("propose_scoped_directory", { path: SCOPED });
+  const proposed = await raw("propose_scoped_directory", { path: SCOPED }, 25_000);
   if (!proposed.ok) {
     // 没点 Allow(或渲染进程被对话框阻塞)→ 标记跳过,而不是把整轮测试判失败
     const reason = `${proposed.error?.code ?? "ERROR"}: ${proposed.error?.message ?? ""}`.slice(0, 120);
@@ -608,7 +623,11 @@ test("作用域:授权后可保存 .bbmodel 与导出几何", async () => {
   expect(saved.result.bytes > 1000, `.bbmodel 大小 ${saved.result.bytes}`);
   const exported = await ok("export_model", { path: path.join(SCOPED, "live.geo.json"), overwrite: true });
   expect(exported.result.bytes > 100, `几何导出 ${exported.result.bytes}B codec=${exported.result.codec}`);
-  const exportedGltf = await ok("export_model", { path: path.join(SCOPED, "live.gltf"), overwrite: true, codec: "gltf" });
+  const exportedGltf = await ok(
+    "export_model",
+    { path: path.join(SCOPED, "live.gltf"), overwrite: true, codec: "gltf" },
+    300_000,
+  );
   expect(exportedGltf.result.bytes > 100, `glTF 导出 ${exportedGltf.result.bytes}B`);
   await fails("export_model", { path: path.join(SCOPED, "..", "outside.bbmodel") }, "E_SCOPE_DENIED");
 });
@@ -652,8 +671,9 @@ test("边缘:缺父级 / 删不存在 / 环状父子", async () => {
 });
 
 test("边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace", async () => {
-  // 打手搭骨架的 head(rotation=[8,0,0]);biped 的骨头都是 0 旋转,非均匀缩放本来就合法
-  await fails("transform_elements", { refs: ["head"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
+  // biped 的骨头都是 0 旋转,非均匀缩放本来就合法 → 先给一个骨加旋转再验证拒绝
+  await ok("update_elements", { updates: [{ ref: "bip_head", rotation: [8, 0, 0] }] });
+  await fails("transform_elements", { refs: ["bip_head"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
   await fails("mirror_elements", { refs: ["bip_body_cube"], axis: "w" }, "E_INVALID_PARAM");
   await fails("upsert_animation", { name: "live_custom", length: 1 }, "E_INVALID_PARAM");
   await fails("inspect_animation", { name: "no_such_animation" }, "E_NOT_FOUND");

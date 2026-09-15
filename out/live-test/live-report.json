@@ -1,29 +1,24 @@
 {
-  "when": "2026-09-15T17:56:10.459Z",
+  "when": "2026-09-15T18:00:26.441Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 30,
-  "failed": 4,
+  "passed": 31,
+  "failed": 3,
   "skipped": [],
   "failures": [
     {
-      "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
-      "error": "check_model errors: 期望 0,实际 1",
-      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
-    },
-    {
       "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
-      "error": "check_model 无 error: 期望 0,实际 1",
-      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
+      "error": "左右名字与坐标一致: 期望 0,实际 2",
+      "stack": "Error: 左右名字与坐标一致: 期望 0,实际 2\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:315:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:771:5"
     },
     {
-      "case": "参考图:load → get → compare(IoU) → clear",
-      "error": "自比对的 IoU=15.7",
-      "stack": "Error: 自比对的 IoU=15.7\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:498:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
+      "case": "作用域:授权后可保存 .bbmodel 与导出几何",
+      "error": "propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben",
+      "stack": "Error: propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben\n    at raw (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:77:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:601:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:771:5"
     },
     {
-      "case": "边缘:参考图 / 人审 / 动作 的错误路径",
-      "error": "compare_reference 本应失败却成功了: {\"match_percent\":15.8,\"aspect_delta_pct\":96.5,\"ref_only_pct\":71.4,\"model_only_pct\":73.8,\"verdict\":\"poor\",\"advice\":[\"Add mass where the reference has silhouette ",
-      "stack": "Error: compare_reference 本应失败却成功了: {\"match_percent\":15.8,\"aspect_delta_pct\":96.5,\"ref_only_pct\":71.4,\"model_only_pct\":73.8,\"verdict\":\"poor\",\"advice\":[\"Add mass where the reference has silhouette \n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:670:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
+      "case": "纹理 PNG 导入导出(作用域内)",
+      "error": "export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).",
+      "stack": "Error: export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:96:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:618:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:771:5"
     }
   ],
   "artifacts": [
@@ -32,12 +27,40 @@
       "bytes": 60782
     },
     {
+      "file": "live-down-9.png",
+      "bytes": 8661
+    },
+    {
+      "file": "live-east-6.png",
+      "bytes": 8433
+    },
+    {
+      "file": "live-iso-10.png",
+      "bytes": 13749
+    },
+    {
+      "file": "live-north-4.png",
+      "bytes": 8800
+    },
+    {
       "file": "live-report.json",
-      "bytes": 4132
+      "bytes": 4450
+    },
+    {
+      "file": "live-south-5.png",
+      "bytes": 9163
     },
     {
       "file": "live-texture.png",
       "bytes": 6047
+    },
+    {
+      "file": "live-up-8.png",
+      "bytes": 8499
+    },
+    {
+      "file": "live-west-7.png",
+      "bytes": 8462
     },
     {
       "file": "live.bbmodel",
@@ -56,12 +79,16 @@
       "bytes": 2
     },
     {
+      "file": "reference-compare-11.png",
+      "bytes": 5854
+    },
+    {
       "file": "reference-compare-9.png",
       "bytes": 5887
     },
     {
       "file": "texture-3.png",
-      "bytes": 4670
+      "bytes": 4657
     },
     {
       "file": "texture-region-2.png",
@@ -69,7 +96,7 @@
     },
     {
       "file": "uvmap-1.png",
-      "bytes": 107700
+      "bytes": 107653
     },
     {
       "file": "views-10.png",
