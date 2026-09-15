@@ -1,20 +1,62 @@
 {
-  "name": "@bbmcp/plugin",
+  "name": "@anningui/blockbench-mcp",
   "version": "1.0.0",
-  "private": true,
+  "description": "Blockbench 的 MCP 服务器与插件:95 个工具,插件内进程 HTTP MCP + stdio 网关,建模/程序化细节/贴图/动画/质量门/人审/参考图比对",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "blockbench",
+    "minecraft",
+    "modeling",
+    "texturing",
+    "animation",
+    "geckolib",
+    "ai"
+  ],
+  "license": "MIT",
+  "author": "AnNingUI",
   "type": "module",
-  "main": "dist/blockbench_mcp.js",
-  "scripts": {
-    "build": "esbuild src/main.ts --bundle --format=iife --platform=neutral --main-fields=module,main --target=es2020 --outfile=dist/blockbench_mcp.js --legal-comments=none && esbuild src/testing.ts --bundle --format=esm --platform=node --main-fields=module,main --target=es2022 --outfile=dist/testing.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs"
+  "main": "dist/gateway.mjs",
+  "exports": {
+    ".": "./dist/gateway.mjs",
+    "./plugin": "./dist/blockbench_mcp.js",
+    "./package.json": "./package.json"
   },
-  "dependencies": {
-    "@bbmcp/shared": "*",
-    "zod": "^3.23.8"
+  "bin": {
+    "blockbench-mcp": "bin/blockbench-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "dist/blockbench_mcp.js",
+    "dist/gateway.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs test/package.test.mjs",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build && npm run typecheck"
   },
   "devDependencies": {
-    "esbuild": "^0.23.0",
-    "typescript": "^5.5.0"
-  }
+    "@bbmcp/shared": "*",
+    "rolldown": "^1.2.8",
+    "typescript": "^5.5.0",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnNingUI/blockbench-mcp-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AnNingUI/blockbench-mcp-pro/issues"
+  },
+  "homepage": "https://github.com/AnNingUI/blockbench-mcp-pro#readme"
 }

@@ -21,9 +21,12 @@
    - 逐项阅读笔记见 [`docs/reference-projects.md`](docs/reference-projects.md)
 8. [安全模型](#安全模型)
 9. [质量门与推荐工作流](#质量门与推荐工作流)
-10. [目录结构](#目录结构)
-11. [开发与验证](#开发与验证)
-12. [已知取舍](#已知取舍)
+10. [发布到 npm](#发布到-npmanninguiblockbench-mcp)
+11. [接入 Blockbench](#接入-blockbench)
+12. [接入 AI 客户端](#接入-ai-客户端)
+13. [目录结构](#目录结构)
+14. [开发与验证](#开发与验证)
+15. [已知取舍](#已知取舍)
 
 ---
 
@@ -47,7 +50,7 @@
                     ┌──────────────────────────────────────────────┐
   HTTP 客户端        │  Blockbench Desktop                          │
   (Cursor / VS Code  │  ┌────────────────────────────────────────┐  │
-   / Claude Code     │  │ Blockbench MCP 插件(单文件 esbuild 产物)│  │
+   / Claude Code     │  │ Blockbench MCP 插件(rolldown 单文件产物) │  │
    / Cline / Ollama) │  │  · 127.0.0.1:39742/mcp  进程内 MCP 服务 │  │
         ───────────────▶  · Bearer + Origin/Host 校验               │  │
                     │  │  · dispatch → 95 个工具 → Blockbench API │  │
@@ -70,8 +73,9 @@
 
 ```bash
 npm install
-npm run build
-# 产物:packages/plugin/dist/blockbench_mcp.js
+npm run build          # rolldown 打包
+# 产物:packages/plugin/dist/blockbench_mcp.js(单文件插件)
+#      packages/plugin/dist/gateway.mjs(stdio 网关)
 ```
 
 ### 2. 在 Blockbench 里加载
@@ -171,7 +175,7 @@ health → get_project_summary → get_guide { topic: "modeling" }
 | `jasonjgardner/blockbench-mcp-plugin` | 插件内 Streamable HTTP(3000/bb-mcp) | Bun + TS | **无** | 110(含 12 Hytale) | **GPL-3.0** | 工具面最广 + 会话保活/resources,但有 UI 点击类危险工具 |
 | `vasyacullin-Blockbench-mcp` | Node stdio + 自研 TCP/NDJSON 网桥(19888) | 纯 JS | **token 握手**(防 CSRF) | 41 | **GPL-3.0** | action 桥 + execute_script 覆盖全,但无 undo/UV 检查 |
 | `Golub4ik-Official-blockbench-mcp` | Node stdio + Socket.IO(9999) | TS + pnpm monorepo | 无 | ~5 | ISC | 工程形态(monorepo/预构建产物)值得借鉴,工具极少 |
-| **本项目 `blockbench-mcp-pro`** | **插件内 HTTP MCP + stdio 网关(双通道)** | **TS + esbuild + zod 契约,全纯函数可测** | **随机 Bearer + Origin/Host/Content-Type 校验 + 文件作用域** | **95** | **MIT** | 上述优点的合集,并把每条缺点当成设计约束 |
+| **本项目 `blockbench-mcp-pro`** | **插件内 HTTP MCP + stdio 网关(双通道)** | **TS + rolldown + zod 契约,全纯函数可测** | **随机 Bearer + Origin/Host/Content-Type 校验 + 文件作用域** | **95** | **MIT** | 上述优点的合集,并把每条缺点当成设计约束 |
 
 ---
 
@@ -301,6 +305,222 @@ health → get_project_summary → get_guide { topic: "modeling" }
 
 ---
 
+## 发布到 npm(`@anningui/blockbench-mcp`)
+
+包名已按你的命名空间配好:`packages/plugin/package.json` 里 `name = "@anningui/blockbench-mcp"`,
+`publishConfig.access = "public"`(scoped 包首次发布必须显式 public)。
+
+### 一次性准备
+
+```bash
+npm login                # 登录 npmjs 账号(需要拥有 anningui 这个 scope/组织)
+npm whoami               # 确认身份
+```
+
+### 每个版本的发布流程
+
+```bash
+cd blockbench-mcp-pro
+npm run build            # rolldown 构建 → packages/plugin/dist/{blockbench_mcp.js,gateway.mjs}
+npm run typecheck        # 可选的类型检查
+npm run pack:check       # npm pack --dry-run,确认 tarball 内容
+npm run publish          # = npm publish -w @anningui/blockbench-mcp --access public
+```
+
+版本号用 `npm version patch|minor|major -w @anningui/blockbench-mcp` 升(会自动改 package.json)。
+
+### 包里有什么
+
+`files` 白名单只放运行必需的东西(构建脚本、源码、测试都不会进 tarball):
+
+| 文件 | 用途 |
+|---|---|
+| `dist/blockbench_mcp.js` | **给 Blockbench 的单文件插件**(self-contained,含 zod 与全部工具) |
+| `dist/gateway.mjs` | stdio ⇄ HTTP 网关(bin 的实现) |
+| `bin/blockbench-mcp.mjs` | CLI:`--plugin-path` / `--http-url` / `--cdn-url` / `--help`,不带参数时启动网关 |
+| `README.md`、`LICENSE` | — |
+
+包**没有任何 dependencies**(全部在构建时打进产物),用户 `npx` 不需要额外安装。
+
+### 发布后用户可以这样装
+
+```bash
+npm i -g @anningui/blockbench-mcp     # 或直接用 npx
+blockbench-mcp --plugin-path          # 打印插件绝对路径
+```
+
+不需要 clone 仓库就能拿到 Blockbench 插件。
+
+---
+
+## 接入 Blockbench
+
+### 方式 1:本地文件(最常用)
+
+```bash
+npx -y @anningui/blockbench-mcp --plugin-path
+# → /path/to/node_modules/@anningui/blockbench-mcp/dist/blockbench_mcp.js
+```
+
+1. Blockbench 桌面版 → `File ▸ Plugins ▸ Load Plugin from File` → 选上面那个文件
+2. 弹网络权限时选 **Always allow for this plugin**(网关要监听 `net`)
+3. 右下角出现 `Blockbench MCP ready → http://127.0.0.1:39742/mcp` 即成功
+4. `Tools ▸ Start / Stop MCP Server`、`Tools ▸ MCP Server Status / Token` 可随时启停与取令牌
+
+### 方式 2:从 URL 加载(不用装包)
+
+发布到 npm 后,jsDelivr 会直接提供文件:
+
+```
+https://cdn.jsdelivr.net/npm/@anningui/blockbench-mcp/dist/blockbench_mcp.js
+```
+
+Blockbench → `File ▸ Plugins ▸ Load Plugin from URL` → 粘贴上面的地址。
+(`npx -y @anningui/blockbench-mcp --cdn-url` 会打印它。)
+
+### 拿令牌
+
+`Settings ▸ General ▸ MCP Access Token`,或 `Tools ▸ MCP Server Status / Token` 一次看到
+状态 + 令牌 + 可直接粘贴的客户端配置。**首次加载随机生成**,不是默认口令。
+
+验证服务是否活着:
+
+```bash
+curl http://127.0.0.1:39742/health
+# {"ok":true,"server":"blockbench-mcp-pro",...}
+```
+
+---
+
+## 接入 AI 客户端
+
+通用规则:**能发 HTTP 的客户端直接用 URL + Bearer 头;只能 stdio 的客户端用 bin 转发。**
+
+| 客户端 | 传输 | 配置要点 |
+|---|---|---|
+| **pi**(pi-mcp-adapter) | HTTP 或 stdio | 见下面两段,写进 `~/.pi/agent/mcp.json` |
+| Cursor | HTTP | `.cursor/mcp.json` 里 `url` + `headers.Authorization` |
+| VS Code / Copilot | HTTP | `.vscode/mcp.json` 里 `url` + `headers` |
+| Claude Code | HTTP | `claude mcp add ... --transport http <url> --header "Authorization: Bearer <token>"` |
+| Claude Desktop | stdio(仅支持 stdio) | `command: node` + `args: [<gateway.mjs>]` + `env.BBMCP_TOKEN` |
+| Cline / mcp-remote / Ollama | HTTP | 填 URL 与自定义头 |
+
+### pi(你当前使用的,pi-mcp-adapter)
+
+> 注意:adapter 读取的路径是 **`~/.pi/agent/mcp.json`**(`agent`,不是 `agents`)。
+> 它也读项目级 `.mcp.json`、`~/.config/mcp/mcp.json`、`~/.agents/mcp.json`,
+> 优先级:后者覆盖前者,`.pi/mcp.json` 最高。改完在 pi 里执行 `/reload`。
+
+**推荐:HTTP 直连**(少一个进程,工具直接可用)
+
+编辑 `~/.pi/agent/mcp.json`,在 `mcpServers` 里加:
+
+```json
+{
+  "mcpServers": {
+    "blockbench": {
+      "type": "http",
+      "url": "http://127.0.0.1:39742/mcp",
+      "headers": {
+        "Authorization": "Bearer <Blockbench 里的 MCP Access Token>"
+      }
+    }
+  }
+}
+```
+
+**可选:stdio 网关**(客户端只给 command/args 时用)
+
+```json
+{
+  "mcpServers": {
+    "blockbench": {
+      "command": "npx",
+      "args": ["-y", "@anningui/blockbench-mcp"],
+      "env": {
+        "BBMCP_URL": "http://127.0.0.1:39742/mcp",
+        "BBMCP_TOKEN": "<Blockbench 里的 MCP Access Token>"
+      }
+    }
+  }
+}
+```
+
+本地开发(没发布 npm 时)把 command/args 换成本地脚本:
+
+```json
+{ "command": "node", "args": ["D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/gateway/index.mjs"],
+  "env": { "BBMCP_TOKEN": "<token>" } }
+```
+
+**在 pi 里验证**
+
+1. 重启 pi(或 `/reload`),执行 `/mcp` 应能看到 `blockbench`
+2. 问它:「调用 blockbench 的 health」→ 应返回 `plugin_version`、`capabilities`、`uv_mode`
+3. pi 的 adapter 是工具按需发现(search → describe → call),所以典型对话是:
+   `mcp({search:"blockbench 建模"})` → `mcp({tool:"apply_geometry_batch", args:{...}})`
+
+**给模型的操作提示(可直接粘进 pi 的提示或 skill):**
+
+```
+Blockbench 相关任务先调 health → get_project_summary → get_guide(topic:"modeling")。
+细节用 add_hollow_volume / generate_array / extrude_chain / voxelize_matrix / add_wing。
+贴图前必须 audit_complexity 不再是 too_primitive,并且 check_model 0 error。
+贴图流程:pack_box_uv → shade_model_base → paint_face_features → audit_texture_quality。
+动画用 generate_animation,然后 set_timeline_time + capture_views 看一眼。
+有参考图就 compare_reference 迭代到 match_percent >= 85。
+声明"做完了"之前先 request_review;pending 和超时都不算通过。
+```
+
+### Cursor / VS Code
+
+```jsonc
+// .cursor/mcp.json 或 .vscode/mcp.json
+{
+  "mcpServers": {
+    "blockbench": {
+      "type": "http",
+      "url": "http://127.0.0.1:39742/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add blockbench --transport http http://127.0.0.1:39742/mcp   --header "Authorization: Bearer <token>"
+```
+
+### Claude Desktop(无 HTTP 支持 → 走网关)
+
+```jsonc
+{
+  "mcpServers": {
+    "blockbench": {
+      "command": "node",
+      "args": ["<你的项目路径>/blockbench-mcp-pro/gateway/index.mjs"],
+      "env": { "BBMCP_URL": "http://127.0.0.1:39742/mcp", "BBMCP_TOKEN": "<token>" }
+    }
+  }
+}
+```
+
+### 排错
+
+| 现象 | 原因 / 处理 |
+|---|---|
+| `401 Unauthorized` | 令牌不对或没带 `Authorization: Bearer <token>`;从 `Tools ▸ MCP Server Status / Token` 重取 |
+| `Cannot reach Blockbench on ...` | Blockbench 没开 / 插件没加载 / 服务停了(`Tools ▸ Start MCP Server`) |
+| 浏览器 / 网页工具报 403 | 有意为之:带 `Origin` 的请求一律拒绝,避免网页 drive-by |
+| 端口被占用 | `Settings ▸ General ▸ MCP Server Port` 换端口,并同步改客户端 `BBMCP_URL` |
+| 工具里出现 `E_SCOPE_DENIED` | 需先调 `propose_scoped_directory` 并在 Blockbench 里点 Allow |
+| 工具里出现 `E_AUTH_FAILED`(execute_script) | 该工具默认关闭,去 `Settings ▸ General ▸ Allow execute_script` 打开 |
+
+
+---
+
 ## 安全模型
 
 | 层 | 措施 | 修掉了谁的弱点 |
@@ -360,7 +580,9 @@ blockbench-mcp-pro/
 │       ├── src/rpc.ts      # MCP JSON-RPC + resources + prompts + 图片内容块
 │       ├── src/dispatch.ts # 校验 → 执行 → 统一信封
 │       ├── src/tools/      # 按域拆分的 95 个工具
-│       ├── test/           # 宿主 mock + 39 分发测试 + 17 HTTP 测试 + 2 产物冒烟测试
+│       ├── bin/            # npm bin:blockbench-mcp(网关 + --plugin-path/--cdn-url)
+│       ├── scripts/build.mjs  # rolldown 构建(插件 / 测试入口 / 网关)
+│       ├── test/           # 宿主 mock + 分发/HTTP/产物/打包 测试
 │       └── dist/blockbench_mcp.js  # 交付给用户的单文件插件
 └── gateway/          # stdio ⇄ HTTP 零依赖网关(+ 3 个测试)
 ```
@@ -374,22 +596,23 @@ npm install
 npm run verify     # build → typecheck → test(一步跑完全部)
 ```
 
-- `npm run build` — 编译 shared(tsc)、插件(esbuild 单文件 + 测试用 ESM)、网关语法检查
+- `npm run build` — shared(tsc)+ 插件与测试入口(**rolldown**)+ 网关语法检查
 - `npm run typecheck` — 三个包的 TS 检查(strict)
-- `npm test` — **91 个测试**:
+- `npm test` — **91 个测试**(耗时约 30s,按需跑;只想快速冒烟:见下):
 
 | 套件 | 数量 | 验证内容 |
 |---|---|---|
 | `packages/shared/test/pure.test.mjs` | 30 | 向量/旋转、颜色、UV 映射与翻转、shelf 打包不重叠、体素化/壳体/阵列/骨链/翼、check_model、复杂度门、左右门、骨架门、测量、轮廓 IoU、revision 哈希、面质检、工具目录完整性 |
-| `packages/plugin/test/dispatch.test.mjs` | 39 | 用 mock 宿主**真实执行**每个工具:批量几何单步 undo、side 拒绝、生成器落地、pack UV 不重叠、面局部绘制的像素往返(revision 一致)、过期 revision 被拒、贴图质检、动画生成的对侧相位、审查 pending→回答、参考图比对、action 桥、设置/插件/历史 |
+| `packages/plugin/test/dispatch.test.mjs` | 39(慢,约 30s) | 用 mock 宿主**真实执行**每个工具:批量几何单步 undo、side 拒绝、生成器落地、pack UV 不重叠、面局部绘制的像素往返(revision 一致)、过期 revision 被拒、贴图质检、动画生成的对侧相位、审查 pending→回答、参考图比对、action 桥、设置/插件/历史 |
 | `packages/plugin/test/http.test.mjs` | 17 | **真实 net 服务器 + fetch/原始 socket**:无令牌 401、错令牌 401、Origin 403、Host(DNS rebinding)403、非 JSON 415、initialize/session id、tools/list schema、tools/call 信封、图片内容块、resources/prompts、JSON-RPC 错误码、202/204/405 |
-| `packages/plugin/test/bundle.test.mjs` | 2 | **直接加载交付产物** `dist/blockbench_mcp.js`,调用 Blockbench 会调的 `onload`,再访问它真的起在回环上的端点(令牌随机生成、401、tools/list) |
+| `packages/plugin/test/bundle.test.mjs` | 2(快) | **直接加载交付产物** `dist/blockbench_mcp.js`,调用 Blockbench 会调的 `onload`,再访问它真的起在回环上的端点(令牌随机生成、401、tools/list) |
 | `gateway/test/stdio.test.mjs` | 3 | stdio 网关对着**真实插件 HTTP 服务端**跑通 initialize → tools/list → tools/call → resources/read;错令牌与不可达都返回合法 JSON-RPC 错误 |
 
 调试插件时可只跑单个套件,例如:
 
 ```bash
-npm run build -w @bbmcp/plugin && node --test packages/plugin/test/dispatch.test.mjs
+# 最快的一次冒烟(约 2s):确认交付产物能加载、能起服务、CLI 可用
+node --test packages/plugin/test/bundle.test.mjs packages/plugin/test/package.test.mjs
 ```
 
 ---
