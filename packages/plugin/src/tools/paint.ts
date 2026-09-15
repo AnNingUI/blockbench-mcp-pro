@@ -244,40 +244,52 @@ export const paintTools: Record<string, ToolHandler> = {
             `Packed UV extent ${used[0]}x${used[1]} exceeds max_size ${maxSize}.`,
           );
         if (args?.auto_resize !== false) {
-          let needW = Math.max(texW, used[0]);
-          let needH = Math.max(texH, used[1]);
+          // 位图尺寸也要算进去:工程 UV 空间 64×64 而当前贴图只有 16×16 时,
+          // 原来只比自己放不放得下 → 位图永远不修 → 上色 scale = 16/64 = 0.25
+          // → 所有面都涂到角落 → 质检满屏 EMPTY_FACE_TEXTURE(真机踩过)。
+          // 位图可以**大于** UV 空间(Java 物品常见),但绝不能小于 —— 否则采不到像素。
+          const bitmapW = texture?.width ?? texW;
+          const bitmapH = texture?.height ?? texH;
+          let needW = Math.max(texW, used[0], bitmapW);
+          let needH = Math.max(texH, used[1], bitmapH);
           if (args?.power_of_two !== false) {
             needW = nextPowerOfTwo(needW);
             needH = nextPowerOfTwo(needH);
           }
+          const maxSize = args?.max_size ?? 1024;
           if (needW > maxSize || needH > maxSize)
             throw new CommandError(
               "E_INVALID_PARAM",
               `Packed atlas needs ${needW}x${needH}, over max_size ${maxSize}.`,
             );
-          if (needW !== texW || needH !== texH) {
-            texW = needW;
-            texH = needH;
-            if (Project) {
-              Project.texture_width = texW;
-              Project.texture_height = texH;
-            }
+          let finalW = bitmapW;
+          let finalH = bitmapH;
+          if (needW !== bitmapW || needH !== bitmapH) {
+            finalW = needW;
+            finalH = needH;
             texture?.edit((ctx, canvas) => {
-              // 位图必须**等于** UV 空间。原来写成 max(canvas, need):
-              // 打包把 64 宽的画布留在 64、却把 Project.texture_width 设成 16,
-              // 于是上色时 scale=位图宽/UV宽=4,画面涂到画布外 —— 半个模型全白。
-              if (canvas.width === texW && canvas.height === texH) return;
+              // 画布必须**精确**等于目标尺寸(原来写成 max(canvas, need):
+              // 打包把 64 宽的画布留在 64,却把 Project.texture_width 设成 16,
+              // 上色 scale 就变成 4)。先拷贝旧像素,只取左上角。
+              if (canvas.width === finalW && canvas.height === finalH) return;
               const previous = document.createElement("canvas");
               previous.width = canvas.width;
               previous.height = canvas.height;
               previous.getContext("2d")?.drawImage(canvas, 0, 0);
-              canvas.width = texW;
-              canvas.height = texH;
+              canvas.width = finalW;
+              canvas.height = finalH;
               ctx.imageSmoothingEnabled = false;
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               ctx.drawImage(previous, 0, 0);
             }, "pack_box_uv resize");
           }
+          // 工程 UV 空间至少覆盖到位图(只增不减)
+          if (Project && (finalW > (Project.texture_width ?? 0) || finalH > (Project.texture_height ?? 0))) {
+            Project.texture_width = Math.max(Project.texture_width ?? 0, finalW);
+            Project.texture_height = Math.max(Project.texture_height ?? 0, finalH);
+          }
+          texW = finalW;
+          texH = finalH;
         }
         for (const cube of list) texture?.applyToCube(cube.uuid, true);
         refreshCanvas(list.map((c: any) => ({ uuid: c.uuid })));
