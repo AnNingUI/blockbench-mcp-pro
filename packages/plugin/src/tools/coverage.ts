@@ -82,14 +82,16 @@ export const coverageTools: Record<string, ToolHandler> = {
   },
 
   list_modes: () => {
-    // Modes.options 是运行时真正的注册表
+    // 官方类型:Modes 是 Mode 类,注册表在 Modes.options,当前模式在 Modes.selected
     const modes = Modes.options as unknown as Record<string, Mode>;
+    const selected = Modes.selected as unknown as Mode | undefined;
     return {
       modes: Object.entries(modes).map(([id, mode]) => ({
         id: mode?.id ?? id,
         name: mode?.name ?? id,
-        active: Boolean(mode === (globalThis as any).Mode),
+        active: mode === selected || (mode?.id && mode.id === selected?.id) || false,
       })),
+      selected: selected?.id ?? null,
     };
   },
 

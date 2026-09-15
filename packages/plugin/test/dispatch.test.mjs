@@ -1,9 +1,8 @@
 /**
  * 插件分发层功能测试 —— 真实执行每个工具的处理器,使用 mock 的 Blockbench 宿主。
- *   node --test test/dispatch.test.mjs   (先 npm run build -w @bbmcp/plugin)
+ *   pnpm --filter @anningui/blockbench-mcp test   (先 pnpm run build)
  */
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect, afterAll } from "vitest";
 
 const mock = (await import("./mock-blockbench.mjs")).installMockBlockbench();
 const api = await import("../dist/testing.mjs");
@@ -12,20 +11,20 @@ const call = (name, args = {}) => api.runTool(name, args);
 
 async function ok(name, args = {}) {
   const result = await call(name, args);
-  assert.equal(result.ok, true, `${name} failed: ${JSON.stringify(result.error ?? result)}`);
+  expect(result.ok, `${name} failed: ${JSON.stringify(result.error ?? result)}`).toBe(true);
   return result.result;
 }
 
 async function fails(name, args = {}, code) {
   const result = await call(name, args);
-  assert.equal(result.ok, false, `${name} unexpectedly succeeded: ${JSON.stringify(result.result)}`);
-  if (code) assert.equal(result.error.code, code, `${name}: got ${result.error.code} — ${result.error.message}`);
+  expect(result.ok, `${name} unexpectedly succeeded: ${JSON.stringify(result.result)}`).toBe(false);
+  if (code) expect(result.error.code, `${name}: got ${result.error.code} — ${result.error.message}`).toBe(code);
   return result.error;
 }
 
 function newProject(format = "bedrock") {
   const result = api.handlers.create_project({ format, texture_width: 64, texture_height: 64 });
-  assert.equal(result.ok, true);
+  expect(result.ok).toBe(true);
   return result;
 }
 
@@ -33,46 +32,46 @@ function newProject(format = "bedrock") {
 
 test("every tool in the catalogue has an implementation", () => {
   const missing = Object.keys(api.TOOL_SPECS).filter((name) => !api.handlers[name]);
-  assert.deepEqual(missing, []);
-  assert.ok(api.registeredToolNames().length >= 60, `tool count ${api.registeredToolNames().length}`);
+  expect(missing).toEqual([]);
+  expect(api.registeredToolNames().length >= 60, `tool count ${api.registeredToolNames().length}`).toBeTruthy();
 });
 
 test("unknown tool and invalid params return structured errors", async () => {
   const unknown = await fails("does_not_exist", {}, "E_UNSUPPORTED_COMMAND");
-  assert.match(unknown.message, /tools\/list/);
+  expect(unknown.message).toMatch(/tools\/list/);
   const invalid = await fails("which_side", {}, "E_INVALID_PARAM");
-  assert.match(invalid.message, /element/);
+  expect(invalid.message).toMatch(/element/);
   const unknownKey = await fails("health", { nope: 1 }, "E_INVALID_PARAM");
-  assert.match(unknownKey.message, /Unrecognized key|nope/);
+  expect(unknownKey.message).toMatch(/Unrecognized key|nope/);
 });
 
 test("JSON-string arguments from sloppy clients are coerced", async () => {
   const coerced = api.coerceArguments({ refs: '["a","b"]', nested: { matrix: '["#"]' }, n: 3 });
-  assert.deepEqual(coerced.refs, ["a", "b"]);
-  assert.deepEqual(coerced.nested.matrix, ["#"]);
-  assert.equal(coerced.n, 3);
+  expect(coerced.refs).toEqual(["a", "b"]);
+  expect(coerced.nested.matrix).toEqual(["#"]);
+  expect(coerced.n).toBe(3);
   const result = await call("which_side", { element: "missing" });
-  assert.equal(result.ok, false);
+  expect(result.ok).toBe(false);
 });
 
 test("health reports transport, capabilities and the gate state", async () => {
   const health = await ok("health");
-  assert.equal(health.ok, true);
-  assert.equal(health.protocol_version, 1);
-  assert.equal(health.blockbench_supported, true);
-  assert.deepEqual(health.transport.length, 2);
-  assert.equal(health.execute_script_allowed, false);
-  assert.ok(health.capabilities.includes("geometry"));
-  assert.ok(health.capabilities.includes("textures"));
-  assert.ok(health.capabilities.includes("screenshots"));
+  expect(health.ok).toBe(true);
+  expect(health.protocol_version).toBe(1);
+  expect(health.blockbench_supported).toBe(true);
+  expect(health.transport.length).toEqual(2);
+  expect(health.execute_script_allowed).toBe(false);
+  expect(health.capabilities.includes("geometry")).toBeTruthy();
+  expect(health.capabilities.includes("textures")).toBeTruthy();
+  expect(health.capabilities.includes("screenshots")).toBeTruthy();
 });
 
 test("guides resolve and list_formats works", async () => {
   const guide = await ok("get_guide", { topic: "detailing" });
-  assert.equal(guide.topic, "detailing");
-  assert.match(guide.text, /monolithic|layering/i);
+  expect(guide.topic).toBe("detailing");
+  expect(guide.text).toMatch(/monolithic|layering/i);
   const formats = await ok("list_formats");
-  assert.ok(formats.formats.some((f) => f.id === "java_block"));
+  expect(formats.formats.some((f) => f.id === "java_block")).toBeTruthy();
 });
 
 /* ---------------------------------------------------------- project */
@@ -80,12 +79,12 @@ test("guides resolve and list_formats works", async () => {
 test("create_project validates uv_mode against the format", async () => {
   mock.reset();
   const created = newProject("bedrock");
-  assert.equal(created.ok, true);
-  assert.equal(created.uv_mode, "box");
+  expect(created.ok).toBe(true);
+  expect(created.uv_mode).toBe("box");
   const summary = await ok("get_project_summary");
-  assert.equal(summary.format, "bedrock");
-  assert.equal(summary.uv_mode, "box");
-  assert.equal(summary.cubes, 0);
+  expect(summary.format).toBe("bedrock");
+  expect(summary.uv_mode).toBe("box");
+  expect(summary.cubes).toBe(0);
 
   mock.reset();
   await fails("create_project", { format: "java_block", uv_mode: "box" }, "E_INVALID_PARAM");
@@ -96,7 +95,7 @@ test("save_project / export_model are refused until a directory is approved", as
   mock.reset();
   newProject();
   const error = await fails("save_project", { path: "C:/tmp/a.bbmodel" }, "E_SCOPE_DENIED");
-  assert.match(error.message, /propose_scoped_directory/);
+  expect(error.message).toMatch(/propose_scoped_directory/);
   await fails("export_model", { path: "C:/tmp/a.json" }, "E_SCOPE_DENIED");
 });
 
@@ -115,13 +114,13 @@ test("apply_geometry_batch builds a posed hierarchy in one undo step", async () 
       { name: "skull", from: [-3, 16, -3], to: [3, 22, 3], parent: "head" },
     ],
   });
-  assert.equal(result.created.length, 4);
-  assert.equal(mock.MockCube.all.length, 2);
-  assert.equal(mock.MockGroup.all.length, 2);
-  assert.equal(mock.state.undoInit, 1, "one undo step");
-  assert.equal(mock.state.undoFinish, 1);
+  expect(result.created.length).toBe(4);
+  expect(mock.MockCube.all.length).toBe(2);
+  expect(mock.MockGroup.all.length).toBe(2);
+  expect(mock.state.undoInit, "one undo step").toBe(1);
+  expect(mock.state.undoFinish).toBe(1);
   const head = mock.MockCube.all.find((c) => c.name === "skull");
-  assert.equal(head.parent.name, "head");
+  expect(head.parent.name).toBe("head");
 });
 
 test("apply_geometry_batch refuses contradictory sides and missing parents before writing", async () => {
@@ -132,14 +131,14 @@ test("apply_geometry_batch refuses contradictory sides and missing parents befor
     { create_cubes: [{ name: "arm_right", from: [-6, 10, -1], to: [-4, 16, 1], side: "right" }] },
     "E_INVALID_PARAM",
   );
-  assert.match(side.message, /declared side/);
-  assert.equal(mock.MockCube.all.length, 0, "nothing was created");
+  expect(side.message).toMatch(/declared side/);
+  expect(mock.MockCube.all.length, "nothing was created").toBe(0);
   await fails(
     "apply_geometry_batch",
     { create_cubes: [{ name: "x", from: [0, 0, 0], to: [1, 1, 1], parent: "nope" }] },
     "E_PARTIAL_FORBIDDEN",
   );
-  assert.equal(mock.MockCube.all.length, 0);
+  expect(mock.MockCube.all.length).toBe(0);
 });
 
 test("voxelize_matrix turns a character matrix into real cubes", async () => {
@@ -151,17 +150,17 @@ test("voxelize_matrix turns a character matrix into real cubes", async () => {
     origin: [0, 0, 0],
     merge_adjacent: true,
   });
-  assert.equal(result.cubes, 3);
-  assert.equal(mock.MockCube.all.length, 3);
-  assert.ok(mock.MockCube.all.every((c) => c.name.startsWith("blade")));
+  expect(result.cubes).toBe(3);
+  expect(mock.MockCube.all.length).toBe(3);
+  expect(mock.MockCube.all.every((c) => c.name.startsWith("blade"))).toBeTruthy();
 });
 
 test("add_hollow_volume builds a shell with a cavity and can omit faces", async () => {
   mock.reset();
   newProject();
   const full = await ok("add_hollow_volume", { bounds: { from: [0, 0, 0], to: [10, 10, 10] } });
-  assert.equal(full.created_elements, 6);
-  assert.deepEqual(full.cavity.min, [1, 1, 1]);
+  expect(full.created_elements).toBe(6);
+  expect(full.cavity.min).toEqual([1, 1, 1]);
   mock.reset();
   newProject();
   await ok("add_hollow_volume", {
@@ -169,8 +168,8 @@ test("add_hollow_volume builds a shell with a cavity and can omit faces", async 
     open_faces: ["north", "down"],
     name: "hood",
   });
-  assert.equal(mock.MockCube.all.length, 4);
-  assert.ok(!mock.MockCube.all.some((c) => /hood_(north|down)/.test(c.name)));
+  expect(mock.MockCube.all.length).toBe(4);
+  expect(!mock.MockCube.all.some((c) => /hood_(north|down)/.test(c.name))).toBeTruthy();
 });
 
 test("generate_array places elements and extrude_chain creates bones with a taper", async () => {
@@ -185,7 +184,7 @@ test("generate_array places elements and extrude_chain creates bones with a tape
     depth_stagger: 0.1,
     seed: 3,
   });
-  assert.equal(array.elements, 5);
+  expect(array.elements).toBe(5);
   const chain = await ok("extrude_chain", {
     segments: 4,
     base_origin: [3, 30, 0],
@@ -195,18 +194,18 @@ test("generate_array places elements and extrude_chain creates bones with a tape
     name: "horn",
     side: "right",
   });
-  assert.equal(chain.bones, 4);
-  assert.deepEqual(chain.tip, [3, 38, 0]);
-  assert.equal(mock.MockGroup.all.filter((g) => g.name.startsWith("horn")).length, 4);
+  expect(chain.bones).toBe(4);
+  expect(chain.tip).toEqual([3, 38, 0]);
+  expect(mock.MockGroup.all.filter((g) => g.name.startsWith("horn")).length).toBe(4);
 });
 
 test("add_wing lands bones and a membrane, and refuses the wrong side", async () => {
   mock.reset();
   newProject();
   const wing = await ok("add_wing", { side: "right", base_origin: [3, 22, 2], fingers: 3 });
-  assert.ok(wing.joints.elbow);
-  assert.ok(mock.MockGroup.all.some((g) => g.name === "wing_right_arm"));
-  assert.ok(mock.MockCube.all.some((c) => c.name.includes("membrane")));
+  expect(wing.joints.elbow).toBeTruthy();
+  expect(mock.MockGroup.all.some((g) => g.name === "wing_right_arm")).toBeTruthy();
+  expect(mock.MockCube.all.some((c) => c.name.includes("membrane"))).toBeTruthy();
   mock.reset();
   newProject();
   await fails("add_wing", { side: "left", base_origin: [3, 22, 2] }, "E_INVALID_PARAM");
@@ -225,11 +224,11 @@ test("transform_elements moves a subtree and rejects non-uniform scale of rotate
     scale: [1.5, 1.5, 1.5],
     uv_policy: "auto",
   });
-  assert.equal(moved.updated.length, 2);
+  expect(moved.updated.length).toBe(2);
   const torso = mock.MockCube.all.find((c) => c.name === "torso");
-  assert.equal(torso.from[0], 0);
-  assert.equal(torso.from[1], 20);
-  assert.equal(torso.to[0], 6);
+  expect(torso.from[0]).toBe(0);
+  expect(torso.from[1]).toBe(20);
+  expect(torso.to[0]).toBe(6);
   await fails("transform_elements", { refs: ["body"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
 });
 
@@ -238,28 +237,28 @@ test("mirror_elements renames left/right and check_sides agrees", async () => {
   newProject();
   await ok("create_limb", { name: "arm_right", pivot: [6, 22, 0], size: [4, 12, 4], mirror: "x" });
   const names = mock.MockGroup.all.map((g) => g.name).sort();
-  assert.deepEqual(names, ["arm_left", "arm_right"]);
+  expect(names).toEqual(["arm_left", "arm_right"]);
   const sides = await ok("check_sides");
-  assert.equal(sides.summary.mismatched, 0);
-  assert.equal(sides.summary.unpaired, 0);
+  expect(sides.summary.mismatched).toBe(0);
+  expect(sides.summary.unpaired).toBe(0);
 });
 
 test("scaffold_biped builds a real rig, packs UVs and returns check_model", async () => {
   mock.reset();
   newProject();
   const result = await ok("scaffold_biped", { texture_size: 64 });
-  assert.equal(result.uv_mode, "box");
-  assert.ok(result.created.length >= 13, `created ${result.created.length}`);
-  assert.ok(mock.MockTexture.all.length === 1);
+  expect(result.uv_mode).toBe("box");
+  expect(result.created.length >= 13, `created ${result.created.length}`).toBeTruthy();
+  expect(mock.MockTexture.all.length === 1).toBeTruthy();
   const bones = mock.MockGroup.all.map((g) => g.name);
   for (const expected of ["root", "body", "head", "arm_right", "arm_left", "leg_right", "leg_left"])
-    assert.ok(bones.includes(expected), `missing ${expected}`);
+    expect(bones.includes(expected), `missing ${expected}`).toBeTruthy();
   const cubes = mock.MockCube.all;
-  assert.ok(cubes.every((c) => c.box_uv === true));
+  expect(cubes.every((c) => c.box_uv === true)).toBeTruthy();
   const uvs = new Set(cubes.map((c) => c.uv_offset.join(",")));
-  assert.equal(uvs.size, cubes.length, "every cube got its own atlas region");
+  expect(uvs.size, "every cube got its own atlas region").toBe(cubes.length);
   const rig = await ok("check_rig");
-  assert.equal(rig.summary.ready, true, JSON.stringify(rig.findings));
+  expect(rig.summary.ready, JSON.stringify(rig.findings)).toBe(true);
 });
 
 test("measure_model / audit_symmetry report numbers", async () => {
@@ -267,11 +266,11 @@ test("measure_model / audit_symmetry report numbers", async () => {
   newProject();
   await ok("create_limb", { name: "arm_right", pivot: [6, 22, 0], size: [4, 12, 4], mirror: "x" });
   const measured = await ok("measure_model");
-  assert.equal(measured.cubes, 2);
-  assert.equal(measured.bounds.size[0], 16);
+  expect(measured.cubes).toBe(2);
+  expect(measured.bounds.size[0]).toBe(16);
   const symmetry = await ok("audit_symmetry", { pairs: [{ left: "arm_right", right: "arm_left" }] });
-  assert.equal(symmetry.summary.passed, 1);
-  assert.ok(symmetry.pairs[0].max_error < 1e-6);
+  expect(symmetry.summary.passed).toBe(1);
+  expect(symmetry.pairs[0].max_error < 1e-6).toBeTruthy();
 });
 
 /* ---------------------------------------------------------- quality */
@@ -281,8 +280,8 @@ test("check_model catches the classic failures and passes a clean rig", async ()
   newProject();
   await ok("scaffold_biped");
   const clean = await ok("check_model");
-  assert.equal(clean.summary.errors, 0, JSON.stringify(clean.findings));
-  assert.equal(clean.ready, true);
+  expect(clean.summary.errors, JSON.stringify(clean.findings)).toBe(0);
+  expect(clean.ready).toBe(true);
 
   await ok("apply_geometry_batch", {
     create_cubes: [
@@ -291,7 +290,7 @@ test("check_model catches the classic failures and passes a clean rig", async ()
     ],
   });
   const dirty = await ok("check_model");
-  assert.ok(dirty.findings.some((f) => f.code === "COPLANAR_OVERLAP"), JSON.stringify(dirty.findings));
+  expect(dirty.findings.some((f) => f.code === "COPLANAR_OVERLAP"), JSON.stringify(dirty.findings)).toBeTruthy();
 });
 
 test("audit_complexity gates a blockout and reports the budget", async () => {
@@ -302,19 +301,19 @@ test("audit_complexity gates a blockout and reports the budget", async () => {
     create_cubes: [{ name: "torso", from: [0, 0, 0], to: [8, 16, 8], parent: "body" }],
   });
   const primitive = await ok("audit_complexity", { target: "character" });
-  assert.equal(primitive.verdict, "too_primitive");
-  assert.equal(primitive.ready_for_texturing, false);
-  assert.ok(primitive.issues.length > 0);
+  expect(primitive.verdict).toBe("too_primitive");
+  expect(primitive.ready_for_texturing).toBe(false);
+  expect(primitive.issues.length > 0).toBeTruthy();
 });
 
 test("execute_script stays gated until the user enables it", async () => {
   await fails("execute_script", { code: "return 1" }, "E_AUTH_FAILED");
   globalThis.settings.bbmcp_allow_execute_script.value = true;
   const result = await ok("execute_script", { code: "return [1,2,3].reduce((a,b)=>a+b,0)" });
-  assert.equal(result.result, 6);
+  expect(result.result).toBe(6);
   globalThis.settings.bbmcp_allow_execute_script.value = false;
   const timed = await call("execute_script", { code: "return 1" });
-  assert.equal(timed.ok, false);
+  expect(timed.ok).toBe(false);
 });
 
 /* ------------------------------------------------------- uv/texture */
@@ -329,14 +328,14 @@ test("ensure_texture → pack_box_uv → get_uv_layout keeps islands apart", asy
     ],
   });
   const texture = await ok("ensure_texture", { name: "skin", width: 64, height: 64, fill: "#808080" });
-  assert.equal(texture.size[0], 64);
+  expect(texture.size[0]).toBe(64);
   const packed = await ok("pack_box_uv", { padding: 1 });
-  assert.equal(packed.mode, "box");
-  assert.equal(packed.packed, 2);
+  expect(packed.mode).toBe("box");
+  expect(packed.packed).toBe(2);
   const layout = await ok("get_uv_layout");
-  assert.equal(layout.summary.out_of_bounds, 0);
-  assert.equal(layout.summary.overlaps, 0);
-  assert.equal(layout.summary.islands, 12, "six faces per cube");
+  expect(layout.summary.out_of_bounds).toBe(0);
+  expect(layout.summary.overlaps).toBe(0);
+  expect(layout.summary.islands, "six faces per cube").toBe(12);
 });
 
 test("paint_face_grid → get_face_grid round-trips exact pixels", async () => {
@@ -354,11 +353,11 @@ test("paint_face_grid → get_face_grid round-trips exact pixels", async () => {
     rows,
     palette: { a: "#ff0000", b: "#00ff00" },
   });
-  assert.equal(painted.pixels, 4);
-  assert.match(painted.revision, /^fnv1a32:/);
+  expect(painted.pixels).toBe(4);
+  expect(painted.revision).toMatch(/^fnv1a32:/);
   const read = await ok("get_face_grid", { cube: "face_cube", face: "north" });
-  assert.deepEqual(read.rows, [["#ff0000ff", "#00ff00ff"], ["#00ff00ff", "#ff0000ff"]]);
-  assert.equal(read.revision, painted.revision);
+  expect(read.rows).toEqual([["#ff0000ff", "#00ff00ff"], ["#00ff00ff", "#ff0000ff"]]);
+  expect(read.revision).toBe(painted.revision);
 });
 
 test("texture revision tokens reject stale writes", async () => {
@@ -373,7 +372,7 @@ test("texture revision tokens reject stale writes", async () => {
     { from: "#222222", to: "#333333", expected_revision: revision.revision },
     "E_PARTIAL_FORBIDDEN",
   );
-  assert.match(stale.message, /changed since it was read/);
+  expect(stale.message).toMatch(/changed since it was read/);
 });
 
 test("shade_model_base paints every face and audit_texture_quality reads it back", async () => {
@@ -395,13 +394,13 @@ test("shade_model_base paints every face and audit_texture_quality reads it back
     blur: 0,
     seed: 5,
   });
-  assert.equal(shaded.textured, 2);
-  assert.equal(shaded.faces, 12);
+  expect(shaded.textured).toBe(2);
+  expect(shaded.faces).toBe(12);
   const audit = await ok("audit_texture_quality");
-  assert.equal(audit.faces, 12);
-  assert.equal(audit.summary.errors, 0);
+  expect(audit.faces).toBe(12);
+  expect(audit.summary.errors).toBe(0);
   // 面被真的上了色,不再是透明
-  assert.ok(audit.findings.every((f) => f.code !== "EMPTY_FACE_TEXTURE"));
+  expect(audit.findings.every((f) => f.code !== "EMPTY_FACE_TEXTURE")).toBeTruthy();
 });
 
 test("copy_face_pixels, transform_texture_region and analyze_texture_palette work", async () => {
@@ -421,14 +420,14 @@ test("copy_face_pixels, transform_texture_region and analyze_texture_palette wor
     target: { cube: "b", face: "north" },
     flip_x: true,
   });
-  assert.equal(copied.pixels, 4);
+  expect(copied.pixels).toBe(4);
   const flipped = await ok("get_face_grid", { cube: "b", face: "north" });
-  assert.deepEqual(flipped.rows, [["#0000ffff", "#ff0000ff"], ["#ff0000ff", "#0000ffff"]]);
+  expect(flipped.rows).toEqual([["#0000ffff", "#ff0000ff"], ["#ff0000ff", "#0000ffff"]]);
   const turned = await ok("transform_texture_region", { face: { cube: "a", face: "north" }, operation: "rotate_180" });
-  assert.equal(turned.pixels, 4);
+  expect(turned.pixels).toBe(4);
   const palette = await ok("analyze_texture_palette", { face: { cube: "a", face: "north" } });
-  assert.equal(palette.total_pixels, 4);
-  assert.equal(palette.unique_colors, 2);
+  expect(palette.total_pixels).toBe(4);
+  expect(palette.unique_colors).toBe(2);
 });
 
 test("face-local painting works on a rotated face", async () => {
@@ -449,12 +448,12 @@ test("face-local painting works on a rotated face", async () => {
       },
     ],
   });
-  assert.equal(features.painted, 1);
+  expect(features.painted).toBe(1);
   const grid = await ok("get_face_grid", { cube: "c", face: "north" });
-  assert.equal(grid.width, 2);
-  assert.equal(grid.height, 2);
-  assert.ok(grid.rows.flat().includes("#123456ff"));
-  assert.ok(grid.rows.flat().includes("#ffffffff"));
+  expect(grid.width).toBe(2);
+  expect(grid.height).toBe(2);
+  expect(grid.rows.flat().includes("#123456ff")).toBeTruthy();
+  expect(grid.rows.flat().includes("#ffffffff")).toBeTruthy();
 });
 
 test("resize_texture scales the bitmap and the UVs together", async () => {
@@ -466,10 +465,10 @@ test("resize_texture scales the bitmap and the UVs together", async () => {
   await ok("pack_box_uv", { auto_resize: false });
   const before = mock.MockCube.all[0].uv_offset.slice();
   const resized = await ok("resize_texture", { width: 64, height: 64 });
-  assert.deepEqual(resized.size, [64, 64]);
-  assert.deepEqual(resized.uv_scale, [2, 2]);
-  assert.deepEqual(globalThis.Project.texture_width, 64);
-  assert.deepEqual(mock.MockCube.all[0].uv_offset, [before[0] * 2, before[1] * 2]);
+  expect(resized.size).toEqual([64, 64]);
+  expect(resized.uv_scale).toEqual([2, 2]);
+  expect(globalThis.Project.texture_width).toEqual(64);
+  expect(mock.MockCube.all[0].uv_offset).toEqual([before[0] * 2, before[1] * 2]);
 });
 
 test("ensure_material_set + audit_material_set agree on the sheet size", async () => {
@@ -481,18 +480,18 @@ test("ensure_material_set + audit_material_set agree on the sheet size", async (
     height: 64,
     channels: ["base", "emissive", "normal", "specular"],
   });
-  assert.equal(set.textures.length, 4);
+  expect(set.textures.length).toBe(4);
   const audit = await ok("audit_material_set", {
     channels: { base: "golem_base", emissive: "golem_emissive", normal: "golem_normal" },
     naming_prefix: "golem",
   });
-  assert.equal(audit.summary.errors, 0);
-  assert.equal(audit.summary.warns, 0);
+  expect(audit.summary.errors).toBe(0);
+  expect(audit.summary.warns).toBe(0);
   const renamed = await ok("audit_material_set", {
     channels: { base: "golem_base", emissive: "golem_emissive" },
     naming_prefix: "wrong_prefix",
   });
-  assert.ok(renamed.summary.warns >= 2, "naming prefix mismatch reported");
+  expect(renamed.summary.warns >= 2, "naming prefix mismatch reported").toBeTruthy();
 });
 
 /* -------------------------------------------------------- animation */
@@ -515,11 +514,11 @@ test("upsert_animation writes keys, inspect reads them back", async () => {
       },
     },
   });
-  assert.equal(created.keyframes, 3);
+  expect(created.keyframes).toBe(3);
   const inspected = await ok("inspect_animation", { name: "animation.test.wave" });
-  assert.equal(inspected.bones.length, 1);
-  assert.equal(inspected.summary.keyframes, 3);
-  assert.deepEqual(inspected.bones[0].channels.rotations[1].value, [45, 0, 0]);
+  expect(inspected.bones.length).toBe(1);
+  expect(inspected.summary.keyframes).toBe(3);
+  expect(inspected.bones[0].channels.rotations[1].value).toEqual([45, 0, 0]);
 
   await fails("upsert_animation", { name: "animation.test.wave", length: 1 }, "E_INVALID_PARAM");
 });
@@ -529,24 +528,21 @@ test("generate_animation produces a direction-correct walk cycle on a real rig",
   newProject();
   await ok("scaffold_biped");
   const cycle = await ok("generate_animation", { type: "walk", replace: true });
-  assert.equal(cycle.loop, "loop");
-  assert.ok(cycle.bones.join(",").includes("leg_right"));
+  expect(cycle.loop).toBe("loop");
+  expect(cycle.bones.join(",").includes("leg_right")).toBeTruthy();
   const inspected = await ok("inspect_animation", { name: cycle.name });
   const legR = inspected.bones.find((b) => b.name === "leg_right");
   const legL = inspected.bones.find((b) => b.name === "leg_left");
-  assert.ok(legR && legL, "both legs keyed");
+  expect(legR && legL, "both legs keyed").toBeTruthy();
   // 对侧相位:同样时间点旋转符号相反 (+X 让下垂的腿向前)
-  assert.ok(
-    Math.sign(legR.channels.rotations[0].value[0]) === -Math.sign(legL.channels.rotations[0].value[0]),
-    "limbs are in opposite phase",
-  );
-  assert.notEqual(legR.channels.rotations[0].value[0], 0);
+  expect(Math.sign(legR.channels.rotations[0].value[0]) === -Math.sign(legL.channels.rotations[0].value[0]), "limbs are in opposite phase").toBeTruthy();
+  expect(legR.channels.rotations[0].value[0]).not.toBe(0);
   const body = inspected.bones.find((b) => b.name === "body");
-  assert.ok(body.channels.position.length >= 3, "body bobs");
+  expect(body.channels.position.length >= 3, "body bobs").toBeTruthy();
   for (const type of ["idle", "run", "attack", "cast", "jump", "hurt", "death", "fly"]) {
     const other = await ok("generate_animation", { type, replace: true });
-    assert.equal(other.type, type);
-    assert.ok(other.keyframes > 0, `${type} produced keys`);
+    expect(other.type).toBe(type);
+    expect(other.keyframes > 0, `${type} produced keys`).toBeTruthy();
   }
   await fails("generate_animation", { type: "not-a-cycle" }, "E_INVALID_PARAM");
 });
@@ -557,9 +553,9 @@ test("transform_animation_keys retimes and mirrors", async () => {
   await ok("scaffold_biped");
   const cycle = await ok("generate_animation", { type: "walk", replace: true });
   const transformed = await ok("transform_animation_keys", { name: cycle.name, time_scale: 2, value_scale: [1, 1, 1] });
-  assert.ok(transformed.updated_keyframes > 0);
+  expect(transformed.updated_keyframes > 0).toBeTruthy();
   const inspected = await ok("inspect_animation", { name: cycle.name });
-  assert.equal(inspected.length, Number(cycle.length) * 2);
+  expect(inspected.length).toBe(Number(cycle.length) * 2);
 });
 
 test("set_timeline_time poses a frame and delete_animation removes a clip", async () => {
@@ -568,10 +564,10 @@ test("set_timeline_time poses a frame and delete_animation removes a clip", asyn
   await ok("scaffold_biped");
   const cycle = await ok("generate_animation", { type: "idle", replace: true });
   const posed = await ok("set_timeline_time", { time: 0.5 });
-  assert.equal(posed.time, 0.5);
+  expect(posed.time).toBe(0.5);
   const deleted = await ok("delete_animation", { name: cycle.name });
-  assert.equal(deleted.deleted, cycle.name);
-  assert.equal(mock.MockAnimation.all.length, 0);
+  expect(deleted.deleted).toBe(cycle.name);
+  expect(mock.MockAnimation.all.length).toBe(0);
 });
 
 /* ------------------------------------------------------------ views */
@@ -581,13 +577,13 @@ test("capture_views returns captioned images and silhouette analysis is numeric"
   newProject();
   await ok("scaffold_biped");
   const views = await ok("capture_views", { views: ["north", "iso"], max_edge: 64, format: "png" });
-  assert.equal(views.views.length, 2);
-  assert.match(views.views[0].data_url, /^data:image\/png;base64,/);
-  assert.match(views.views[0].caption, /mirrored/i);
-  assert.equal(views.views[1].visible_face, null);
+  expect(views.views.length).toBe(2);
+  expect(views.views[0].data_url).toMatch(/^data:image\/png;base64,/);
+  expect(views.views[0].caption).toMatch(/mirrored/i);
+  expect(views.views[1].visible_face).toBe(null);
   const silhouette = await ok("analyze_view_silhouette", { views: ["north"], max_edge: 64 });
-  assert.equal(silhouette.views.length, 1);
-  assert.ok(typeof silhouette.views[0].coverage === "number");
+  expect(silhouette.views.length).toBe(1);
+  expect(typeof silhouette.views[0].coverage === "number").toBeTruthy();
 });
 
 /* --------------------------------------------------- review & files */
@@ -601,16 +597,16 @@ test("request_review returns pending and wait_review resolves once answered", as
     wait_seconds: 0.05,
     views: ["north"],
   });
-  assert.equal(pending.pending, true);
-  assert.equal(pending.answer, null);
-  assert.ok(pending.review_id);
-  assert.equal(pending.views.length, 1);
+  expect(pending.pending).toBe(true);
+  expect(pending.answer).toBe(null);
+  expect(pending.review_id).toBeTruthy();
+  expect(pending.views.length).toBe(1);
 
   api.answerReview(pending.review_id, 1, "elbows too straight");
   const answered = await ok("wait_review", { review_id: pending.review_id, wait_seconds: 1 });
-  assert.equal(answered.pending, false);
-  assert.equal(answered.answer, "Needs changes");
-  assert.equal(answered.comment, "elbows too straight");
+  expect(answered.pending).toBe(false);
+  expect(answered.answer).toBe("Needs changes");
+  expect(answered.comment).toBe("elbows too straight");
 });
 
 test("ask_user offers custom options", async () => {
@@ -620,10 +616,10 @@ test("ask_user offers custom options", async () => {
     options: ["Left", "Right"],
     wait_seconds: 0.05,
   });
-  assert.deepEqual(pending.options, ["Left", "Right"]);
+  expect(pending.options).toEqual(["Left", "Right"]);
   api.answerReview(pending.review_id, 0);
   const answered = await ok("wait_review", { review_id: pending.review_id, wait_seconds: 1 });
-  assert.equal(answered.answer, "Left");
+  expect(answered.answer).toBe("Left");
 });
 
 test("reference matching: load, pin, compare and clear", async () => {
@@ -634,17 +630,17 @@ test("reference matching: load, pin, compare and clear", async () => {
     data_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==",
     name: "wolf",
   });
-  assert.equal(loaded.name, "wolf");
+  expect(loaded.name).toBe("wolf");
   const list = await ok("list_references");
-  assert.equal(list.count, 1);
+  expect(list.count).toBe(1);
   const image = await ok("get_reference", { name: "wolf" });
-  assert.match(image.references[0].data_url, /^data:image\/png;base64,/);
+  expect(image.references[0].data_url).toMatch(/^data:image\/png;base64,/);
   const comparison = await ok("compare_reference", { view: "north" });
-  assert.equal(typeof comparison.match_percent, "number");
-  assert.ok(comparison.composite_data_url.startsWith("data:image/png;base64,"));
-  assert.ok(Array.isArray(comparison.advice));
+  expect(typeof comparison.match_percent).toBe("number");
+  expect(comparison.composite_data_url.startsWith("data:image/png;base64,")).toBeTruthy();
+  expect(Array.isArray(comparison.advice)).toBeTruthy();
   const cleared = await ok("clear_references");
-  assert.equal(cleared.cleared, 1);
+  expect(cleared.cleared).toBe(1);
   await fails("compare_reference", {}, "E_NOT_FOUND");
 });
 
@@ -652,32 +648,42 @@ test("reference matching: load, pin, compare and clear", async () => {
 
 test("action bridge lists and runs Blockbench commands", async () => {
   const actions = await ok("list_actions", {});
-  assert.ok(actions.actions.some((a) => a.id === "mirror_model"));
+  expect(actions.actions.some((a) => a.id === "mirror_model")).toBeTruthy();
   const filtered = await ok("list_actions", { filter: "mirror" });
-  assert.equal(filtered.actions.length, 1);
+  expect(filtered.actions.length).toBe(1);
   const one = await ok("get_action", { id: "mirror_model" });
-  assert.equal(one.has_click, true);
+  expect(one.has_click).toBe(true);
   const run = await ok("run_action", { id: "mirror_model" });
-  assert.equal(run.result, true);
+  expect(run.result).toBe(true);
   await fails("run_action", { id: "nope" }, "E_NOT_FOUND");
   await fails("get_action", { id: "nope" }, "E_NOT_FOUND");
 });
 
 test("settings, plugins and history tools work through the mock", async () => {
   const listed = await ok("list_settings", {});
-  assert.ok(listed.settings.some((s) => s.id === "bbmcp_allow_execute_script"));
+  expect(listed.settings.some((s) => s.id === "bbmcp_allow_execute_script")).toBeTruthy();
   const one = await ok("get_setting", { id: "bbmcp_port" });
-  assert.equal(one.value, 39742);
+  expect(one.value).toBe(39742);
   const updated = await ok("set_setting", { id: "bbmcp_port", value: 40000 });
-  assert.equal(updated.value, 40000);
+  expect(updated.value).toBe(40000);
   await ok("set_setting", { id: "bbmcp_port", value: 39742 });
   const plugins = await ok("list_plugins");
-  assert.ok(Array.isArray(plugins.plugins));
-  assert.equal((await ok("undo")).action, "undo");
-  assert.equal((await ok("redo")).action, "redo");
+  expect(Array.isArray(plugins.plugins)).toBeTruthy();
+  const undo = await ok("undo");
+  expect(undo.action).toBe("undo");
+  expect(mock.state.undoCalls).toBe(1);
+  const redo = await ok("redo");
+  expect(redo.action).toBe("redo");
+  expect(mock.state.redoCalls).toBe(1);
   const modes = await ok("list_modes");
-  assert.ok(modes.modes.some((m) => m.id === "edit"));
-  assert.equal((await ok("set_mode", { id: "edit" })).mode, "edit");
+  expect(modes.modes.some((m) => m.id === "edit")).toBeTruthy();
+  const switched = await ok("set_mode", { id: "paint" });
+  expect(switched.mode).toBe("paint");
+  const after = await ok("list_modes");
+  expect(after.selected).toBe("paint");
+  expect(after.modes.find((m) => m.id === "paint").active).toBe(true);
+  expect(after.modes.find((m) => m.id === "edit").active).toBe(false);
+  await ok("set_mode", { id: "edit" });
 });
 
 /* ----------------------------------------------------------- orientation */
@@ -688,11 +694,11 @@ test("which_side and get_orientation encode the -Z-facing convention", async () 
   await ok("create_limb", { name: "arm_right", pivot: [6, 22, 0], size: [4, 12, 4] });
   await ok("create_limb", { name: "arm_left", pivot: [-6, 22, 0], size: [4, 12, 4] });
   const right = await ok("which_side", { element: "arm_right" });
-  assert.equal(right.side, "right");
-  assert.equal(right.name_agrees, true);
+  expect(right.side).toBe("right");
+  expect(right.name_agrees).toBe(true);
   const mislabeled = await ok("which_side", { element: "arm_right_cube" });
-  assert.equal(mislabeled.side, "right");
+  expect(mislabeled.side).toBe("right");
   const orientation = await ok("get_orientation");
-  assert.equal(orientation.model_right_axis, "+X");
-  assert.match(orientation.front_view_mirror_trap, /mirrored/i);
+  expect(orientation.model_right_axis).toBe("+X");
+  expect(orientation.front_view_mirror_trap).toMatch(/mirrored/i);
 });

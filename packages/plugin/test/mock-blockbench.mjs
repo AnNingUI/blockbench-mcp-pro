@@ -349,6 +349,8 @@ export function installMockBlockbench() {
     undoInit: 0,
     undoFinish: 0,
     undoCancel: 0,
+    undoCalls: 0,
+    redoCalls: 0,
     announcements: [],
     registered: null,
   };
@@ -437,6 +439,13 @@ export function installMockBlockbench() {
     cancelEdit: () => {
       state.undoCancel += 1;
     },
+    // 真 Blockbench 的 UndoSystem 有 undo/redo(blockbench-types 也这么声明)
+    undo: () => {
+      state.undoCalls += 1;
+    },
+    redo: () => {
+      state.redoCalls += 1;
+    },
   };
   globalThis.Canvas = {
     updateAll: () => {},
@@ -449,7 +458,23 @@ export function installMockBlockbench() {
     mirror_model: { name: "Mirror", description: "Mirror the model", click: () => true },
     undo: { name: "Undo", click: () => true },
   };
-  globalThis.Modes = { edit: { id: "edit", name: "Edit", select: () => {} } };
+  const modes = {
+    options: {},
+    selected: null,
+  };
+  for (const id of ["edit", "paint", "animate"]) {
+    const mode = {
+      id,
+      name: id[0].toUpperCase() + id.slice(1),
+      select() {
+        modes.selected = mode;
+        return mode;
+      },
+    };
+    modes.options[id] = mode;
+  }
+  globalThis.Modes = modes;
+  modes.options.edit.select();
   globalThis.Painter = { edit: () => {} };
   globalThis.Codecs = { project: { id: "project", compile: () => JSON.stringify({ meta: { format: "bedrock" } }) } };
   globalThis.settings = {

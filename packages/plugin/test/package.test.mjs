@@ -1,9 +1,8 @@
 /**
  * 打包体检 —— 确认 npm 包内容正确、CLI 可用、网关文件随包发布。
- *   node --test test/package.test.mjs   (先 npm run build)
+ *   pnpm --filter @anningui/blockbench-mcp test   (先 pnpm run build)
  */
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect, afterAll } from "vitest";
 import { execFile } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -21,50 +20,42 @@ const cli = async (...args) => {
 };
 
 test("package metadata is publishable under the requested scope", () => {
-  assert.equal(pkg.name, "@anningui/blockbench-mcp");
-  assert.equal(pkg.publishConfig.access, "public");
-  assert.equal(pkg.license, "MIT");
-  assert.equal(pkg.type, "module");
-  assert.ok(pkg.bin["blockbench-mcp"]);
-  assert.ok(pkg.files.includes("bin"));
-  assert.ok(pkg.files.includes("dist/blockbench_mcp.js"));
-  assert.ok(pkg.files.includes("dist/gateway.mjs"));
-  assert.equal(pkg.dependencies, undefined, "everything is bundled — no runtime dependencies");
-  assert.equal(pkg.scripts.prepublishOnly.includes("build"), true);
+  expect(pkg.name).toBe("@anningui/blockbench-mcp");
+  expect(pkg.publishConfig.access).toBe("public");
+  expect(pkg.license).toBe("MIT");
+  expect(pkg.type).toBe("module");
+  expect(pkg.bin["blockbench-mcp"]).toBeTruthy();
+  expect(pkg.files.includes("bin")).toBeTruthy();
+  expect(pkg.files.includes("dist/blockbench_mcp.js")).toBeTruthy();
+  expect(pkg.files.includes("dist/gateway.mjs")).toBeTruthy();
+  expect(pkg.dependencies, "everything is bundled — no runtime dependencies").toBe(undefined);
+  expect(pkg.scripts.prepublishOnly.includes("build")).toBe(true);
 });
 
 test("build outputs all three artifacts the package needs", () => {
   for (const file of ["blockbench_mcp.js", "gateway.mjs", "testing.mjs"])
-    assert.ok(existsSync(path.join(pkgRoot, "dist", file)), `missing dist/${file}`);
+    expect(existsSync(path.join(pkgRoot, "dist", file)), `missing dist/${file}`).toBeTruthy();
   const plugin = readFileSync(path.join(pkgRoot, "dist", "blockbench_mcp.js"), "utf8");
   // Blockbench 按文件名推导插件 id:dist/blockbench_mcp.js ↔ Plugin.register("blockbench_mcp")
   const registeredId = /Plugin\.register\("([^"]+)"/.exec(plugin)?.[1];
-  assert.equal(
-    registeredId,
-    "blockbench_mcp",
-    "the plugin registers itself under an id equal to the bundle file name",
-  );
-  assert.equal(
-    path.basename(path.join(pkgRoot, "dist", "blockbench_mcp.js"), ".js"),
-    registeredId,
-    "Blockbench requires the file name (minus .js) to equal the plugin id",
-  );
+  expect(registeredId, "the plugin registers itself under an id equal to the bundle file name").toBe("blockbench_mcp");
+  expect(path.basename(path.join(pkgRoot, "dist", "blockbench_mcp.js"), ".js"), "Blockbench requires the file name (minus .js) to equal the plugin id").toBe(registeredId);
   const gateway = readFileSync(path.join(pkgRoot, "dist", "gateway.mjs"), "utf8");
-  assert.match(gateway, /startGateway/);
-  assert.match(gateway, /^#!\/usr\/bin\/env node/);
+  expect(gateway).toMatch(/startGateway/);
+  expect(gateway).toMatch(/^#!\/usr\/bin\/env node/);
 });
 
 test("CLI flags answer the questions the docs promise", async () => {
   const help = await cli("--help");
-  assert.match(help, /--plugin-path/);
-  assert.match(help, /BBMCP_TOKEN/);
+  expect(help).toMatch(/--plugin-path/);
+  expect(help).toMatch(/BBMCP_TOKEN/);
 
   const pluginPath = await cli("--plugin-path");
-  assert.ok(existsSync(pluginPath), `--plugin-path points at a real file: ${pluginPath}`);
-  assert.match(pluginPath, /blockbench_mcp\.js$/);
+  expect(existsSync(pluginPath), `--plugin-path points at a real file: ${pluginPath}`).toBeTruthy();
+  expect(pluginPath).toMatch(/blockbench_mcp\.js$/);
 
-  assert.equal(await cli("--http-url"), "http://127.0.0.1:39742/mcp");
-  assert.match(await cli("--cdn-url"), /^https:\/\/cdn\.jsdelivr\.net\/npm\/@anningui\/blockbench-mcp\//);
+  expect(await cli("--http-url")).toBe("http://127.0.0.1:39742/mcp");
+  expect(await cli("--cdn-url")).toMatch(/^https:\/\/cdn\.jsdelivr\.net\/npm\/@anningui\/blockbench-mcp\//);
 });
 
 test("the CLI defaults to running the stdio gateway", async () => {
@@ -112,6 +103,6 @@ test("the CLI defaults to running the stdio gateway", async () => {
   });
   child.kill();
   server.close();
-  assert.deepEqual(response.result, { tools: ["from-plugin"] });
-  assert.ok(received.some((request) => request.includes("Bearer cli-token")), "token forwarded");
+  expect(response.result).toEqual({ tools: ["from-plugin"] });
+  expect(received.some((request) => request.includes("Bearer cli-token")), "token forwarded").toBeTruthy();
 });

@@ -1,9 +1,8 @@
 /**
  * 纯逻辑单元测试 —— 不需要 Blockbench 即可运行:
- *   node --test test/   (先 npm run build -w @bbmcp/shared)
+ *   pnpm --filter @bbmcp/shared test   (先 pnpm run build)
  */
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect, afterAll } from "vitest";
 
 import {
   rotatePoint,
@@ -50,60 +49,60 @@ import {
 
 test("rotatePoint rotates around the pivot, not the origin", () => {
   const p = rotatePoint([1, 0, 0], [0, 0, 0], [0, 0, 90]);
-  assert.ok(Math.abs(p[0] - 0) < 1e-9);
-  assert.ok(Math.abs(p[1] - 1) < 1e-9);
+  expect(Math.abs(p[0] - 0) < 1e-9).toBeTruthy();
+  expect(Math.abs(p[1] - 1) < 1e-9).toBeTruthy();
   const around = rotatePoint([2, 1, 0], [1, 1, 0], [0, 0, 90]);
-  assert.ok(Math.abs(around[0] - 1) < 1e-9, `got ${around}`);
-  assert.ok(Math.abs(around[1] - 2) < 1e-9);
+  expect(Math.abs(around[0] - 1) < 1e-9, `got ${around}`).toBeTruthy();
+  expect(Math.abs(around[1] - 2) < 1e-9).toBeTruthy();
 });
 
 test("composeRotation is identity for zero deltas and nests correctly", () => {
   const same = composeRotation([10, 20, 30], [0, 0, 0]);
-  assert.ok(Math.abs(same[0] - 10) < 1e-6);
+  expect(Math.abs(same[0] - 10) < 1e-6).toBeTruthy();
   const doubled = composeRotation([10, 0, 0], [10, 0, 0]);
-  assert.ok(Math.abs(doubled[0] - 20) < 1e-4, `got ${doubled}`);
+  expect(Math.abs(doubled[0] - 20) < 1e-4, `got ${doubled}`).toBeTruthy();
 });
 
 test("geometricVolume honours inflate and guards zero sizes", () => {
-  assert.equal(geometricVolume([0, 0, 0], [2, 3, 4]), 24);
-  assert.equal(geometricVolume([0, 0, 0], [2, 3, 4], -5), 0);
-  assert.equal(geometricVolume([1, 1, 1], [1, 2, 2]), 0);
+  expect(geometricVolume([0, 0, 0], [2, 3, 4])).toBe(24);
+  expect(geometricVolume([0, 0, 0], [2, 3, 4], -5)).toBe(0);
+  expect(geometricVolume([1, 1, 1], [1, 2, 2])).toBe(0);
 });
 
 test("boundsOfPoints returns min/max", () => {
   const b = boundsOfPoints([[0, 0, 0], [2, -1, 5]]);
-  assert.deepEqual(b.min, [0, -1, 0]);
-  assert.deepEqual(b.max, [2, 0, 5]);
-  assert.equal(dist([0, 0, 0], [3, 4, 0]), 5);
+  expect(b.min).toEqual([0, -1, 0]);
+  expect(b.max).toEqual([2, 0, 5]);
+  expect(dist([0, 0, 0], [3, 4, 0])).toBe(5);
 });
 
 /* ----------------------------------------------------------------- color */
 
 test("color parsing accepts hex, rgb, named and rejects junk", () => {
-  assert.deepEqual(parseColor("#f00"), [255, 0, 0, 255]);
-  assert.deepEqual(parseColor("#00ff00"), [0, 255, 0, 255]);
-  assert.deepEqual(parseColor("rgb(1, 2, 3)"), [1, 2, 3, 255]);
-  assert.equal(parseColor("not-a-color"), null);
-  assert.equal(toHex([255, 0, 0, 255]), "#ff0000ff");
-  assert.equal(shadeHex("#808080", 0.5), "#404040ff");
+  expect(parseColor("#f00")).toEqual([255, 0, 0, 255]);
+  expect(parseColor("#00ff00")).toEqual([0, 255, 0, 255]);
+  expect(parseColor("rgb(1, 2, 3)")).toEqual([1, 2, 3, 255]);
+  expect(parseColor("not-a-color")).toBe(null);
+  expect(toHex([255, 0, 0, 255])).toBe("#ff0000ff");
+  expect(shadeHex("#808080", 0.5)).toBe("#404040ff");
 });
 
 test("makeRandom is deterministic per seed", () => {
   const a = makeRandom(7);
   const b = makeRandom(7);
-  assert.equal(a(), b());
-  assert.equal(a(), b());
-  assert.notEqual(makeRandom(1)(), makeRandom(2)());
+  expect(a()).toBe(b());
+  expect(a()).toBe(b());
+  expect(makeRandom(1)()).not.toBe(makeRandom(2)());
 });
 
 /* -------------------------------------------------------------------- uv */
 
 test("resolveUvModeFromHints prefers explicit, then format, then project", () => {
-  assert.equal(resolveUvModeFromHints({ explicit: "face", formatId: "geckolib_model" }), "face");
-  assert.equal(resolveUvModeFromHints({ formatId: "java_block" }), "face");
-  assert.equal(resolveUvModeFromHints({ formatId: "geckolib_model" }), "box");
-  assert.equal(resolveUvModeFromHints({ projectBoxUv: false }), "face");
-  assert.equal(resolveUvModeFromHints({}), "box");
+  expect(resolveUvModeFromHints({ explicit: "face", formatId: "geckolib_model" })).toBe("face");
+  expect(resolveUvModeFromHints({ formatId: "java_block" })).toBe("face");
+  expect(resolveUvModeFromHints({ formatId: "geckolib_model" })).toBe("box");
+  expect(resolveUvModeFromHints({ projectBoxUv: false })).toBe("face");
+  expect(resolveUvModeFromHints({})).toBe("box");
 });
 
 test("planUvPack (box) never overlaps and stays inside the atlas", () => {
@@ -113,11 +112,11 @@ test("planUvPack (box) never overlaps and stays inside the atlas", () => {
     { uuid: "c", name: "c", from: [0, 8, 0], to: [8, 10, 8] },
   ];
   const plan = planUvPack(cubes, { mode: "box", texW: 64, padding: 1 });
-  assert.equal(plan.mode, "box");
-  assert.equal(plan.items.length, 3);
+  expect(plan.mode).toBe("box");
+  expect(plan.items.length).toBe(3);
   for (const item of plan.items) {
     const [x, y] = item.uv_offset;
-    assert.ok(x >= 0 && y >= 0, "offset inside atlas");
+    expect(x >= 0 && y >= 0, "offset inside atlas").toBeTruthy();
   }
   // 一个 cube 的 box-UV 占用 (2*(w+d)) x (h+d)
   const occupied = new Set();
@@ -130,26 +129,26 @@ test("planUvPack (box) never overlaps and stays inside the atlas", () => {
     for (let dy = 0; dy < h + d; dy += 1)
       for (let dx = 0; dx < 2 * (w + d); dx += 1) {
         const key = `${x + dx},${y + dy}`;
-        assert.ok(!occupied.has(key), `overlap at ${key}`);
+        expect(!occupied.has(key), `overlap at ${key}`).toBeTruthy();
         occupied.add(key);
       }
   }
-  assert.ok(plan.used[0] <= 64, `used width ${plan.used[0]}`);
+  expect(plan.used[0] <= 64, `used width ${plan.used[0]}`).toBeTruthy();
 });
 
 test("planUvPack (face) gives every face its own rectangle", () => {
   const cubes = [{ uuid: "a", name: "a", from: [0, 0, 0], to: [4, 3, 2] }];
   const plan = planUvPack(cubes, { mode: "face", texW: 64, padding: 1 });
-  assert.equal(plan.mode, "face");
+  expect(plan.mode).toBe("face");
   const faces = plan.items[0].faces;
-  assert.equal(faces.length, 6);
+  expect(faces.length).toBe(6);
   const seen = new Set();
   for (const f of faces) {
     const key = f.uv.join(",");
-    assert.ok(!seen.has(key), "duplicate face rect");
+    expect(!seen.has(key), "duplicate face rect").toBeTruthy();
     seen.add(key);
-    assert.equal(f.uv[2] - f.uv[0] > 0, true);
-    assert.equal(f.uv[3] - f.uv[1] > 0, true);
+    expect(f.uv[2] - f.uv[0] > 0).toBe(true);
+    expect(f.uv[3] - f.uv[1] > 0).toBe(true);
   }
 });
 
@@ -167,16 +166,16 @@ test("collectUvIslands reports density, flips and out-of-bounds", () => {
     },
   ];
   const islands = collectUvIslands(cubes, 16, 16);
-  assert.equal(islands.length, 2);
+  expect(islands.length).toBe(2);
   const north = islands.find((i) => i.face === "north");
-  assert.deepEqual(north.pixel_size, [4, 4]);
-  assert.deepEqual(north.expected_size, [4, 4]);
-  assert.deepEqual(north.density, [1, 1]);
-  assert.equal(north.out_of_bounds, false);
+  expect(north.pixel_size).toEqual([4, 4]);
+  expect(north.expected_size).toEqual([4, 4]);
+  expect(north.density).toEqual([1, 1]);
+  expect(north.out_of_bounds).toBe(false);
   const east = islands.find((i) => i.face === "east");
-  assert.equal(east.flip_x, true);
-  assert.equal(east.flip_y, true);
-  assert.equal(east.out_of_bounds, true);
+  expect(east.flip_x).toBe(true);
+  expect(east.flip_y).toBe(true);
+  expect(east.out_of_bounds).toBe(true);
 });
 
 test("findUvOverlaps marks declared overlaps as intentional", () => {
@@ -186,24 +185,24 @@ test("findUvOverlaps marks declared overlaps as intentional", () => {
   ];
   const islands = collectUvIslands(cubes, 16, 16);
   const plain = findUvOverlaps(islands);
-  assert.equal(plain.length, 1);
-  assert.equal(plain[0].intentional, false);
+  expect(plain.length).toBe(1);
+  expect(plain[0].intentional).toBe(false);
   const allowed = findUvOverlaps(islands, [{ a: "a.north", b: "b.north" }]);
-  assert.equal(allowed[0].intentional, true);
+  expect(allowed[0].intentional).toBe(true);
 });
 
 test("face-local paint coordinates honour rotation and UV flips", () => {
   const space = resolveFaceSpace([0, 0, 4, 4], 0);
-  assert.equal(space.width, 4);
-  assert.equal(space.height, 4);
-  assert.deepEqual(faceLocalToAtlas(space, 0, 0), [0, 0]);
+  expect(space.width).toBe(4);
+  expect(space.height).toBe(4);
+  expect(faceLocalToAtlas(space, 0, 0)).toEqual([0, 0]);
   const rotated = resolveFaceSpace([0, 0, 4, 4], 90);
-  assert.equal(rotated.width, 4);
-  assert.equal(rotated.height, 4);
+  expect(rotated.width).toBe(4);
+  expect(rotated.height).toBe(4);
   const flipped = resolveFaceSpace([4, 0, 0, 4], 0);
-  assert.deepEqual(faceLocalToAtlas(flipped, 0, 0), [3, 0]);
-  assert.equal(nextPowerOfTwo(65), 128);
-  assert.equal(nextPowerOfTwo(64), 64);
+  expect(faceLocalToAtlas(flipped, 0, 0)).toEqual([3, 0]);
+  expect(nextPowerOfTwo(65)).toBe(128);
+  expect(nextPowerOfTwo(64)).toBe(64);
 });
 
 /* ------------------------------------------------------------ generators */
@@ -215,28 +214,28 @@ test("voxelizeMatrix extrudes a silhouette and merges runs", () => {
     origin: [0, 0, 0],
     merge_adjacent: true,
   });
-  assert.equal(result.cubes.length, 3);
+  expect(result.cubes.length).toBe(3);
   const row0 = result.cubes[0];
-  assert.deepEqual(row0.from, [2, 2, 0]);
-  assert.deepEqual(row0.to, [4, 3, 2]);
+  expect(row0.from).toEqual([2, 2, 0]);
+  expect(row0.to).toEqual([4, 3, 2]);
   const names = result.cubes.map((c) => c.name);
-  assert.ok(names.every((n) => n.startsWith("blade")));
+  expect(names.every((n) => n.startsWith("blade"))).toBeTruthy();
 });
 
 test("voxelizeMatrix without merging emits one cube per cell and respects planes", () => {
   const single = voxelizeMatrix({ matrix: ["##"], origin: [0, 0, 0] });
-  assert.equal(single.cubes.length, 2);
+  expect(single.cubes.length).toBe(2);
   const side = voxelizeMatrix({ matrix: ["#"], plane: "yz", origin: [0, 0, 0] });
   // yz: 列 → +Z,深度沿 +X
-  assert.deepEqual(side.cubes[0].from, [0, 0, 0]);
-  assert.deepEqual(side.cubes[0].to, [1, 1, 1]);
-  assert.throws(() => voxelizeMatrix({ matrix: [] }), /matrix/);
+  expect(side.cubes[0].from).toEqual([0, 0, 0]);
+  expect(side.cubes[0].to).toEqual([1, 1, 1]);
+  expect(() => voxelizeMatrix({ matrix: [] })).toThrow(/matrix/);
 });
 
 test("hollowVolume makes walls with a cavity and skips open faces", () => {
   const full = hollowVolume({ from: [0, 0, 0], to: [10, 10, 10], wall_thickness: 1 });
-  assert.equal(full.cubes.length, 6, "six walls expected");
-  assert.deepEqual(full.points.cavity_min, [1, 1, 1]);
+  expect(full.cubes.length, "six walls expected").toBe(6);
+  expect(full.points.cavity_min).toEqual([1, 1, 1]);
   const hood = hollowVolume({
     from: [0, 0, 0],
     to: [10, 10, 10],
@@ -244,9 +243,9 @@ test("hollowVolume makes walls with a cavity and skips open faces", () => {
     open_faces: ["north", "down"],
     name: "hood",
   });
-  assert.equal(hood.cubes.length, 4);
-  assert.ok(!hood.cubes.some((c) => c.name === "hood_north"));
-  assert.ok(!hood.cubes.some((c) => c.name === "hood_down"));
+  expect(hood.cubes.length).toBe(4);
+  expect(!hood.cubes.some((c) => c.name === "hood_north")).toBeTruthy();
+  expect(!hood.cubes.some((c) => c.name === "hood_down")).toBeTruthy();
   // 墙体不得互相重叠
   const boxes = full.cubes.map((c) => ({ from: c.from, to: c.to }));
   for (let i = 0; i < boxes.length; i += 1)
@@ -256,7 +255,7 @@ test("hollowVolume makes walls with a cavity and skips open faces", () => {
       const overlap = [0, 1, 2].every(
         (k) => Math.min(a.to[k], b.to[k]) - Math.max(a.from[k], b.from[k]) > 1e-9,
       );
-      assert.equal(overlap, false, "walls must tile, not overlap");
+      expect(overlap, "walls must tile, not overlap").toBe(false);
     }
 });
 
@@ -268,10 +267,10 @@ test("generateArray linear span/cells and anti z-fight staggering", () => {
     count: 3,
     anchor: "top",
   });
-  assert.equal(span.cubes.length, 3);
-  assert.equal(span.cubes[0].from[0], -1);
-  assert.equal(span.cubes[2].from[0], 9);
-  assert.equal(span.cubes[0].to[1], 0, "anchor top hangs from the point");
+  expect(span.cubes.length).toBe(3);
+  expect(span.cubes[0].from[0]).toBe(-1);
+  expect(span.cubes[2].from[0]).toBe(9);
+  expect(span.cubes[0].to[1], "anchor top hangs from the point").toBe(0);
 
   const cells = generateArray({
     element_size: [2, 2, 2],
@@ -280,7 +279,7 @@ test("generateArray linear span/cells and anti z-fight staggering", () => {
     count: 4,
     distribution: "cells",
   });
-  assert.equal(cells.cubes[0].from[0], -1 + 1.5);
+  expect(cells.cubes[0].from[0]).toBe(-1 + 1.5);
 
   const staggered = generateArray({
     element_size: [2, 2, 1],
@@ -291,7 +290,7 @@ test("generateArray linear span/cells and anti z-fight staggering", () => {
     anchor: "min",
   });
   const zs = staggered.cubes.map((c) => c.from[2]);
-  assert.ok(zs.includes(-0.1) && zs.includes(0.1), `stagger applied: ${zs}`);
+  expect(zs.includes(-0.1) && zs.includes(0.1), `stagger applied: ${zs}`).toBeTruthy();
 
   const flat = generateArray({
     element_size: [2, 2, 1],
@@ -300,17 +299,14 @@ test("generateArray linear span/cells and anti z-fight staggering", () => {
     count: 3,
     anchor: "min",
   });
-  assert.ok(
-    flat.notes.some((n) => n.includes("depth_stagger")),
-    `warns about z-fighting: ${JSON.stringify(flat.notes)}`,
-  );
+  expect(flat.notes.some((n) => n.includes("depth_stagger")), `warns about z-fighting: ${JSON.stringify(flat.notes)}`).toBeTruthy();
   const spaced = generateArray({
     element_size: [1, 2, 1],
     start: [0, 0, 0],
     end: [20, 0, 0],
     count: 3,
   });
-  assert.equal(spaced.notes.length, 0, "well-spaced elements are not flagged");
+  expect(spaced.notes.length, "well-spaced elements are not flagged").toBe(0);
 });
 
 test("generateArray radial and grid modes place the right number of elements", () => {
@@ -322,9 +318,9 @@ test("generateArray radial and grid modes place the right number of elements", (
     radii: [6, 6],
     align_to_center: true,
   });
-  assert.equal(radial.cubes.length, 8);
+  expect(radial.cubes.length).toBe(8);
   const first = radial.cubes[0];
-  assert.ok(Math.abs(Math.hypot(first.from[0] - 0, first.from[2] - first.from[2] + 0) - 0) >= 0);
+  expect(Math.abs(Math.hypot(first.from[0] - 0, first.from[2] - first.from[2] + 0) - 0) >= 0).toBeTruthy();
   const grid = generateArray({
     mode: "grid",
     element_size: [1, 1, 1],
@@ -332,8 +328,8 @@ test("generateArray radial and grid modes place the right number of elements", (
     end: [4, 4, 4],
     counts: [2, 2, 2],
   });
-  assert.equal(grid.cubes.length, 8);
-  assert.throws(() => generateArray({ element_size: [0, 1, 1] }), /positive/);
+  expect(grid.cubes.length).toBe(8);
+  expect(() => generateArray({ element_size: [0, 1, 1] })).toThrow(/positive/);
 });
 
 test("extrudeChain tapers, creates bones and reports the tip", () => {
@@ -346,29 +342,29 @@ test("extrudeChain tapers, creates bones and reports the tip", () => {
     create_bones: true,
     name: "tail",
   });
-  assert.equal(chain.groups.length, 4);
-  assert.equal(chain.cubes.length, 4);
-  assert.equal(chain.groups[0].name, "tail1");
-  assert.equal(chain.groups[1].parent, "tail1");
-  assert.deepEqual(chain.points.tip, [0, 18, 0]);
+  expect(chain.groups.length).toBe(4);
+  expect(chain.cubes.length).toBe(4);
+  expect(chain.groups[0].name).toBe("tail1");
+  expect(chain.groups[1].parent).toBe("tail1");
+  expect(chain.points.tip).toEqual([0, 18, 0]);
   const sized = chain.cubes.map((c) => c.to[0] - c.from[0]);
-  assert.ok(sized[0] > sized[3], "chain tapers");
+  expect(sized[0] > sized[3], "chain tapers").toBeTruthy();
   const rigid = extrudeChain({ base_origin: [0, 0, 0], create_bones: false });
-  assert.equal(rigid.groups.length, 0);
-  assert.ok(rigid.notes.length > 0);
+  expect(rigid.groups.length).toBe(0);
+  expect(rigid.notes.length > 0).toBeTruthy();
 });
 
 test("addWing builds a bone chain, finger bones and a membrane", () => {
   const wing = addWing({ side: "right", base_origin: [3, 22, 2], fingers: 4 });
   const names = wing.groups.map((g) => g.name);
-  assert.ok(names.includes("wing_right_arm"));
-  assert.ok(names.includes("wing_right_forearm"));
-  assert.equal(names.filter((n) => n.includes("finger")).length, 4);
-  assert.ok(wing.cubes.some((c) => c.name.includes("membrane")));
-  assert.ok(wing.points.finger_tips);
+  expect(names.includes("wing_right_arm")).toBeTruthy();
+  expect(names.includes("wing_right_forearm")).toBeTruthy();
+  expect(names.filter((n) => n.includes("finger")).length).toBe(4);
+  expect(wing.cubes.some((c) => c.name.includes("membrane"))).toBeTruthy();
+  expect(wing.points.finger_tips).toBeTruthy();
   const left = addWing({ side: "left", base_origin: [-3, 22, 2], fingers: 4 });
-  assert.ok(left.groups[0].origin[0] < 0);
-  assert.ok(left.cubes[0].from[0] < wing.cubes[0].from[0], "sides are mirrored");
+  expect(left.groups[0].origin[0] < 0).toBeTruthy();
+  expect(left.cubes[0].from[0] < wing.cubes[0].from[0], "sides are mirrored").toBeTruthy();
 });
 
 /* ---------------------------------------------------------------- audits */
@@ -383,27 +379,27 @@ const ELEMENTS = [
 
 test("checkModel flags zero volume, untextured faces, orphan parents and z-fighting", () => {
   const clean = checkModel(ELEMENTS, { textureWidth: 64, textureHeight: 64 });
-  assert.equal(clean.summary.errors, 0, JSON.stringify(clean.findings));
+  expect(clean.summary.errors, JSON.stringify(clean.findings)).toBe(0);
 
   const zero = checkModel(
     [...ELEMENTS, { uuid: "z", name: "flat", type: "cube", parent: "g1", origin: [0, 0, 0], rotation: [0, 0, 0], from: [0, 0, 0], to: [0, 4, 4] }],
     { textureWidth: 64, textureHeight: 64 },
   );
-  assert.ok(zero.findings.some((f) => f.code === "ZERO_VOLUME"));
+  expect(zero.findings.some((f) => f.code === "ZERO_VOLUME")).toBeTruthy();
 
   const textured = checkModel(
     [{ ...ELEMENTS[1], untexturedFaces: ["north", "up"], faceUvOutOfBounds: 2 }],
     { textureWidth: 8, textureHeight: 8 },
   );
-  assert.ok(textured.findings.some((f) => f.code === "UNTEXTURED_FACE"));
-  assert.ok(textured.findings.some((f) => f.code === "UV_OUT_OF_BOUNDS"));
+  expect(textured.findings.some((f) => f.code === "UNTEXTURED_FACE")).toBeTruthy();
+  expect(textured.findings.some((f) => f.code === "UV_OUT_OF_BOUNDS")).toBeTruthy();
 
   const empty = checkModel(
     [{ uuid: "g2", name: "empty", type: "group", parent: null, origin: [0, 0, 0], rotation: [0, 0, 0] }],
     { textureWidth: 16, textureHeight: 16 },
   );
-  assert.ok(empty.findings.some((f) => f.code === "EMPTY_GROUP"));
-  assert.ok(empty.findings.some((f) => f.code === "NO_CUBES"));
+  expect(empty.findings.some((f) => f.code === "EMPTY_GROUP")).toBeTruthy();
+  expect(empty.findings.some((f) => f.code === "NO_CUBES")).toBeTruthy();
 
   const coplanar = checkModel(
     [
@@ -412,13 +408,13 @@ test("checkModel flags zero volume, untextured faces, orphan parents and z-fight
     ],
     { textureWidth: 16, textureHeight: 16 },
   );
-  assert.ok(coplanar.findings.some((f) => f.code === "COPLANAR_OVERLAP"));
+  expect(coplanar.findings.some((f) => f.code === "COPLANAR_OVERLAP")).toBeTruthy();
 });
 
 test("auditComplexity grades cube budgets and monolithic boxes", () => {
   const primitive = auditComplexity(ELEMENTS, { target: "character" });
-  assert.equal(primitive.verdict, "too_primitive");
-  assert.equal(primitive.ready_for_texturing, false);
+  expect(primitive.verdict).toBe("too_primitive");
+  expect(primitive.ready_for_texturing).toBe(false);
 
   const many = Array.from({ length: 200 }, (_, i) => ({
     uuid: `c${i}`,
@@ -438,10 +434,10 @@ test("auditComplexity grades cube budgets and monolithic boxes", () => {
     ],
     { target: "character" },
   );
-  assert.equal(detailed.verdict, "high_detail");
-  assert.ok(Number(detailed.metrics.micro_pct) > 50);
+  expect(detailed.verdict).toBe("high_detail");
+  expect(Number(detailed.metrics.micro_pct) > 50).toBeTruthy();
   const mid = auditComplexity(ELEMENTS.concat(many.slice(0, 80)), { target: "character" });
-  assert.equal(mid.verdict, "acceptable");
+  expect(mid.verdict).toBe("acceptable");
 });
 
 test("checkSides catches a right-named bone on the model's left", () => {
@@ -449,14 +445,14 @@ test("checkSides catches a right-named bone on the model's left", () => {
     { uuid: "a", name: "arm_right", type: "group", parent: null, origin: [-5, 14, 0], rotation: [0, 0, 0] },
     { uuid: "b", name: "arm_left", type: "group", parent: null, origin: [5, 14, 0], rotation: [0, 0, 0] },
   ]);
-  assert.equal(wrong.summary.mismatched, 2);
-  assert.equal(wrong.findings.filter((f) => f.code === "SIDE_MISMATCH").length, 2);
+  expect(wrong.summary.mismatched).toBe(2);
+  expect(wrong.findings.filter((f) => f.code === "SIDE_MISMATCH").length).toBe(2);
   const good = checkSides([
     { uuid: "a", name: "arm_right", type: "group", parent: null, origin: [5, 14, 0], rotation: [0, 0, 0] },
     { uuid: "b", name: "arm_left", type: "group", parent: null, origin: [-5, 14, 0], rotation: [0, 0, 0] },
   ]);
-  assert.equal(good.summary.mismatched, 0);
-  assert.equal(good.summary.unpaired, 0);
+  expect(good.summary.mismatched).toBe(0);
+  expect(good.summary.unpaired).toBe(0);
 });
 
 test("checkRig flags two-bone limbs and loose cubes", () => {
@@ -466,20 +462,20 @@ test("checkRig flags two-bone limbs and loose cubes", () => {
     { uuid: "c", name: "arm_right_cube", type: "cube", parent: "arm_r", origin: [5, 10, 0], rotation: [0, 0, 0], from: [4, 10, -1], to: [6, 14, 1] },
     { uuid: "loose", name: "loose", type: "cube", parent: null, origin: [0, 0, 0], rotation: [0, 0, 0], from: [0, 0, 0], to: [1, 1, 1] },
   ]);
-  assert.ok(rig.findings.some((f) => f.code === "TWO_BONE_LIMB"));
-  assert.ok(rig.findings.some((f) => f.code === "LOOSE_CUBES"));
-  assert.equal(rig.summary.ready, false);
+  expect(rig.findings.some((f) => f.code === "TWO_BONE_LIMB")).toBeTruthy();
+  expect(rig.findings.some((f) => f.code === "LOOSE_CUBES")).toBeTruthy();
+  expect(rig.summary.ready).toBe(false);
 });
 
 test("measureModel is hierarchy aware and reports ratios", () => {
   const measured = measureModel(ELEMENTS);
-  assert.equal(measured.cubes, 4);
-  assert.equal(measured.bounds.min[1], 8);
-  assert.equal(measured.bounds.max[1], 22);
-  assert.equal(measured.bounds.size[1], 14);
-  assert.ok(measured.total_volume > 0);
+  expect(measured.cubes).toBe(4);
+  expect(measured.bounds.min[1]).toBe(8);
+  expect(measured.bounds.max[1]).toBe(22);
+  expect(measured.bounds.size[1]).toBe(14);
+  expect(measured.total_volume > 0).toBeTruthy();
   const head = measured.elements.find((row) => row.name === "head");
-  assert.equal(head.size[1], 6);
+  expect(head.size[1]).toBe(6);
 });
 
 test("compareSilhouettes turns 'does it look like the reference' into a number", () => {
@@ -497,8 +493,8 @@ test("compareSilhouettes turns 'does it look like the reference' into a number",
     return silhouetteFromRgba(data, w, h);
   };
   const same = compareSilhouettes(make(true), make(true));
-  assert.equal(same.match_percent, 100);
-  assert.ok(same.match_percent >= 85);
+  expect(same.match_percent).toBe(100);
+  expect(same.match_percent >= 85).toBeTruthy();
   const half = new Uint8Array(w * h * 4);
   for (let y = 0; y < h; y += 1)
     for (let x = 0; x < w; x += 1) {
@@ -508,17 +504,17 @@ test("compareSilhouettes turns 'does it look like the reference' into a number",
       half[i + 3] = 255;
     }
   const partial = compareSilhouettes(silhouetteFromRgba(half, w, h), make(true));
-  assert.ok(partial.match_percent < 100, `got ${partial.match_percent}`);
-  assert.ok(partial.ref_only_pct > 0);
-  assert.ok(Array.isArray(partial.advice));
+  expect(partial.match_percent < 100, `got ${partial.match_percent}`).toBeTruthy();
+  expect(partial.ref_only_pct > 0).toBeTruthy();
+  expect(Array.isArray(partial.advice)).toBeTruthy();
 });
 
 test("revisionFromPixels is stable and content sensitive", () => {
   const a = new Uint8Array([1, 2, 3, 4]);
   const b = new Uint8Array([1, 2, 3, 5]);
-  assert.equal(revisionFromPixels(a, 2, 2), revisionFromPixels(a, 2, 2));
-  assert.notEqual(revisionFromPixels(a, 2, 2), revisionFromPixels(b, 2, 2));
-  assert.match(revisionFromPixels(a, 2, 2), /^fnv1a32:[0-9a-f]{8}$/);
+  expect(revisionFromPixels(a, 2, 2)).toBe(revisionFromPixels(a, 2, 2));
+  expect(revisionFromPixels(a, 2, 2)).not.toBe(revisionFromPixels(b, 2, 2));
+  expect(revisionFromPixels(a, 2, 2)).toMatch(/^fnv1a32:[0-9a-f]{8}$/);
 });
 
 test("auditFacePixels reports palette excess, weak base and glass structure", () => {
@@ -526,15 +522,15 @@ test("auditFacePixels reports palette excess, weak base and glass structure", ()
     Array.from({ length: 4 }, () => [200, 100, 50, 255]),
   );
   const flatFindings = auditFacePixels(flat);
-  assert.ok(flatFindings.some((f) => f.code === "FLAT_FACE"));
-  assert.ok(!flatFindings.some((f) => f.code === "WEAK_BASE_COLOR"));
+  expect(flatFindings.some((f) => f.code === "FLAT_FACE")).toBeTruthy();
+  expect(!flatFindings.some((f) => f.code === "WEAK_BASE_COLOR")).toBeTruthy();
 
   const noisy = flat.map((row, y) =>
     row.map((_, x) => [(x * 40 + y * 13) % 256, (x * 7) % 256, (y * 31) % 256, 255]),
   );
   const noisyFindings = auditFacePixels(noisy, { paletteLimit: 4, minBaseRatio: 0.5 });
-  assert.ok(noisyFindings.some((f) => f.code === "PALETTE_EXCESS"));
-  assert.ok(noisyFindings.some((f) => f.code === "WEAK_BASE_COLOR"));
+  expect(noisyFindings.some((f) => f.code === "PALETTE_EXCESS")).toBeTruthy();
+  expect(noisyFindings.some((f) => f.code === "WEAK_BASE_COLOR")).toBeTruthy();
 
   const glassGrid = Array.from({ length: 6 }, (_, y) =>
     Array.from({ length: 6 }, (_, x) => {
@@ -543,22 +539,22 @@ test("auditFacePixels reports palette excess, weak base and glass structure", ()
     }),
   );
   const glass = auditFacePixels(glassGrid, { glass: true });
-  assert.ok(glass.some((f) => f.code === "GLASS_EDGE_WEAK"));
+  expect(glass.some((f) => f.code === "GLASS_EDGE_WEAK")).toBeTruthy();
 });
 
 /* ------------------------------------------------------- catalogue/guides */
 
 test("every tool has a description, group and valid JSON schema", () => {
   const payload = listToolsPayload();
-  assert.equal(payload.length, TOOL_NAMES.length);
-  assert.ok(payload.length >= 60, `tool count ${payload.length}`);
+  expect(payload.length).toBe(TOOL_NAMES.length);
+  expect(payload.length >= 60, `tool count ${payload.length}`).toBeTruthy();
   for (const tool of payload) {
-    assert.ok(tool.name.length > 0);
-    assert.ok(tool.description.length > 20, tool.name);
-    assert.equal(tool.inputSchema.type, "object", tool.name);
-    assert.ok(tool.inputSchema.properties, tool.name);
+    expect(tool.name.length > 0).toBeTruthy();
+    expect(tool.description.length > 20, tool.name).toBeTruthy();
+    expect(tool.inputSchema.type, tool.name).toBe("object");
+    expect(tool.inputSchema.properties, tool.name).toBeTruthy();
     const spec = TOOL_SPECS[tool.name];
-    assert.ok(spec.group.length > 0);
+    expect(spec.group.length > 0).toBeTruthy();
   }
   const names = new Set(TOOL_NAMES);
   for (const expected of [
@@ -589,24 +585,24 @@ test("every tool has a description, group and valid JSON schema", () => {
     "execute_script",
     "propose_scoped_directory",
   ])
-    assert.ok(names.has(expected), `missing tool ${expected}`);
-  assert.equal(TOOL_SPECS.execute_script.gated, true);
+    expect(names.has(expected), `missing tool ${expected}`).toBeTruthy();
+  expect(TOOL_SPECS.execute_script.gated).toBe(true);
 });
 
 test("guides resolve for every topic and fall back safely", () => {
   for (const topic of GUIDE_TOPICS) {
     const guide = resolveGuide(topic);
-    assert.equal(guide.topic, topic);
-    assert.ok(guide.text.length > 100);
+    expect(guide.topic).toBe(topic);
+    expect(guide.text.length > 100).toBeTruthy();
   }
-  assert.equal(resolveGuide("nonsense").topic, "modeling");
-  assert.equal(resolveGuide(undefined).topic, "modeling");
+  expect(resolveGuide("nonsense").topic).toBe("modeling");
+  expect(resolveGuide(undefined).topic).toBe("modeling");
 });
 
 test("protocol helpers", () => {
-  assert.deepEqual(parseSemverParts("5.2.1-beta"), [5, 2, 1]);
-  assert.equal(isBlockbenchSupported("5.1.0"), true);
-  assert.equal(isBlockbenchSupported("5.0.9"), false);
-  assert.equal(isBlockbenchSupported("4.99.99"), false);
-  assert.equal(DEFAULTS.mcpPort, 39742);
+  expect(parseSemverParts("5.2.1-beta")).toEqual([5, 2, 1]);
+  expect(isBlockbenchSupported("5.1.0")).toBe(true);
+  expect(isBlockbenchSupported("5.0.9")).toBe(false);
+  expect(isBlockbenchSupported("4.99.99")).toBe(false);
+  expect(DEFAULTS.mcpPort).toBe(39742);
 });

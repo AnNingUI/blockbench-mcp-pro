@@ -2,10 +2,9 @@
  * 网关(stdin/stdout ⇄ HTTP)集成测试:
  * 1. 用真实插件 HTTP MCP 服务端(mock Blockbench 宿主)驱动网关,验证工具的 stdio 通道
  * 2. 错误 token 时返回合法的 JSON-RPC 错误而不是原始 HTTP 体
- *   node --test test/stdio.test.mjs
+ *   pnpm --filter @bbmcp/gateway test
  */
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect, afterAll } from "vitest";
 import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
@@ -78,7 +77,7 @@ function startGateway(token = TOKEN) {
   };
 }
 
-test.after(() => {
+afterAll(() => {
   server.stop();
 });
 
@@ -93,14 +92,14 @@ test("stdio gateway forwards the full MCP handshake and tool calls", async () =>
       params: { protocolVersion: "2024-11-05", clientInfo: { name: "stdio-test", version: "1" } },
     });
     const init = await gateway.next();
-    assert.equal(init.id, 1);
-    assert.equal(init.result.serverInfo.name, "blockbench-mcp-pro");
+    expect(init.id).toBe(1);
+    expect(init.result.serverInfo.name).toBe("blockbench-mcp-pro");
 
     gateway.send({ jsonrpc: "2.0", method: "notifications/initialized" });
     gateway.send({ jsonrpc: "2.0", id: 2, method: "tools/list" });
     const list = await gateway.next();
-    assert.equal(list.id, 2);
-    assert.ok(list.result.tools.length >= 60);
+    expect(list.id).toBe(2);
+    expect(list.result.tools.length >= 60).toBeTruthy();
 
     gateway.send({
       jsonrpc: "2.0",
@@ -110,8 +109,8 @@ test("stdio gateway forwards the full MCP handshake and tool calls", async () =>
     });
     const health = await gateway.next();
     const payload = JSON.parse(health.result.content[0].text);
-    assert.equal(payload.ok, true);
-    assert.equal(payload.result.plugin_version, "1.0.0");
+    expect(payload.ok).toBe(true);
+    expect(payload.result.plugin_version).toBe("1.0.0");
 
     gateway.send({
       jsonrpc: "2.0",
@@ -121,8 +120,8 @@ test("stdio gateway forwards the full MCP handshake and tool calls", async () =>
     });
     const created = await gateway.next();
     const createdPayload = JSON.parse(created.result.content[0].text);
-    assert.equal(createdPayload.ok, true, JSON.stringify(createdPayload));
-    assert.equal(createdPayload.result.format, "bedrock");
+    expect(createdPayload.ok, JSON.stringify(createdPayload)).toBe(true);
+    expect(createdPayload.result.format).toBe("bedrock");
 
     gateway.send({
       jsonrpc: "2.0",
@@ -132,18 +131,18 @@ test("stdio gateway forwards the full MCP handshake and tool calls", async () =>
     });
     const scaffold = await gateway.next();
     const scaffoldPayload = JSON.parse(scaffold.result.content[0].text);
-    assert.equal(scaffoldPayload.ok, true);
-    assert.ok(scaffoldPayload.result.created.length >= 13);
+    expect(scaffoldPayload.ok).toBe(true);
+    expect(scaffoldPayload.result.created.length >= 13).toBeTruthy();
 
     gateway.send({ jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "check_model", arguments: {} } });
     const check = await gateway.next();
     const checkPayload = JSON.parse(check.result.content[0].text);
-    assert.equal(checkPayload.ok, true);
-    assert.equal(checkPayload.result.summary.errors, 0, JSON.stringify(checkPayload.result.findings));
+    expect(checkPayload.ok).toBe(true);
+    expect(checkPayload.result.summary.errors, JSON.stringify(checkPayload.result.findings)).toBe(0);
 
     gateway.send({ jsonrpc: "2.0", id: 7, method: "resources/read", params: { uri: "blockbench-guide://modeling" } });
     const resource = await gateway.next();
-    assert.match(resource.result.contents[0].text, /Modeling/i);
+    expect(resource.result.contents[0].text).toMatch(/Modeling/i);
   } finally {
     gateway.stop();
   }
@@ -154,10 +153,10 @@ test("a bad token becomes a clean JSON-RPC error", async () => {
   try {
     gateway.send({ jsonrpc: "2.0", id: 1, method: "tools/list" });
     const response = await gateway.next();
-    assert.equal(response.id, 1);
-    assert.equal(response.result, undefined);
-    assert.equal(response.error.code, -32000);
-    assert.match(response.error.message, /Unauthorized|Bearer/);
+    expect(response.id).toBe(1);
+    expect(response.result).toBe(undefined);
+    expect(response.error.code).toBe(-32000);
+    expect(response.error.message).toMatch(/Unauthorized|Bearer/);
   } finally {
     gateway.stop();
   }
@@ -183,6 +182,6 @@ test("an unreachable plugin produces an actionable error, not a hang", async () 
     child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 9, method: "tools/list" })}\n`);
   });
   child.kill();
-  assert.equal(response.error.code, -32000);
-  assert.match(response.error.message, /Cannot reach Blockbench|Blockbench/);
+  expect(response.error.code).toBe(-32000);
+  expect(response.error.message).toMatch(/Cannot reach Blockbench|Blockbench/);
 });

@@ -35,17 +35,18 @@
   "scripts": {
     "build": "rolldown -c rolldown.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs test/package.test.mjs",
+    "test": "vitest run test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs test/package.test.mjs",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build && npm run typecheck"
   },
   "devDependencies": {
     "@bbmcp/shared": "*",
+    "@types/node": "^26.5.1",
     "blockbench-types": "^5.1.0",
     "rolldown": "^1.2.8",
     "typescript": "^5.5.0",
-    "zod": "^3.23.8",
-    "@types/node": "^26.5.1"
+    "vitest": "^5.0.0",
+    "zod": "^3.23.8"
   },
   "engines": {
     "node": ">=18"

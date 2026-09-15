@@ -62,7 +62,7 @@
 - ❌ GPL-3.0;无鉴权;`emulate_clicks`/`risky_eval` 属于危险面;`"test": "echo Error: no test specified && exit 1"`(无测试)。
 
 **本项目吸收**:Streamable HTTP 形态 + `initialize.instructions`、resources(8 篇 guide + 活动日志)、prompts(2 个)、声明式工具规格与"每个工具必须有实现"的测试断言、状态展示对话框。
-**本项目修掉**:MIT 重写、强制鉴权、不做 UI 点击类工具(改用命令级 `list_actions`/`run_action`)、91 个测试。
+**本项目修掉**:MIT 重写、强制鉴权、不做 UI 点击类工具(改用命令级 `list_actions`/`run_action`)、95 个测试(Vitest)。
 
 ---
 
@@ -110,5 +110,5 @@
 | 工程质量 | SwagRee(契约/UV/作用域/undo/测试) | 全部吸收,并补齐它缺的生成器与人审 |
 | 安全 | vasyacullin(握手)+ sosadly(Origin/Host)+ SwagRee(作用域) | 三者合并:随机 Bearer + Origin/Host/CT 校验 + 作用域 + 门控脚本 |
 | 覆盖长尾 | vasyacullin(action 桥)+ jasonjgardner(resources/prompts) | 两者都做,但拒绝 UI 点击类危险工具 |
-| 测试 | SwagRee(宿主 mock) | 91 个:纯逻辑 + 分发 + 真实 HTTP + 交付产物冒烟 + stdio 网关 |
+| 测试 | SwagRee(宿主 mock) | 95 个(Vitest):纯逻辑 + 分发 + 真实 HTTP + 交付产物冒烟 + stdio 网关 |
 | 许可 | MIT / ISC | MIT,全部重写,不含 GPL 代码 |
