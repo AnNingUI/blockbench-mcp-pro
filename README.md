@@ -18,6 +18,7 @@
 5. [区别表 A:五个参考项目速览](#区别表-a五个参考项目速览)
 6. [区别表 B:能力与工程质量矩阵](#区别表-b能力与工程质量矩阵)
 7. [区别表 C:逐项目"吸取了什么 / 抛弃了什么"](#区别表-c逐项目吸取了什么--抛弃了什么)
+   - 逐项阅读笔记见 [`docs/reference-projects.md`](docs/reference-projects.md)
 8. [安全模型](#安全模型)
 9. [质量门与推荐工作流](#质量门与推荐工作流)
 10. [目录结构](#目录结构)
@@ -346,6 +347,7 @@ request_review → 用户点 Approve 才算完成(pending / 超时都不算)
 
 ```
 blockbench-mcp-pro/
+├── docs/reference-projects.md   # 五个参考项目的逐项阅读笔记
 ├── packages/
 │   ├── shared/       # 协议常量、zod 工具目录、8 篇 playbook、全部纯逻辑
 │   │   ├── src/pure/ #   vec / color / uv / generate / audit —— 无宿主依赖,可单测
