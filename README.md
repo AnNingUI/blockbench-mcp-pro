@@ -661,10 +661,19 @@ node --test packages/plugin/test/bundle.test.mjs packages/plugin/test/package.te
 > `blockbench-types` 依赖 `electron`,npm 安装时会去下 Electron 二进制。CI/离线环境用
 > `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install` 跳过(类型不受影响);pnpm 侧见 `pnpm-workspace.yaml` 的 `ignoredBuiltDependencies`。
 
-**three.js 不是本项目的依赖。** 它只是 `blockbench-types → wintersky → three` 带进来的 dev 传递依赖,
-运行时由 Blockbench 自己提供。插件代码不引用 `THREE`,产物里 0 处 three(`packages/plugin` 的
-`dependencies` 是空的)。唯一会碰到相机的地方(`captureView` 的正交相机)用本地结构类型 `OrthoCamera` 收窄,
-连 three 的**类型**也不依赖。
+**three.js 不是本项目的依赖,也不会被下载。**
+
+| 视角 | three 会被下载吗 | 说明 |
+|---|---|---|
+| 使用者(从 npm 装) | **不会** | 发布包 `dependencies` 为空。实测:`npm i` 后 `node_modules/` 里只有 `@anningui/blockbench-mcp`,tarball 88.8 KB |
+| 贡献者(克隆本仓库) | **不会**(经 override) | `blockbench-types → wintersky → three` 只是 dev 传递依赖;pnpm overrides 把它指向仓库内的空壳 `stubs/three`,干净安装体积 119 MB → **91 MB** |
+| 运行时 | — | three 由 Blockbench 自己提供,插件只调用它递过来的对象 |
+
+插件代码不引用 `THREE`,产物里 0 处 three;唯一碰到相机的地方(`captureView` 的正交相机)用本地结构类型
+`OrthoCamera` 收窄,连 three 的**类型**也不依赖 —— 所以空壳替代不会影响类型检查。
+
+> 为什么不干脆去掉 `blockbench-types`?那就要回到手写类型(即 `any` 全局),得不偿失。
+> 空壳只影响 wintersky 的**运行时**(我们从没执行过它),`.d.ts` 一个不缺。
 
 这套类型当场抓出了 5 个真实 API 错误:`Canvas.updateSelection`(应为 `updateSelected`)、
 `Settings.add`(应为 `new Setting(id, data)`)、`Timeline.setAnimation`(应为 `animation.select()`)、

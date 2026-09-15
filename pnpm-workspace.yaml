@@ -18,3 +18,8 @@ allowBuilds:
 # pnpm 11 起 strictDepBuilds 默认为 true:只要有任何被忽略的构建脚本就直接报错并中断安装。
 # 我们对 electron 的处理是"有意忽略",所以关掉这个严格模式。
 strictDepBuilds: false
+
+# three 只是 blockbench-types → wintersky → three 的 dev 传递依赖,我们从不执行它。
+# 用仓库内的空壳替代:安装体积 -29MB(类型不受影响,见 stubs/three 说明)。
+overrides:
+  three: link:./stubs/three

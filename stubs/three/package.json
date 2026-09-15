@@ -1,0 +1,8 @@
+{
+  "name": "three",
+  "version": "0.134.0",
+  "private": true,
+  "description": "本仓库不需要 three 的运行时:blockbench-types 只是通过 wintersky 间接依赖它。用空壳替代以省下 29MB 安装体积。",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
