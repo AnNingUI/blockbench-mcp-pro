@@ -309,7 +309,9 @@ test("mirror / array / radial / duplicate / create_limb 都能用", async () => 
 test("scaffold_biped 建出可用骨架并返回 check 摘要", async () => {
   // 前面的手搭骨架用完就删:留着会和 biped 重叠(COPLANAR_OVERLAP),
   // 而"整体挪到 +40"又会把 arm_left 挪到正 x 让 check_sides 正确地报错。
-  await ok("delete_elements", { refs: ["body", "helmet", "tail", "wing_right_arm"] });
+  // 只删 body 子树:helmet/plates/spikes/tail/wing/ear/复制件都挂在它下面。
+  // (写不存在的名字会让整批被 E_PARTIAL_FORBIDDEN 拒绝 —— 这是刻意的"校验优先"设计)
+  await ok("delete_elements", { refs: ["body"] });
   const { result } = await ok("scaffold_biped", { texture_size: 64, name_prefix: "bip_" });
   expect(result.check, "返回 check 摘要");
   expectEqual(result.check.summary.errors, 0, "check_model errors");
@@ -613,7 +615,14 @@ test("作用域:未授权时保存被拒(先显式撤销,保证确定性)", asyn
 
 test("作用域:授权后可保存 .bbmodel 与导出几何", async () => {
   console.log(C.warn(`      ⚠ Blockbench 会弹权限对话框,请点 "Allow this folder":${SCOPED}`));
-  const proposed = await raw("propose_scoped_directory", { path: SCOPED }, 25_000);
+  let proposed;
+  try {
+    proposed = await raw("propose_scoped_directory", { path: SCOPED }, 25_000);
+  } catch (error) {
+    throw new CaseSkipped(
+      `没等到你在 Blockbench 里点 Allow(25s 超时)。这条用例只会跳过;点一次 Allow this folder 再重跑即可。(${String(error.message).slice(0, 60)})`,
+    );
+  }
   if (!proposed.ok) {
     // 没点 Allow(或渲染进程被对话框阻塞)→ 标记跳过,而不是把整轮测试判失败
     const reason = `${proposed.error?.code ?? "ERROR"}: ${proposed.error?.message ?? ""}`.slice(0, 120);
