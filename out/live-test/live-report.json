@@ -1,16 +1,10 @@
 {
-  "when": "2026-09-15T23:23:18.248Z",
+  "when": "2026-09-15T23:24:08.243Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 33,
-  "failed": 1,
+  "passed": 34,
+  "failed": 0,
   "skipped": [],
-  "failures": [
-    {
-      "case": "边缘:UV/贴图 越界与错误输入",
-      "error": "flood_fill_texture 本应失败却成功了: {\"ok\":true,\"undo_label\":\"flood_fill_texture\",\"filled\":1,\"revision\":\"fnv1a32:acf38ec9\"}",
-      "stack": "Error: flood_fill_texture 本应失败却成功了: {\"ok\":true,\"undo_label\":\"flood_fill_texture\",\"filled\":1,\"revision\":\"fnv1a32:acf38ec9\"}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:141:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:758:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:873:5"
-    }
-  ],
+  "failures": [],
   "artifacts": [
     {
       "file": "blocked.bbmodel",
@@ -66,7 +60,7 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 3942
+      "bytes": 3232
     },
     {
       "file": "live-south-3.png",
