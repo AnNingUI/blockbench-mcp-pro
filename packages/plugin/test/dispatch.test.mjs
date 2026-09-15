@@ -3,6 +3,8 @@
  *   pnpm --filter @anningui/blockbench-mcp test   (先 pnpm run build)
  */
 import { test, expect, afterAll } from "vitest";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
 
 const mock = (await import("./mock-blockbench.mjs")).installMockBlockbench();
 const api = await import("../dist/testing.mjs");
@@ -89,6 +91,23 @@ test("create_project validates uv_mode against the format", async () => {
   mock.reset();
   await fails("create_project", { format: "java_block", uv_mode: "box" }, "E_INVALID_PARAM");
   await fails("create_project", { format: "nope" }, "E_UNSUPPORTED_FORMAT");
+});
+
+test("propose_scoped_directory asks once, then remembers the approved folder", async () => {
+  mock.reset();
+  newProject();
+  mock.state.autoAnswerDialogs = true;
+  const dir = path.resolve(process.cwd(), "out/mock-scope");
+  mkdirSync(dir, { recursive: true });
+  const first = await ok("propose_scoped_directory", { path: dir });
+  expect(first.confirmed).toBe(true);
+  expect(mock.state.dialogs.length, "第一次弹了一次框").toBe(1);
+  const second = await ok("propose_scoped_directory", { path: dir });
+  expect(second.already_approved, "第二次直接用已批准的目录").toBe(true);
+  expect(mock.state.dialogs.length, "第二次不再弹框").toBe(1);
+  mock.state.autoAnswerDialogs = false;
+  // 会话状态在同一个测试文件里是共享的:用完必须清掉,否则后面的拒绝用例会失败
+  api.session.scopedDirectory = null;
 });
 
 test("save_project / export_model are refused until a directory is approved", async () => {

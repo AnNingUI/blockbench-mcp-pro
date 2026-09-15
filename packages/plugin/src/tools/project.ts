@@ -116,6 +116,9 @@ export const projectTools: Record<string, ToolHandler> = {
     const resolved = paths.resolve(args.path);
     if (!fsApi().existsSync(resolved))
       throw new CommandError("E_NOT_FOUND", `Directory does not exist: ${resolved}`);
+    // 同一目录本会话已批准过 → 直接用,不再弹框(否则每次文件操作都要用户点一次)
+    if (session.scopedDirectory === resolved)
+      return { scoped_directory: resolved, confirmed: true, already_approved: true };
     const scopeDialog = showBlockingDialog({
       id: "bbmcp_scope",
       title: "Blockbench MCP — file access",

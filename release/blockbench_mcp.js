@@ -7774,6 +7774,11 @@ Work is not done because you looked at your own screenshot.
 			if (!paths.isAbsolute(args?.path)) throw new CommandError("E_INVALID_PARAM", "Scoped directory must be an absolute path.");
 			const resolved = paths.resolve(args.path);
 			if (!fsApi().existsSync(resolved)) throw new CommandError("E_NOT_FOUND", `Directory does not exist: ${resolved}`);
+			if (session.scopedDirectory === resolved) return {
+				scoped_directory: resolved,
+				confirmed: true,
+				already_approved: true
+			};
 			if ((await showBlockingDialog({
 				id: "bbmcp_scope",
 				title: "Blockbench MCP — file access",

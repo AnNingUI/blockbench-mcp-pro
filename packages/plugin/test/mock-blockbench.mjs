@@ -374,6 +374,7 @@ export function installMockBlockbench() {
     timelineAnimators: 0,
     animatorPreviews: 0,
     modeCalls: [],
+    autoAnswerDialogs: false,
   };
 
   const canvas = makeCanvas(1, 1);
@@ -413,6 +414,8 @@ export function installMockBlockbench() {
     showMessageBox: (options, callback) => {
       state.dialogs.push(options);
       state.lastDialog = callback;
+      // 默认不回答(测试 pending 行为);需要时打开 autoAnswerDialogs 模拟用户点了第一个按钮
+      if (state.autoAnswerDialogs) setTimeout(() => callback(0), 5);
     },
   };
   globalThis.Plugin = {
