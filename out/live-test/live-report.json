@@ -1,14 +1,14 @@
 {
-  "when": "2026-09-15T23:22:53.846Z",
+  "when": "2026-09-15T23:23:18.248Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
   "passed": 33,
   "failed": 1,
   "skipped": [],
   "failures": [
     {
-      "case": "resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_uv_islands",
-      "error": "resize_texture 后:位图宽 64 < UV 空间宽 128",
-      "stack": "Error: resize_texture 后:位图宽 64 < UV 空间宽 128\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:120:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:501:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:870:5"
+      "case": "边缘:UV/贴图 越界与错误输入",
+      "error": "flood_fill_texture 本应失败却成功了: {\"ok\":true,\"undo_label\":\"flood_fill_texture\",\"filled\":1,\"revision\":\"fnv1a32:acf38ec9\"}",
+      "stack": "Error: flood_fill_texture 本应失败却成功了: {\"ok\":true,\"undo_label\":\"flood_fill_texture\",\"filled\":1,\"revision\":\"fnv1a32:acf38ec9\"}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:141:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:758:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:873:5"
     }
   ],
   "artifacts": [
@@ -66,7 +66,7 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 9257
+      "bytes": 3942
     },
     {
       "file": "live-south-3.png",
@@ -82,7 +82,7 @@
     },
     {
       "file": "live-texture.png",
-      "bytes": 2952
+      "bytes": 1827
     },
     {
       "file": "live-up-6.png",
@@ -110,7 +110,7 @@
     },
     {
       "file": "live.bbmodel",
-      "bytes": 23144
+      "bytes": 22432
     },
     {
       "file": "live.geo.json",
@@ -118,11 +118,11 @@
     },
     {
       "file": "live.gltf",
-      "bytes": 26898
+      "bytes": 25398
     },
     {
       "file": "probe-scope.png",
-      "bytes": 2952
+      "bytes": 1827
     },
     {
       "file": "probe2.gltf",

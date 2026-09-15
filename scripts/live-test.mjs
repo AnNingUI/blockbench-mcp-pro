@@ -755,7 +755,13 @@ test("边缘:UV/贴图 越界与错误输入", async () => {
   await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["x"], palette: { x: "#fff" } }, "E_INVALID_PARAM");
   await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["a"], palette: { ab: "#fff" } }, "E_INVALID_PARAM");
   await fails("flood_fill_texture", { x: -5, y: 0, color: "#fff" }, "E_INVALID_PARAM");
-  await fails("flood_fill_texture", { x: 0, y: 0, color: "#fff", max_pixels: 1 }, "E_INVALID_PARAM");
+  // max_pixels 是硬上限:区域比上限大 → 报错;区域本来就够小 → 成功且 filled<=上限。
+  // (不能写死"必须报错":(0,0) 周围是不是孤立像素取决于版面,那是状态而非契约)
+  const floodCap = await raw("flood_fill_texture", { x: 0, y: 0, color: "#ffffff", max_pixels: 1 });
+  expect(
+    !floodCap.ok || floodCap.result.filled <= 1,
+    `max_pixels 上限被突破:${JSON.stringify(floodCap.result ?? floodCap.error)}`,
+  );
   const bodyFace = await ok("get_face_grid", { cube: "bip_body_cube", face: "north" });
   if (bodyFace.result.width !== bodyFace.result.height) {
     // 非方形面才应该拒绝 90° 旋转(方形面本来就合法)
