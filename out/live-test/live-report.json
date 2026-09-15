@@ -1,51 +1,22 @@
 {
-  "when": "2026-09-15T18:02:05.338Z",
+  "when": "2026-09-15T18:03:52.396Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 25,
-  "failed": 8,
+  "passed": 30,
+  "failed": 2,
   "skipped": [
-    "作用域:授权后可保存 .bbmodel 与导出几何"
+    "作用域:授权后可保存 .bbmodel 与导出几何",
+    "纹理 PNG 导入导出(作用域内)"
   ],
   "failures": [
     {
-      "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
-      "error": "verdict=too_primitive",
-      "stack": "Error: verdict=too_primitive\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:338:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
       "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "贴图质检无 error",
-      "stack": "Error: 贴图质检无 error\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:436:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
-      "case": "动画:generate_animation → inspect → transform → 时间轴",
-      "error": "Cannot read properties of undefined (reading '0')",
-      "stack": "TypeError: Cannot read properties of undefined (reading '0')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:475:40)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
-      "case": "undo / redo 真的能回滚 AI 的改动",
-      "error": "apply_geometry_batch 失败: E_PARTIAL_FORBIDDEN Missing parent group for cube undo_probe: body",
-      "stack": "Error: apply_geometry_batch 失败: E_PARTIAL_FORBIDDEN Missing parent group for cube undo_probe: body\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:110:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:566:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
-      "case": "纹理 PNG 导入导出(作用域内)",
-      "error": "export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).",
-      "stack": "Error: export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:110:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:646:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
-      "case": "边缘:缺父级 / 删不存在 / 环状父子",
-      "error": "update_elements 的错误码: 期望 \"E_INVALID_PARAM\",实际 \"E_NOT_FOUND\"",
-      "stack": "Error: update_elements 的错误码: 期望 \"E_INVALID_PARAM\",实际 \"E_NOT_FOUND\"\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:119:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:678:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
-    },
-    {
-      "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
-      "error": "upsert_animation 本应失败却成功了: {\"ok\":true,\"undo_label\":\"upsert_animation live_custom\",\"name\":\"live_custom\",\"keyframes\":0}",
-      "stack": "Error: upsert_animation 本应失败却成功了: {\"ok\":true,\"undo_label\":\"upsert_animation live_custom\",\"name\":\"live_custom\",\"keyframes\":0}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:118:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:687:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
+      "error": "贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down",
+      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:444:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:837:5"
     },
     {
       "case": "边缘:UV/贴图 越界与错误输入",
-      "error": "transform_texture_region 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_texture_region\",\"pixels\":256,\"revision\":\"fnv1a32:1aa84415\"}",
-      "stack": "Error: transform_texture_region 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_texture_region\",\"pixels\":256,\"revision\":\"fnv1a32:1aa84415\"}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:118:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:700:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:800:5"
+      "error": "pack_box_uv 本应失败却成功了: {\"ok\":true,\"undo_label\":\"pack_box_uv\",\"mode\":\"box\",\"packed\":1,\"used\":[25,101],\"texture_size\":[128,128]}",
+      "stack": "Error: pack_box_uv 本应失败却成功了: {\"ok\":true,\"undo_label\":\"pack_box_uv\",\"mode\":\"box\",\"packed\":1,\"used\":[25,101],\"texture_size\":[128,128]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:118:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:739:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:837:5"
     }
   ],
   "artifacts": [
@@ -59,7 +30,7 @@
     },
     {
       "file": "live-down-8.png",
-      "bytes": 7242
+      "bytes": 7447
     },
     {
       "file": "live-down-9.png",
@@ -71,7 +42,7 @@
     },
     {
       "file": "live-east-5.png",
-      "bytes": 7251
+      "bytes": 7614
     },
     {
       "file": "live-east-6.png",
@@ -87,7 +58,7 @@
     },
     {
       "file": "live-iso-9.png",
-      "bytes": 9931
+      "bytes": 10315
     },
     {
       "file": "live-north-2.png",
@@ -95,7 +66,7 @@
     },
     {
       "file": "live-north-3.png",
-      "bytes": 7413
+      "bytes": 7456
     },
     {
       "file": "live-north-4.png",
@@ -103,7 +74,7 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 9875
+      "bytes": 9151
     },
     {
       "file": "live-south-3.png",
@@ -111,7 +82,7 @@
     },
     {
       "file": "live-south-4.png",
-      "bytes": 7389
+      "bytes": 7460
     },
     {
       "file": "live-south-5.png",
@@ -127,7 +98,7 @@
     },
     {
       "file": "live-up-7.png",
-      "bytes": 7197
+      "bytes": 7286
     },
     {
       "file": "live-up-8.png",
@@ -139,7 +110,7 @@
     },
     {
       "file": "live-west-6.png",
-      "bytes": 7255
+      "bytes": 7619
     },
     {
       "file": "live-west-7.png",

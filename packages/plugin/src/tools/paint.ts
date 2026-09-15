@@ -236,6 +236,13 @@ export const paintTools: Record<string, ToolHandler> = {
             "E_INVALID_PARAM",
             `Packed UV extent ${used[0]}x${used[1]} exceeds atlas ${texW}x${texH}; enable auto_resize.`,
           );
+        // max_size 是硬上限:auto_resize:false 时也要管,否则这个参数有一半情况下形同虚设
+        const maxSize = args?.max_size ?? 1024;
+        if (used[0] > maxSize || used[1] > maxSize)
+          throw new CommandError(
+            "E_INVALID_PARAM",
+            `Packed UV extent ${used[0]}x${used[1]} exceeds max_size ${maxSize}.`,
+          );
         if (args?.auto_resize !== false) {
           let needW = Math.max(texW, used[0]);
           let needH = Math.max(texH, used[1]);
@@ -243,7 +250,6 @@ export const paintTools: Record<string, ToolHandler> = {
             needW = nextPowerOfTwo(needW);
             needH = nextPowerOfTwo(needH);
           }
-          const maxSize = args?.max_size ?? 1024;
           if (needW > maxSize || needH > maxSize)
             throw new CommandError(
               "E_INVALID_PARAM",
@@ -257,13 +263,16 @@ export const paintTools: Record<string, ToolHandler> = {
               Project.texture_height = texH;
             }
             texture?.edit((ctx, canvas) => {
-              if (canvas.width >= texW && canvas.height >= texH) return;
+              // 位图必须**等于** UV 空间。原来写成 max(canvas, need):
+              // 打包把 64 宽的画布留在 64、却把 Project.texture_width 设成 16,
+              // 于是上色时 scale=位图宽/UV宽=4,画面涂到画布外 —— 半个模型全白。
+              if (canvas.width === texW && canvas.height === texH) return;
               const previous = document.createElement("canvas");
               previous.width = canvas.width;
               previous.height = canvas.height;
               previous.getContext("2d")?.drawImage(canvas, 0, 0);
-              canvas.width = Math.max(canvas.width, texW);
-              canvas.height = Math.max(canvas.height, texH);
+              canvas.width = texW;
+              canvas.height = texH;
               ctx.imageSmoothingEnabled = false;
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               ctx.drawImage(previous, 0, 0);

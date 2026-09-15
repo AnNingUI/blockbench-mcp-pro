@@ -365,6 +365,13 @@ test("UV:pack_box_uv → get_uv_layout 无越界无意外重叠 → get_uv_map",
   expectEqual(layout.result.summary.unintended_overlaps, 0, "意外重叠");
   const map = await ok("get_uv_map", { max_edge: 512 });
   expect(map.images.length === 1, "UV map 返回图片");
+  // 回归:pack_box_uv 自动扩容后,位图尺寸必须等于 UV 空间。
+  // 曾经写成 max(canvas, need) → 位图 64 宽、UV 空间 16 宽 → 上色时 scale=4,
+  // 画面涂到画布外,半个模型全白(真机踩过)。
+  const textures = await ok("list_textures");
+  const first = textures.result.textures[0];
+  expectEqual(first.width, layout.result.texture_size[0], "位图宽 = UV 空间宽");
+  expectEqual(first.height, layout.result.texture_size[1], "位图高 = UV 空间高");
   saveImages(map.images, "uvmap");
 });
 
