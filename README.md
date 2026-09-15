@@ -317,6 +317,21 @@ npm login                # 登录 npmjs 账号(需要拥有 anningui 这个 scop
 npm whoami               # 确认身份
 ```
 
+registry 已经固定在仓库根的 `.npmrc`,不依赖你机器的全局配置:
+
+```ini
+# .npmrc
+registry=https://registry.npmjs.org/
+access=public            # scoped 包默认私有,这里显式公开
+```
+
+`packages/plugin/package.json` 里也写了 `publishConfig: { access: "public", registry: "https://registry.npmjs.org/" }`,
+所以即使换机器/换工具,发布目标也不会跑偏。校验:
+
+```bash
+pnpm config get registry        # → https://registry.npmjs.org/
+```
+
 ### ⚠️ 不要在仓库根目录跑 `npm publish`
 
 npm 在 workspace 根目录执行 publish 时,会把**根包 + 所有非 private 的 workspace 一起发**,
@@ -334,6 +349,34 @@ npm 在 workspace 根目录执行 publish 时,会把**根包 + 所有非 private
 
 根脚本 `pnpm run publish` 已经写成 `cd packages/plugin && npm publish --access public`,
 只会在插件目录里发布。
+
+### 下架 / 弃用
+
+```bash
+# 1) 先看线上有什么
+npm view <pkg> versions
+npm view <pkg> time.created time.modified       # 判断是否还在 72 小时窗口内
+
+# 2) 删掉某个版本(72 小时内;需要 --force;-dry-run 先预演)
+npm unpublish <pkg>@<version> --force
+npm unpublish <pkg>@<version> --force --dry-run
+
+# 3) 整个包下架(仅剩一个版本、且没有别人依赖时)
+npm unpublish <pkg> --force
+
+# 4) 过了 72 小时就只能"弃用"而不是删除
+npm deprecate <pkg>@<version> "误发布,请改用 @anningui/blockbench-mcp"
+```
+
+规则(npm 官方限制,不是本项目加的):
+
+| 规则 | 说明 |
+|---|---|
+| 72 小时 | 发布时间超过 72 小时的版本**不能** `unpublish`,只能 `deprecate` |
+| 无依赖者 | 被别的包依赖时不能下架 |
+| 24 小时冷却 | 同名同版本下架后,短时间内不能再用同一个版本号发(改版本号即可绕过) |
+| 权限 | 需要包的 owner/maintainer 身份;开了 2FA 要 `--otp=123456` |
+| 下架 ≠ 撤回 | 下架不影响已装到本地 `node_modules` 的副本;`npm i` 缓存也可能命中旧的 |
 
 ### 每个版本的发布流程
 
