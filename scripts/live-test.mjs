@@ -400,7 +400,7 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
     typeof firstCell === "string" && /^#[0-9a-f]{8}$/.test(firstCell),
     `rows[0][0] 应为 hex,实际 ${JSON.stringify(firstCell)}(rows=${read.result.rows?.length},w=${read.result.width},h=${read.result.height})`,
   );
-  expect(read.result.width).toBe(read0.result.width);
+  expectEqual(read.result.width, read0.result.width, "像素往返:宽度");
 
   const revision = await ok("get_texture_revision");
   await ok("edit_texture_pixels", { pixels: [{ x: 0, y: 0, color: "#123456" }], expected_revision: revision.result.revision });
@@ -645,7 +645,8 @@ test("边缘:缺父级 / 删不存在 / 环状父子", async () => {
 });
 
 test("边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace", async () => {
-  await fails("transform_elements", { refs: ["bip_head"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
+  // 打手搭骨架的 head(rotation=[8,0,0]);biped 的骨头都是 0 旋转,非均匀缩放本来就合法
+  await fails("transform_elements", { refs: ["head"], scale: [2, 1, 1] }, "E_INVALID_PARAM");
   await fails("mirror_elements", { refs: ["bip_body_cube"], axis: "w" }, "E_INVALID_PARAM");
   await fails("upsert_animation", { name: "live_custom", length: 1 }, "E_INVALID_PARAM");
   await fails("inspect_animation", { name: "no_such_animation" }, "E_NOT_FOUND");

@@ -3927,6 +3927,7 @@ Work is not done because you looked at your own screenshot.
 			options: recordType(unknownType()).optional()
 		}).strict(), { mutation: true }),
 		spec("propose_scoped_directory", "project", "Ask the USER to approve ONE folder for AI file access this session. Every file read/write is confined to it; nothing outside is reachable. Call before save_project / export_model / PNG import-export.", objectType({ path: S }).strict()),
+		spec("revoke_scope", "project", "Drop the folder approved with propose_scoped_directory: every file tool (save/export/PNG import-export/load_reference) then requires a fresh approval. Use it when you are done with disk work.", objectType({}).strict(), { mutation: true }),
 		spec("apply_geometry_batch", "geometry", "Create groups and cubes in ONE undo step. Parent references may point at groups created earlier in the same call (build a posed skeleton at once). The whole batch is validated before anything is written — a missing parent or a side violation fails loudly instead of half-applying. Pass side:'left'|'right' and the tool refuses coordinates that contradict it (model faces -Z so its own right is +X).", objectType({
 			create_groups: arrayType(objectType({
 				name: S,
@@ -5889,17 +5890,24 @@ Work is not done because you looked at your own screenshot.
 			});
 			const tip = toWorld(angle, lengths[index], wrist);
 			tips.push(tip);
+			const start = [
+				wrist[0] + (tip[0] - wrist[0]) * .25,
+				wrist[1] + (tip[1] - wrist[1]) * .25,
+				wrist[2] + (tip[2] - wrist[2]) * .25
+			];
+			const nudge = index * .03;
+			const half = thickness / 4;
 			cubes.push({
 				name: `${boneName}_bone`,
 				from: [
-					Math.min(wrist[0], tip[0]) - thickness / 4,
-					Math.min(wrist[1], tip[1]) - thickness / 4,
-					Math.min(wrist[2], tip[2]) - thickness / 4
+					Math.min(start[0], tip[0]) - half,
+					Math.min(start[1], tip[1]) - half + nudge,
+					Math.min(start[2], tip[2]) - half
 				],
 				to: [
-					Math.max(wrist[0], tip[0]) + thickness / 4,
-					Math.max(wrist[1], tip[1]) + thickness / 4,
-					Math.max(wrist[2], tip[2]) + thickness / 4
+					Math.max(start[0], tip[0]) + half,
+					Math.max(start[1], tip[1]) + half + nudge,
+					Math.max(start[2], tip[2]) + half
 				],
 				parent: boneName
 			});
@@ -5927,6 +5935,9 @@ Work is not done because you looked at your own screenshot.
 					`${bones}_membrane_body`
 				]);
 			}
+			const normalAxis = plane === "horizontal" ? 1 : 2;
+			const planeCoord = base[normalAxis];
+			const boneHalf = thickness / 2;
 			panels.forEach(([a, b, nm], index) => {
 				const stagger = index % 2 === 0 ? 0 : membraneThickness * .2;
 				const inset = (lo, hi) => {
@@ -5941,18 +5952,22 @@ Work is not done because you looked at your own screenshot.
 				const [x0, x1] = inset(a[0], b[0]);
 				const [y0, y1] = inset(a[1], b[1]);
 				const [z0, z1] = inset(a[2], b[2]);
+				const from = [
+					x0,
+					y0,
+					z0
+				];
+				const to = [
+					x1,
+					Math.max(y0 + .05, y1),
+					z1
+				];
+				from[normalAxis] = planeCoord - boneHalf - membraneThickness - stagger;
+				to[normalAxis] = planeCoord - boneHalf - stagger * .5;
 				cubes.push({
 					name: nm,
-					from: [
-						x0,
-						y0,
-						z0 + stagger
-					],
-					to: [
-						x1,
-						Math.max(y0 + .05, y1),
-						z1 + membraneThickness + stagger
-					],
+					from,
+					to,
 					parent: `${bones}_forearm`,
 					inflate: 0
 				});
@@ -7703,7 +7718,9 @@ Work is not done because you looked at your own screenshot.
 	}
 	function serialize(content) {
 		if (typeof content === "string" || content instanceof Uint8Array) return content;
+		if (typeof ArrayBuffer !== "undefined" && content instanceof ArrayBuffer) return new Uint8Array(content);
 		if (content === void 0 || content === null) throw new CommandError("E_BLOCKBENCH_ERROR", "Codec returned no content.");
+		if (typeof content === "object" && "then" in content) throw new CommandError("E_BLOCKBENCH_ERROR", "Codec returned a Promise; it must be awaited before serializing.");
 		return JSON.stringify(content, null, 2);
 	}
 	const projectTools = {
@@ -7791,23 +7808,33 @@ Work is not done because you looked at your own screenshot.
 				confirmed: true
 			};
 		},
-		save_project: (args) => {
+		revoke_scope: () => {
+			const previous = session.scopedDirectory;
+			session.scopedDirectory = null;
+			return {
+				ok: true,
+				revoked: previous,
+				scoped_directory: null,
+				note: "File access revoked for this session; call propose_scoped_directory again when you need it."
+			};
+		},
+		save_project: async (args) => {
 			requireProject();
 			const codec = Codecs?.project;
 			const id = "project";
 			if (!codec?.compile) throw new CommandError("E_UNSUPPORTED_FORMAT", "The .bbmodel project codec is unavailable.");
-			const data = serialize(codec.compile());
+			const data = serialize(await codec.compile());
 			return {
 				ok: true,
 				codec: id,
 				...writeScopedFile(args.path, data, args.overwrite)
 			};
 		},
-		export_model: (args) => {
+		export_model: async (args) => {
 			requireProject();
 			const { codec, id } = codecFor(args?.codec);
 			if (typeof codec.compile !== "function") throw new CommandError("E_UNSUPPORTED_FORMAT", `Codec "${id}" cannot compile.`);
-			const data = serialize(codec.compile());
+			const data = serialize(await codec.compile(args?.options ?? {}));
 			const written = writeScopedFile(args.path, data, args.overwrite);
 			return {
 				ok: true,

@@ -1,39 +1,29 @@
 {
-  "when": "2026-09-15T17:46:56.900Z",
+  "when": "2026-09-15T17:51:54.744Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 28,
-  "failed": 6,
+  "passed": 30,
+  "failed": 4,
   "skipped": [],
   "failures": [
     {
       "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
       "error": "check_model errors: 期望 0,实际 1",
-      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
     },
     {
       "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
       "error": "check_model 无 error: 期望 0,实际 1",
-      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
     },
     {
       "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
       "error": "Cannot read properties of undefined (reading 'toBe')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'toBe')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:402:4)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
-    },
-    {
-      "case": "作用域:未授权时保存被拒",
-      "error": "save_project 本应失败却成功了: {\"ok\":true,\"codec\":\"project\",\"path\":\"D:\\\\Dev-Project\\\\t\\\\blockbench-mcp-research\\\\blockbench-mcp-pro\\\\out\\\\live-test\\\\blocked.bbmodel\",\"bytes\":60782}",
-      "stack": "Error: save_project 本应失败却成功了: {\"ok\":true,\"codec\":\"project\",\"path\":\"D:\\\\Dev-Project\\\\t\\\\blockbench-mcp-research\\\\blockbench-mcp-pro\\\\out\\\\live-test\\\\blocked.bbmodel\",\"bytes\":60782}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:588:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
-    },
-    {
-      "case": "作用域:授权后可保存 .bbmodel 与导出几何",
-      "error": "glTF 导出 2B",
-      "stack": "Error: glTF 导出 2B\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:604:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+      "stack": "TypeError: Cannot read properties of undefined (reading 'toBe')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:403:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
     },
     {
       "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
-      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"cc4c8b63-9b83-1774-a413-a2096103274d\",\"3e99bbfe-8a95-11bf-f8df-3c1829642fa7\"]}",
-      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"cc4c8b63-9b83-1774-a413-a2096103274d\",\"3e99bbfe-8a95-11bf-f8df-3c1829642fa7\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:647:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"65816f98-ac8c-e69c-015e-69af907a6112\",\"2158289e-bad4-2b87-c7b4-3c4f0d5ce57e\"]}",
+      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"65816f98-ac8c-e69c-015e-69af907a6112\",\"2158289e-bad4-2b87-c7b4-3c4f0d5ce57e\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:648:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
     }
   ],
   "artifacts": [
@@ -43,22 +33,26 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 2449
+      "bytes": 5724
     },
     {
       "file": "live-texture.png",
-      "bytes": 6135
+      "bytes": 5996
     },
     {
       "file": "live.bbmodel",
-      "bytes": 60782
+      "bytes": 60608
     },
     {
       "file": "live.geo.json",
-      "bytes": 7907
+      "bytes": 7908
     },
     {
       "file": "live.gltf",
+      "bytes": 115871
+    },
+    {
+      "file": "probe2.gltf",
       "bytes": 2
     },
     {
@@ -67,35 +61,35 @@
     },
     {
       "file": "uvmap-1.png",
-      "bytes": 109873
+      "bytes": 107700
     },
     {
       "file": "views-2.png",
-      "bytes": 8692
+      "bytes": 8694
     },
     {
       "file": "views-3.png",
-      "bytes": 9132
+      "bytes": 9110
     },
     {
       "file": "views-4.png",
-      "bytes": 8396
+      "bytes": 8367
     },
     {
       "file": "views-5.png",
-      "bytes": 8405
+      "bytes": 8462
     },
     {
       "file": "views-6.png",
-      "bytes": 8419
+      "bytes": 8550
     },
     {
       "file": "views-7.png",
-      "bytes": 8593
+      "bytes": 8767
     },
     {
       "file": "views-8.png",
-      "bytes": 13851
+      "bytes": 13718
     }
   ]
 }

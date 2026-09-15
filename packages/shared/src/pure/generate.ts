@@ -762,17 +762,27 @@ export function addWing(params: WingParams): GeneratorResult {
     groups.push({ name: boneName, origin: wrist, rotation: [0, 0, 0], parent: `${bones}_forearm` });
     const tip = toWorld(angle, lengths[index], wrist);
     tips.push(tip);
+    // 指骨从腕点往前 25% 处起:如果每根都从腕点起,短的会完全落在长的 AABB 里,
+    // check_model 会判为 COPLANAR_OVERLAP(真机 4 指时 finger3/finger4 就是 ratio=1.0)。
+    // 腕部由 forearm 骨覆盖,所以视觉上不会断。再加一点逐指错位进一步错开。
+    const start: Vec3 = [
+      wrist[0] + (tip[0] - wrist[0]) * 0.25,
+      wrist[1] + (tip[1] - wrist[1]) * 0.25,
+      wrist[2] + (tip[2] - wrist[2]) * 0.25,
+    ];
+    const nudge = index * 0.03;
+    const half = thickness / 4;
     cubes.push({
       name: `${boneName}_bone`,
       from: [
-        Math.min(wrist[0], tip[0]) - thickness / 4,
-        Math.min(wrist[1], tip[1]) - thickness / 4,
-        Math.min(wrist[2], tip[2]) - thickness / 4,
+        Math.min(start[0], tip[0]) - half,
+        Math.min(start[1], tip[1]) - half + nudge,
+        Math.min(start[2], tip[2]) - half,
       ],
       to: [
-        Math.max(wrist[0], tip[0]) + thickness / 4,
-        Math.max(wrist[1], tip[1]) + thickness / 4,
-        Math.max(wrist[2], tip[2]) + thickness / 4,
+        Math.max(start[0], tip[0]) + half,
+        Math.max(start[1], tip[1]) + half + nudge,
+        Math.max(start[2], tip[2]) + half,
       ],
       parent: boneName,
     });
@@ -792,6 +802,11 @@ export function addWing(params: WingParams): GeneratorResult {
           : [base[0], base[1] - (armLen + foreLen) * 0.9, base[2]]);
       panels.push([tips[tips.length - 1], attach, `${bones}_membrane_body`]);
     }
+    // 膜要挂在骨头的**下方**(垂直于翼面),否则薄膜会整个落在指骨 AABB 里 → COPLANAR
+    const normalAxis = plane === "horizontal" ? 1 : 2;
+    const planeCoord = base[normalAxis];
+    const boneHalf = thickness / 2;
+
     panels.forEach(([a, b, nm], index) => {
       const stagger = index % 2 === 0 ? 0 : membraneThickness * 0.2;
       // 膜片不能顶到指骨端点:否则它的包围盒会和指骨 cube 完全重合,
@@ -809,10 +824,15 @@ export function addWing(params: WingParams): GeneratorResult {
       const [x0, x1] = inset(a[0], b[0]);
       const [y0, y1] = inset(a[1], b[1]);
       const [z0, z1] = inset(a[2], b[2]);
+      const from: Vec3 = [x0, y0, z0];
+      const to: Vec3 = [x1, Math.max(y0 + 0.05, y1), z1];
+      // 沿翼面法线方向挂到骨头下方(紧贴但不重叠)
+      from[normalAxis] = planeCoord - boneHalf - membraneThickness - stagger;
+      to[normalAxis] = planeCoord - boneHalf - stagger * 0.5;
       cubes.push({
         name: nm,
-        from: [x0, y0, z0 + stagger],
-        to: [x1, Math.max(y0 + 0.05, y1), z1 + membraneThickness + stagger],
+        from,
+        to,
         parent: `${bones}_forearm`,
         inflate: 0,
       });

@@ -373,6 +373,23 @@ test("addWing builds a bone chain, finger bones and a membrane", () => {
         (i) =>
           inner.from[i] >= outer.from[i] - 1e-6 && inner.to[i] <= outer.to[i] + 1e-6,
       );
+    // 指骨之间也不能互相包含(真机:4 指时短指骨整个落在长指骨的 AABB 里)
+    for (let i = 0; i < bones.length; i += 1)
+      for (let j = i + 1; j < bones.length; j += 1) {
+        const a = bones[i];
+        const b = bones[j];
+        const inter = [0, 1, 2].reduce(
+          (v, k) =>
+            v *
+            Math.max(0, Math.min(a.to[k], b.to[k]) - Math.max(a.from[k], b.from[k])),
+          1,
+        );
+        const ratio = inter / Math.min(volume(a), volume(b));
+        expect(
+          ratio < 0.97 || !(contained(a, b) || contained(b, a)),
+          `指骨 ${a.name} 与 ${b.name} 完全重合`,
+        ).toBe(true);
+      }
     for (const bone of bones)
       for (const membrane of membranes) {
         const inter = [0, 1, 2].reduce(
@@ -385,7 +402,10 @@ test("addWing builds a bone chain, finger bones and a membrane", () => {
           1,
         );
         const ratio = inter / Math.min(volume(bone), volume(membrane));
-        expect(ratio < 0.97 || !contained(bone, membrane), `膜片与 ${bone.name} 完全重合`).toBe(true);
+        expect(
+          ratio < 0.97 || !(contained(bone, membrane) || contained(membrane, bone)),
+          `膜片与 ${bone.name} 完全重合`,
+        ).toBe(true);
       }
   }
   const left = addWing({ side: "left", base_origin: [-3, 22, 2], fingers: 4 });
