@@ -253,7 +253,7 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec(
     "scaffold_biped",
     "geometry",
-    "Build a correctly-pivoted classical biped (root -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture, and return a check_model summary of the result. Start here for anything humanoid.",
+    "Build a correctly-pivoted classical biped (root_bone -> body -> head/arms/legs, feet on y=0), pack UVs in the project's UV mode, create the skin texture, and return a check_model summary of the result. Start here for anything humanoid.",
     z.object({ scale: N.optional(), texture_size: N.optional(), name_prefix: S.optional(), include_outer_layers: B.optional() }).strict(),
     { mutation: true },
   ),

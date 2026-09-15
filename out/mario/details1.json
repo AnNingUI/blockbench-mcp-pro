@@ -1,0 +1,14 @@
+{
+  "create_cubes": [
+    { "name": "strap_left", "from": [-3.6, 17.2, -4.1], "to": [-2.2, 22.6, -3.2], "parent": "body", "side": "left" },
+    { "name": "strap_right", "from": [2.2, 17.2, -4.1], "to": [3.6, 22.6, -3.2], "parent": "body", "side": "right" },
+    { "name": "collar", "from": [-4.4, 21.6, -3.9], "to": [4.4, 22.8, 3.9], "parent": "body" },
+    { "name": "cuff_right", "from": [0.1, 2.6, -3.1], "to": [4.5, 3.8, 3.1], "parent": "leg_right", "side": "right" },
+    { "name": "cuff_left", "from": [-4.5, 2.6, -3.1], "to": [-0.1, 3.8, 3.1], "parent": "leg_left", "side": "left" },
+    { "name": "sideburn_right", "from": [4, 25.2, -3.4], "to": [4.8, 28.2, -1.6], "parent": "head", "side": "right" },
+    { "name": "sideburn_left", "from": [-4.8, 25.2, -3.4], "to": [-4, 28.2, -1.6], "parent": "head", "side": "left" },
+    { "name": "glove_cuff_right", "from": [4.6, 13.6, -2.8], "to": [8.6, 14.8, 2.8], "parent": "arm_right", "side": "right" },
+    { "name": "glove_cuff_left", "from": [-8.6, 13.6, -2.8], "to": [-4.6, 14.8, 2.8], "parent": "arm_left", "side": "left" }
+  ],
+  "undo_label": "mario detail layer 1"
+}

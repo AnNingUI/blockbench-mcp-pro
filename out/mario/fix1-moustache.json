@@ -1,0 +1,9 @@
+{
+  "matrix": ["..########..", "############"],
+  "palette": { "#": { "name": "moustache", "depth": 1.6 } },
+  "pixel_size": 0.95,
+  "plane": "xy",
+  "origin": [-5.7, 23.2, -5.8],
+  "parent": "head",
+  "merge_adjacent": true
+}

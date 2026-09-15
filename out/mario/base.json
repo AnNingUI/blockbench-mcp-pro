@@ -1,0 +1,32 @@
+{
+  "create_groups": [
+    { "name": "root", "origin": [0, 0, 0] },
+    { "name": "body", "origin": [0, 10, 0], "parent": "root" },
+    { "name": "head", "origin": [0, 22, 0], "parent": "body" },
+    { "name": "cap", "origin": [0, 22, 0], "parent": "head" },
+    { "name": "arm_right", "origin": [6, 21, 0], "parent": "body" },
+    { "name": "arm_left", "origin": [-6, 21, 0], "parent": "body" },
+    { "name": "leg_right", "origin": [2, 10, 0], "parent": "body" },
+    { "name": "leg_left", "origin": [-2, 10, 0], "parent": "body" }
+  ],
+  "create_cubes": [
+    { "name": "overalls", "from": [-5, 5, -3.5], "to": [5, 17, 3.5], "parent": "body" },
+    { "name": "shirt", "from": [-5.2, 15.5, -3.7], "to": [5.2, 22.5, 3.7], "parent": "body" },
+    { "name": "skull", "from": [-4, 22, -4], "to": [4, 30.5, 4], "parent": "head" },
+    { "name": "nose", "from": [-1.6, 24.2, -6.2], "to": [1.6, 26.4, -3.6], "parent": "head", "inflate": 0.1 },
+    { "name": "ear_right", "from": [4, 24.5, -1.5], "to": [5, 27, 0.5], "parent": "head", "side": "right" },
+    { "name": "ear_left", "from": [-5, 24.5, -1.5], "to": [-4, 27, 0.5], "parent": "head", "side": "left" },
+    { "name": "hair_back", "from": [-4.1, 22.5, 3.6], "to": [4.1, 28, 4.6], "parent": "head" },
+    { "name": "cap_dome", "from": [-4.6, 29.6, -4.6], "to": [4.6, 33.2, 4.6], "parent": "cap" },
+    { "name": "cap_brim", "from": [-4.6, 29.2, -8], "to": [4.6, 30.4, -4.2], "parent": "cap" },
+    { "name": "sleeve_right", "from": [4.4, 13.5, -2.2], "to": [8.2, 22.5, 2.2], "parent": "arm_right", "side": "right" },
+    { "name": "sleeve_left", "from": [-8.2, 13.5, -2.2], "to": [-4.4, 22.5, 2.2], "parent": "arm_left", "side": "left" },
+    { "name": "glove_right", "from": [4.2, 10.6, -2.6], "to": [8.4, 14, 2.6], "parent": "arm_right", "side": "right" },
+    { "name": "glove_left", "from": [-8.4, 10.6, -2.6], "to": [-4.2, 14, 2.6], "parent": "arm_left", "side": "left" },
+    { "name": "leg_right", "from": [0.4, 2, -2.6], "to": [4.2, 9, 2.6], "parent": "leg_right", "side": "right" },
+    { "name": "leg_left", "from": [-4.2, 2, -2.6], "to": [-0.4, 9, 2.6], "parent": "leg_left", "side": "left" },
+    { "name": "boot_right", "from": [0.15, 0, -3.8], "to": [4.7, 2.6, 3.2], "parent": "leg_right", "side": "right" },
+    { "name": "boot_left", "from": [-4.7, 0, -3.8], "to": [-0.15, 2.6, 3.2], "parent": "leg_left", "side": "left" }
+  ],
+  "undo_label": "mario base blockout"
+}

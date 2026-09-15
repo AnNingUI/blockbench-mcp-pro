@@ -1,0 +1,44 @@
+{
+  "base": "#f2b184",
+  "regions": [
+    {
+      "match": "^cap_",
+      "color": "#d1332e"
+    },
+    {
+      "match": "^shirt$|^sleeve_|^collar$",
+      "color": "#d1332e"
+    },
+    {
+      "match": "^overalls$|^strap_|^leg_|^cuff_",
+      "color": "#2b56c8"
+    },
+    {
+      "match": "^boot_",
+      "color": "#6b3f1d"
+    },
+    {
+      "match": "^glove",
+      "color": "#f2f2f2"
+    },
+    {
+      "match": "moustache|sideburn|hair_back",
+      "color": "#3b2412"
+    },
+    {
+      "match": "^button",
+      "color": "#f5c542"
+    },
+    {
+      "match": "^skull$|^nose$|^ear_",
+      "color": "#f2b184"
+    }
+  ],
+  "top_light": 0.14,
+  "bottom_dark": 0.26,
+  "noise": 0.02,
+  "blur": 0,
+  "edge_darken": 0.1,
+  "seed": 11,
+  "crisp": true
+}

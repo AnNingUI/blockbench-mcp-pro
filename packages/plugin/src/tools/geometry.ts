@@ -77,10 +77,12 @@ export const geometryTools: Record<string, ToolHandler> = {
           guard += 1;
         }
       }
-      if (element.from && (update.from || update.to || update.inflate !== undefined)) {
+      // 注意方向:cube 有 from/to,group 没有 —— 给 group 传 from/to/inflate 才该报错。
+      // (原来这行写反了,导致任何 cube 的 resize 都被拒绝;真机 resize 头部时才暴露)
+      if (!element.from && (update.from || update.to || update.inflate !== undefined)) {
         throw new CommandError(
           "E_INVALID_PARAM",
-          `Group ${element.name} does not support from/to/inflate.`,
+          `"${element.name}" is a group/bone, which does not support from/to/inflate.`,
         );
       }
       return { update, element };
@@ -518,7 +520,8 @@ export const geometryTools: Record<string, ToolHandler> = {
         return cube;
       };
 
-      const root = bone(`${prefix}root`, [0, 0, 0], "root");
+      // 不能叫 "root"(那是 Blockbench 的工程根哨兵),所以顶级骨用 root_bone
+      const root = bone(`${prefix}root_bone`, [0, 0, 0], "root");
       add(root, "group");
       const body = bone(`${prefix}body`, [0, 24 * scale, 0], root);
       add(body, "group");

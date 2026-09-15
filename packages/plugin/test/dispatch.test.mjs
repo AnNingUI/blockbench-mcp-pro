@@ -123,6 +123,18 @@ test("apply_geometry_batch builds a posed hierarchy in one undo step", async () 
   expect(head.parent.name).toBe("head");
 });
 
+test("a group may not be named root (it collides with Blockbench's project-root sentinel)", async () => {
+  mock.reset();
+  newProject();
+  const error = await fails(
+    "apply_geometry_batch",
+    { create_groups: [{ name: "root", origin: [0, 0, 0] }] },
+    "E_INVALID_PARAM",
+  );
+  expect(error.message).toMatch(/root_bone/);
+  expect(mock.MockGroup.all.length).toBe(0);
+});
+
 test("apply_geometry_batch refuses contradictory sides and missing parents before writing", async () => {
   mock.reset();
   newProject();
@@ -211,6 +223,24 @@ test("add_wing lands bones and a membrane, and refuses the wrong side", async ()
   await fails("add_wing", { side: "left", base_origin: [3, 22, 2] }, "E_INVALID_PARAM");
 });
 
+test("update_elements can resize a cube (and refuses from/to on a group)", async () => {
+  mock.reset();
+  newProject();
+  await ok("apply_geometry_batch", {
+    create_groups: [{ name: "body", origin: [0, 10, 0] }],
+    create_cubes: [{ name: "head_cube", from: [-2, 10, -2], to: [2, 14, 2], parent: "body" }],
+  });
+  // cube 的 resize 必须成功(这条路径以前被写反的校验挡住,真机才暴露)
+  const resized = await ok("update_elements", {
+    updates: [{ ref: "head_cube", from: [-3, 10, -3], to: [3, 16, 3] }],
+    uv_policy: "auto",
+  });
+  expect(resized.updated.length).toBe(1);
+  const cube = mock.MockCube.all.find((c) => c.name === "head_cube");
+  expect(cube.to).toEqual([3, 16, 3]);
+  await fails("update_elements", { updates: [{ ref: "body", from: [0, 0, 0] }] }, "E_INVALID_PARAM");
+});
+
 test("transform_elements moves a subtree and rejects non-uniform scale of rotated parts", async () => {
   mock.reset();
   newProject();
@@ -297,7 +327,7 @@ test("scaffold_biped builds a real rig, packs UVs and returns check_model", asyn
   expect(result.created.length >= 13, `created ${result.created.length}`).toBeTruthy();
   expect(mock.MockTexture.all.length === 1).toBeTruthy();
   const bones = mock.MockGroup.all.map((g) => g.name);
-  for (const expected of ["root", "body", "head", "arm_right", "arm_left", "leg_right", "leg_left"])
+  for (const expected of ["root_bone", "body", "head", "arm_right", "arm_left", "leg_right", "leg_left"])
     expect(bones.includes(expected), `missing ${expected}`).toBeTruthy();
   const cubes = mock.MockCube.all;
   expect(cubes.every((c) => c.box_uv === true)).toBeTruthy();

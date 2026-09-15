@@ -312,6 +312,13 @@ export function materialize(opts: MaterializeOptions) {
     !ref || ref === "root" || pendingGroups.has(ref) || Boolean(findGroup(ref));
 
   for (const group of [...(opts.generated_groups ?? []), ...(opts.create_groups ?? [])]) {
+    // Blockbench 用字符串 "root" 表示"工程根"(element.addTo('root')),
+    // 所以一个**名字叫 root 的组**会让 parent:"root" 产生歧义(实测:body 被挂到工程根,root 组空掉)。
+    if (group.name === "root")
+      throw new CommandError(
+        "E_INVALID_PARAM",
+        'A group cannot be named "root": that name means the project root in Blockbench. Name it "root_bone" (or give a name_prefix).',
+      );
     if (!known(group.parent))
       throw new CommandError("E_PARTIAL_FORBIDDEN", `Missing parent group: ${group.parent}`);
   }
