@@ -1,0 +1,20 @@
+{
+  "name": "@bbmcp/plugin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/blockbench_mcp.js",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --format=iife --platform=neutral --main-fields=module,main --target=es2020 --outfile=dist/blockbench_mcp.js --legal-comments=none && esbuild src/testing.ts --bundle --format=esm --platform=node --main-fields=module,main --target=es2022 --outfile=dist/testing.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs"
+  },
+  "dependencies": {
+    "@bbmcp/shared": "*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0"
+  }
+}

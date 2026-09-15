@@ -1,0 +1,22 @@
+{
+  "name": "blockbench-mcp-pro",
+  "private": true,
+  "version": "1.0.0",
+  "description": "最完善的 Blockbench MCP —— 插件内进程 HTTP(S) MCP + stdio 网关双通道",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "gateway"
+  ],
+  "scripts": {
+    "build": "npm run build -w @bbmcp/shared && npm run build -w @bbmcp/plugin && npm run build -w @bbmcp/gateway",
+    "typecheck": "npm run typecheck -w @bbmcp/shared && npm run typecheck -w @bbmcp/plugin && npm run typecheck -w @bbmcp/gateway",
+    "test:unit": "npm run test -w @bbmcp/shared && npm run test -w @bbmcp/plugin && npm run test -w @bbmcp/gateway",
+    "test": "npm run build && npm run test:unit",
+    "verify": "npm run build && npm run typecheck && npm run test:unit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
