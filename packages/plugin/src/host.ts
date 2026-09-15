@@ -378,6 +378,30 @@ export function createProject(opts: {
   created.box_uv = wantsBox;
   if (opts.texture_width) created.texture_width = Math.round(opts.texture_width);
   if (opts.texture_height) created.texture_height = Math.round(opts.texture_height);
+  // 格式自带的默认贴图是空的 → 让它跟随工程 UV 空间。
+  // 否则 "UV 空间 64×64 / 贴图 16×16" 一开始就不一致:上色、打包、质检都在错的尺度上工作
+  // (真机表现为:打包返回 [16,256]、上色后质检满屏 EMPTY_FACE_TEXTURE)。
+  // 只动**全透明**的贴图 —— 有内容的贴图绝不自动缩放,那会丢画。
+  const spanW = created.texture_width ?? 0;
+  const spanH = created.texture_height ?? 0;
+  if (spanW > 0 && spanH > 0) {
+    for (const raw of Texture?.all ?? []) {
+      const handle = wrapTexture(raw);
+      if (handle.width === spanW && handle.height === spanH) continue;
+      const blank = handle.read((ctx, canvas) => {
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return false;
+        return true;
+      });
+      if (!blank) continue;
+      handle.edit((ctx, canvas) => {
+        canvas.width = spanW;
+        canvas.height = spanH;
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, spanW, spanH);
+      }, "texture size follows project UV size");
+    }
+  }
   return {
     format: Format?.id ?? formatId,
     name: created.name,

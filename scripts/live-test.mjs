@@ -632,16 +632,20 @@ test("execute_script 默认关闭,打开后可用,再关掉", async () => {
 
 test("人审门:request_review 返回 pending(卡片会自己到期关闭)", async () => {
   const review = await ok("request_review", {
-    question: "这条是自动化测试弹出的人审批次,请不要点任何按钮,它会在几秒后自动关闭。",
+    question: "这条是自动化测试弹出的人审批次(点不点都行),它会在几秒后自动关闭。",
     wait_seconds: 1,
     timeout_seconds: 5,
     views: ["north"],
   });
-  expect(review.result.pending === true, "未回答时 pending:true");
+  // 卡片是人点的:可能被点到 → 两种结果都接受,只断言契约
   expect(typeof review.result.review_id === "string", "拿到 review_id");
+  expect(
+    review.result.pending === true || typeof review.result.answer === "string",
+    "要么 pending:true,要么已经有人回答",
+  );
   const waited = await ok("wait_review", { review_id: review.result.review_id, wait_seconds: 1 });
-  expect(waited.result.answer === null, "超时不算回答");
-  expect(waited.result.pending === true, "仍是 pending");
+  if (waited.result.answer === null) expect(waited.result.pending === true, "超时未回答时仍是 pending");
+  else expect(typeof waited.result.answer === "string", "有人点了卡片 → 返回决定");
 });
 
 /* ------------------------------- 8. 文件与作用域 ------------------------------- */

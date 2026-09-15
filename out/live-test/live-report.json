@@ -1,22 +1,29 @@
 {
-  "when": "2026-09-15T23:12:42.412Z",
+  "when": "2026-09-15T23:19:58.946Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
   "passed": 30,
-  "failed": 2,
-  "skipped": [
-    "作用域:授权后可保存 .bbmodel 与导出几何",
-    "纹理 PNG 导入导出(作用域内)"
-  ],
+  "failed": 4,
+  "skipped": [],
   "failures": [
     {
       "case": "UV:pack_box_uv → get_uv_layout 无越界无意外重叠 → get_uv_map",
       "error": "打包后:位图宽 = UV 空间宽: 期望 64,实际 16",
-      "stack": "Error: 打包后:位图宽 = UV 空间宽: 期望 64,实际 16\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:116:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:380:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:851:5"
+      "stack": "Error: 打包后:位图宽 = UV 空间宽: 期望 64,实际 16\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:119:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:383:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
     },
     {
       "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
       "error": "贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down",
-      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:457:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:851:5"
+      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:465:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
+    },
+    {
+      "case": "resize_texture / assign_texture / auto_uv_cubes / set_face_uv / transform_uv_islands",
+      "error": "resize_texture 后:位图宽 = UV 空间宽: 期望 128,实际 64",
+      "stack": "Error: resize_texture 后:位图宽 = UV 空间宽: 期望 128,实际 64\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:119:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:494:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
+    },
+    {
+      "case": "人审门:request_review 返回 pending(卡片会自己到期关闭)",
+      "error": "超时不算回答",
+      "stack": "Error: 超时不算回答\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:643:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:859:5"
     }
   ],
   "artifacts": [
@@ -74,7 +81,7 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 7926
+      "bytes": 7847
     },
     {
       "file": "live-south-3.png",
@@ -90,7 +97,7 @@
     },
     {
       "file": "live-texture.png",
-      "bytes": 6047
+      "bytes": 1678
     },
     {
       "file": "live-up-6.png",
@@ -118,15 +125,19 @@
     },
     {
       "file": "live.bbmodel",
-      "bytes": 60676
+      "bytes": 21448
     },
     {
       "file": "live.geo.json",
-      "bytes": 7908
+      "bytes": 1987
     },
     {
       "file": "live.gltf",
-      "bytes": 115939
+      "bytes": 25202
+    },
+    {
+      "file": "probe-scope.png",
+      "bytes": 1678
     },
     {
       "file": "probe2.gltf",
