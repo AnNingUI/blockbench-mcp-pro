@@ -1,5 +1,5 @@
 {
-  "when": "2026-09-15T18:03:52.396Z",
+  "when": "2026-09-15T23:12:42.412Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
   "passed": 30,
   "failed": 2,
@@ -9,14 +9,14 @@
   ],
   "failures": [
     {
-      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down",
-      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:444:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:837:5"
+      "case": "UV:pack_box_uv → get_uv_layout 无越界无意外重叠 → get_uv_map",
+      "error": "打包后:位图宽 = UV 空间宽: 期望 64,实际 16",
+      "stack": "Error: 打包后:位图宽 = UV 空间宽: 期望 64,实际 16\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at expectBitmapMatchesUv (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:116:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:380:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:851:5"
     },
     {
-      "case": "边缘:UV/贴图 越界与错误输入",
-      "error": "pack_box_uv 本应失败却成功了: {\"ok\":true,\"undo_label\":\"pack_box_uv\",\"mode\":\"box\",\"packed\":1,\"used\":[25,101],\"texture_size\":[128,128]}",
-      "stack": "Error: pack_box_uv 本应失败却成功了: {\"ok\":true,\"undo_label\":\"pack_box_uv\",\"mode\":\"box\",\"packed\":1,\"used\":[25,101],\"texture_size\":[128,128]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:118:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:739:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:837:5"
+      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
+      "error": "贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down",
+      "stack": "Error: 贴图质检 error:EMPTY_FACE_TEXTURE@arm_right_cube_copy.north,EMPTY_FACE_TEXTURE@arm_right_cube_copy.south,EMPTY_FACE_TEXTURE@arm_right_cube_copy.east,EMPTY_FACE_TEXTURE@arm_right_cube_copy.west,EMPTY_FACE_TEXTURE@arm_right_cube_copy.up,EMPTY_FACE_TEXTURE@arm_right_cube_copy.down,EMPTY_FACE_TEXTURE@bip_body_cube.north,EMPTY_FACE_TEXTURE@bip_body_cube.south,EMPTY_FACE_TEXTURE@bip_body_cube.east,EMPTY_FACE_TEXTURE@bip_body_cube.west,EMPTY_FACE_TEXTURE@bip_body_cube.up,EMPTY_FACE_TEXTURE@bip_body_cube.down,EMPTY_FACE_TEXTURE@bip_head_cube.south,EMPTY_FACE_TEXTURE@bip_head_cube.west,EMPTY_FACE_TEXTURE@bip_head_cube.down,EMPTY_FACE_TEXTURE@bip_arm_right_cube.north,EMPTY_FACE_TEXTURE@bip_arm_right_cube.south,EMPTY_FACE_TEXTURE@bip_arm_right_cube.east,EMPTY_FACE_TEXTURE@bip_arm_right_cube.west,EMPTY_FACE_TEXTURE@bip_arm_right_cube.up,EMPTY_FACE_TEXTURE@bip_arm_right_cube.down,EMPTY_FACE_TEXTURE@bip_leg_right_cube.north,EMPTY_FACE_TEXTURE@bip_leg_right_cube.south,EMPTY_FACE_TEXTURE@bip_leg_right_cube.east,EMPTY_FACE_TEXTURE@bip_leg_right_cube.west,EMPTY_FACE_TEXTURE@bip_leg_right_cube.up,EMPTY_FACE_TEXTURE@bip_leg_right_cube.down,EMPTY_FACE_TEXTURE@bip_arm_left_cube.north,EMPTY_FACE_TEXTURE@bip_arm_left_cube.south,EMPTY_FACE_TEXTURE@bip_arm_left_cube.east,EMPTY_FACE_TEXTURE@bip_arm_left_cube.west,EMPTY_FACE_TEXTURE@bip_arm_left_cube.up,EMPTY_FACE_TEXTURE@bip_arm_left_cube.down,EMPTY_FACE_TEXTURE@bip_leg_left_cube.north,EMPTY_FACE_TEXTURE@bip_leg_left_cube.south,EMPTY_FACE_TEXTURE@bip_leg_left_cube.east,EMPTY_FACE_TEXTURE@bip_leg_left_cube.west,EMPTY_FACE_TEXTURE@bip_leg_left_cube.up,EMPTY_FACE_TEXTURE@bip_leg_left_cube.down\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:457:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:851:5"
     }
   ],
   "artifacts": [
@@ -26,7 +26,7 @@
     },
     {
       "file": "live-down-7.png",
-      "bytes": 9226
+      "bytes": 7447
     },
     {
       "file": "live-down-8.png",
@@ -38,7 +38,7 @@
     },
     {
       "file": "live-east-4.png",
-      "bytes": 9551
+      "bytes": 7614
     },
     {
       "file": "live-east-5.png",
@@ -54,7 +54,7 @@
     },
     {
       "file": "live-iso-8.png",
-      "bytes": 15606
+      "bytes": 10315
     },
     {
       "file": "live-iso-9.png",
@@ -62,7 +62,7 @@
     },
     {
       "file": "live-north-2.png",
-      "bytes": 8964
+      "bytes": 7456
     },
     {
       "file": "live-north-3.png",
@@ -74,11 +74,11 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 9151
+      "bytes": 7926
     },
     {
       "file": "live-south-3.png",
-      "bytes": 9359
+      "bytes": 7460
     },
     {
       "file": "live-south-4.png",
@@ -94,7 +94,7 @@
     },
     {
       "file": "live-up-6.png",
-      "bytes": 8607
+      "bytes": 7286
     },
     {
       "file": "live-up-7.png",
@@ -106,7 +106,7 @@
     },
     {
       "file": "live-west-5.png",
-      "bytes": 9622
+      "bytes": 7619
     },
     {
       "file": "live-west-6.png",
@@ -142,11 +142,15 @@
     },
     {
       "file": "reference-compare-9.png",
-      "bytes": 5762
+      "bytes": 5199
     },
     {
       "file": "texture-3.png",
       "bytes": 4657
+    },
+    {
+      "file": "texture-region-1.png",
+      "bytes": 423
     },
     {
       "file": "texture-region-2.png",

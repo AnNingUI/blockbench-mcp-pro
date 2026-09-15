@@ -105,16 +105,19 @@ async function raw(name, args = {}, timeoutMs = 45_000) {
 }
 
 /** 期望成功 */
-// 不变式:位图宽高必须等于工程的 UV 空间尺寸。
+// 不变式:模型在用的那张贴图,位图尺寸必须等于工程的 UV 空间。
 // 曾经 pack_box_uv 扩容时写成 max(canvas, need) → 位图 64 宽 / UV 空间 16 宽
 // → 上色 scale=4 → 涂到画布外 → 半个模型全白(真机踩过)。
 async function expectBitmapMatchesUv(label) {
-  const textures = await ok("list_textures");
   const layout = await ok("get_uv_layout", {});
-  const first = textures.result.textures[0];
-  expect(first, "工程里应有贴图");
-  expectEqual(first.width, layout.result.texture_size[0], `${label}:位图宽 = UV 空间宽`);
-  expectEqual(first.height, layout.result.texture_size[1], `${label}:位图高 = UV 空间高`);
+  // 取“模型实际在用”的贴图(与无参工具同一规则),而不是列表里第一张
+  const elements = await ok("get_elements", { refs: ["bip_body_cube"] });
+  const uuid = elements.result.cubes[0].faces.north.texture;
+  const textures = await ok("list_textures");
+  const used = textures.result.textures.find((t) => t.uuid === uuid);
+  expect(used, `${label}:模型在用的贴图应在 list_textures 里`);
+  expectEqual(used.width, layout.result.texture_size[0], `${label}:位图宽 = UV 空间宽`);
+  expectEqual(used.height, layout.result.texture_size[1], `${label}:位图高 = UV 空间高`);
 }
 
 async function ok(name, args = {}, timeoutMs) {
@@ -453,6 +456,11 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
   const region = await ok("get_texture_region", { face: { cube: "bip_head_cube", face: "north" }, scale: 8 });
   saveImages(region.images, "texture-region");
   const quality = await ok("audit_texture_quality");
+  // 无参工具必须作用在“模型在用的贴图”上(曾经用 Texture.getDefault()
+  // → 多贴图工程里会去审一张空贴图 → 假报满屏 EMPTY_FACE_TEXTURE)
+  const modelTexUuid = (await ok("get_elements", { refs: ["bip_body_cube"] })).result.cubes[0].faces.north.texture;
+  const modelTexName = (await ok("list_textures")).result.textures.find((t) => t.uuid === modelTexUuid)?.name;
+  expectEqual(quality.result.texture, modelTexName, "质检对象的贴图 = 模型在用的贴图");
   const textureErrors = quality.result.findings.filter((f) => f.severity === "error");
   expect(
     textureErrors.length === 0,

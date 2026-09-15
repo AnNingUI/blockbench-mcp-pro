@@ -202,9 +202,25 @@ export function wrapTexture(tex: any): TextureHandle {
 
 export function findTexture(ref?: string): TextureHandle | undefined {
   const all: any[] = Texture?.all ?? [];
-  const hit = ref
-    ? all.find((t) => t.uuid === ref || t.name === ref)
-    : (Texture?.getDefault?.() ?? all[0]);
+  let hit = ref ? all.find((t) => t.uuid === ref || t.name === ref) : undefined;
+  if (!hit && !ref) {
+    // 不传参数时用“模型实际在用的贴图”,而不是 Texture.getDefault()。
+    // 多贴图工程里 getDefault 可能指向一张空贴图(例如格式自带的 16x16),
+    // 于是上色/质检会静默作用在错的贴图上 —— 表现为“模型全白”的假报警。
+    const counts = new Map<string, number>();
+    const cubes: any[] = (globalThis as any).Cube?.all ?? [];
+    for (const cube of cubes) {
+      for (const face of Object.values(cube.faces ?? {}) as any[]) {
+        const uuid = face?.texture;
+        if (typeof uuid === "string" && all.some((t) => t.uuid === uuid))
+          counts.set(uuid, (counts.get(uuid) ?? 0) + 1);
+      }
+    }
+    let best: any;
+    for (const [uuid, n] of counts)
+      if (!best || n > best.n) best = { uuid, n };
+    hit = (best && all.find((t) => t.uuid === best.uuid)) ?? Texture?.getDefault?.() ?? all[0];
+  }
   return hit ? wrapTexture(hit) : undefined;
 }
 
