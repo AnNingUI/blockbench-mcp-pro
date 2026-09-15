@@ -1,0 +1,16 @@
+{
+  // 构建配置跑在 Node 里,而插件源码跑在 Blockbench 渲染进程里 —— 两者类型环境不同,
+  // 所以放在独立目录:TS server 按"离文件最近的 tsconfig.json"归类,这里就是它的项目。
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "noEmit": true
+  },
+  "include": ["./**/*.ts"]
+}

@@ -2,9 +2,10 @@ import { defineConfig, type Plugin, type RolldownOptions } from "rolldown";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-const here = import.meta.dirname;
-const repoRoot = path.resolve(here, "..", "..");
-const out = (file: string) => path.join(here, "dist", file);
+// 本文件在 packages/plugin/build/,所以包根是上一级
+const pkgRoot = path.resolve(import.meta.dirname, "..");
+const repoRoot = path.resolve(pkgRoot, "..", "..");
+const out = (file: string) => path.join(pkgRoot, "dist", file);
 
 /**
  * 源码用 NodeNext 风格写相对导入("./host.js"),真实文件是 "./host.ts"。
@@ -30,7 +31,7 @@ export default defineConfig([
   // 1) Blockbench 插件:自包含单文件(IIFE),用户 Load Plugin from File 就这一个
   {
     ...base,
-    input: path.join(here, "src", "main.ts"),
+    input: path.join(pkgRoot, "src", "main.ts"),
     platform: "neutral",
     output: {
       file: out("blockbench_mcp.js"),
@@ -43,7 +44,7 @@ export default defineConfig([
   // 2) 测试入口:node 里可导入的内部实现(不随 npm 包发布)
   {
     ...base,
-    input: path.join(here, "src", "testing.ts"),
+    input: path.join(pkgRoot, "src", "testing.ts"),
     platform: "node",
     output: { file: out("testing.mjs"), format: "esm", comments: false },
   },

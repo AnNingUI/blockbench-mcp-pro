@@ -18,5 +18,10 @@
   "include": [
     "src",
     "types.d.ts"
+  ],
+  // 构建配置有自己的项目(见 build/tsconfig.json),类型环境是 node 而不是 blockbench-types
+  "exclude": [
+    "build",
+    "dist"
   ]
 }

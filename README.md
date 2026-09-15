@@ -647,7 +647,7 @@ blockbench-mcp-pro/
 │       ├── src/tools/      # 按域拆分的 95 个工具
 │       ├── types.d.ts      # 宿主类型:官方 blockbench-types + 少量浏览器 API 补齐(无 any 全局)
 │       ├── bin/            # npm bin:blockbench-mcp(网关 + --plugin-path/--cdn-url)
-│       ├── rolldown.config.ts   # 构建配置(插件 IIFE / 测试入口 ESM / 网关 ESM)
+│       ├── build/           # rolldown.config.ts + 它自己的 tsconfig(types: node)
 │       ├── test/           # 宿主 mock + 分发/HTTP/产物/打包 测试
 │       └── dist/blockbench_mcp.js  # 交付给用户的单文件插件
 └── gateway/          # stdio ⇄ HTTP 零依赖网关(+ 3 个测试)
@@ -726,7 +726,7 @@ Run "pnpm approve-builds" to pick which dependencies should be allowed to run sc
 
 > 根脚本用 `npm --prefix <dir> run …` 而不是 `npm run -w <name>`,这样 npm 与 pnpm 两种 node_modules 布局下都能跑。
 
-- `npm run build` — shared(tsc)+ `rolldown -c rolldown.config.ts`(插件/测试入口/网关三份产物)
+- `pnpm run build` — shared(tsc)+ `rolldown -c build/rolldown.config.ts`(插件/测试入口/网关三份产物)
 - `npm run typecheck` — 三个包的 TS 检查(strict)
 - `pnpm test` — **95 个测试**,Vitest 并行跑,**全套约 3 秒**:
 
@@ -767,10 +767,11 @@ pnpm --filter @anningui/blockbench-mcp exec vitest run test/bundle.test.mjs test
 | 配置 | 覆盖 | types |
 |---|---|---|
 | `packages/plugin/tsconfig.json` | `src/**`(跑在 Blockbench 渲染进程里) | `blockbench-types`(无 node、无 DOM) |
-| `packages/plugin/tsconfig.node.json` | `rolldown.config.ts`(跑在 Node 里) | `node` |
+| `packages/plugin/build/tsconfig.json` | `build/rolldown.config.ts`(跑在 Node 里) | `node` |
 
-`pnpm run typecheck` 会把两个都跑一遍,所以在编辑器里也不会出现
-"找不到名称 node:fs / ImportMeta.dirname 不存在" 这类假报错。
+`pnpm run typecheck` 会把两个都跑一遍。构建配置刻意放在**独立目录** `build/`:
+TS server 是按"离文件最近的 `tsconfig.json`"给文件归项目的,`tsconfig.node.json` 这种命名配置
+除非被 solution 引用否则不会被采用,所以用目录隔离最稳。
 
 `packages/plugin/types.d.ts` 只补两类官方包没有的东西:
 
