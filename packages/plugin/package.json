@@ -33,7 +33,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "rolldown -c rolldown.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test test/dispatch.test.mjs test/http.test.mjs test/bundle.test.mjs test/package.test.mjs",
     "prepack": "npm run build",

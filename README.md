@@ -581,7 +581,7 @@ blockbench-mcp-pro/
 │       ├── src/dispatch.ts # 校验 → 执行 → 统一信封
 │       ├── src/tools/      # 按域拆分的 95 个工具
 │       ├── bin/            # npm bin:blockbench-mcp(网关 + --plugin-path/--cdn-url)
-│       ├── scripts/build.mjs  # rolldown 构建(插件 / 测试入口 / 网关)
+│       ├── rolldown.config.ts   # 构建配置(插件 IIFE / 测试入口 ESM / 网关 ESM)
 │       ├── test/           # 宿主 mock + 分发/HTTP/产物/打包 测试
 │       └── dist/blockbench_mcp.js  # 交付给用户的单文件插件
 └── gateway/          # stdio ⇄ HTTP 零依赖网关(+ 3 个测试)
@@ -596,7 +596,7 @@ npm install
 npm run verify     # build → typecheck → test(一步跑完全部)
 ```
 
-- `npm run build` — shared(tsc)+ 插件与测试入口(**rolldown**)+ 网关语法检查
+- `npm run build` — shared(tsc)+ `rolldown -c rolldown.config.ts`(插件/测试入口/网关三份产物)
 - `npm run typecheck` — 三个包的 TS 检查(strict)
 - `npm test` — **91 个测试**(耗时约 30s,按需跑;只想快速冒烟:见下):
 
