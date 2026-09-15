@@ -6603,16 +6603,32 @@ Work is not done because you looked at your own screenshot.
 	const PLUGIN_VERSION = "1.0.1";
 	//#endregion
 	//#region src/config.ts
-	function ensureSecret() {
-		const current = settings?.bbmcp_secret?.value;
-		if (typeof current === "string" && current.length >= 16) return current;
+	const TOKEN_STORAGE_KEY = "bbmcp_secret";
+	function readStorage(key) {
+		try {
+			return localStorage?.getItem(key) ?? "";
+		} catch {
+			return "";
+		}
+	}
+	function writeStorage(key, value) {
+		try {
+			localStorage?.setItem(key, value);
+		} catch {}
+	}
+	function randomSecret() {
 		const bytes = new Uint8Array(24);
 		const cryptoApi = globalThis.crypto;
 		if (cryptoApi?.getRandomValues) cryptoApi.getRandomValues(bytes);
 		else for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
-		const secret = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-		if (typeof settings?.bbmcp_secret?.set === "function") settings.bbmcp_secret.set(secret);
-		else if (settings?.bbmcp_secret) settings.bbmcp_secret.value = secret;
+		return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+	}
+	function ensureSecret() {
+		const stored = readStorage(TOKEN_STORAGE_KEY);
+		const fromSetting = typeof settings?.bbmcp_secret?.value === "string" ? settings.bbmcp_secret.value : "";
+		const secret = fromSetting.length >= 16 && fromSetting !== stored ? fromSetting : stored.length >= 16 ? stored : randomSecret();
+		if (secret !== stored) writeStorage(TOKEN_STORAGE_KEY, secret);
+		if (settings?.bbmcp_secret && fromSetting !== secret) settings.bbmcp_secret.value = secret;
 		return secret;
 	}
 	function readConfig() {
@@ -12059,7 +12075,11 @@ Work is not done because you looked at your own screenshot.
 			500: "Internal Server Error"
 		}[status] ?? "Error";
 	}
+	const BUSY_TIMEOUT_MS = 12e4;
 	function respond(socket, status, body, extraHeaders = {}) {
+		const tagged = socket;
+		if (tagged.__bbmcpReplied) return;
+		tagged.__bbmcpReplied = true;
 		const payload = body ?? "";
 		const headers = [`HTTP/1.1 ${status} ${statusText(status)}`, "Connection: close"];
 		for (const [key, value] of Object.entries(extraHeaders)) headers.push(`${key}: ${value}`);
@@ -12221,9 +12241,12 @@ Work is not done because you looked at your own screenshot.
 					return;
 				}
 				const body = new TextDecoder().decode(buffer.subarray(headerEnd, headerEnd + contentLength));
+				const busyTimer = setTimeout(() => {
+					respond(socket, 503, JSON.stringify({ error: `Blockbench did not answer within ${BUSY_TIMEOUT_MS / 1e3}s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockbench and retry.` }));
+				}, BUSY_TIMEOUT_MS);
 				onRequest(method, path, headers, body, socket).catch(() => {
 					respond(socket, 500, JSON.stringify({ error: "Internal error" }));
-				});
+				}).finally(() => clearTimeout(busyTimer));
 			});
 			socket.on("error", () => {
 				try {

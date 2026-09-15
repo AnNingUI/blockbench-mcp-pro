@@ -111,6 +111,11 @@ type ImageData = BbImageData;
 type HTMLImageElement = Image;
 
 declare const document: { createElement(tag: string): BbCanvas };
+declare const localStorage: {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+};
 declare function btoa(data: string): string;
 declare function atob(data: string): string;
 declare class TextEncoder {

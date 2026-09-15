@@ -8,21 +8,52 @@ export type RuntimeConfig = {
   allowExecuteScript: boolean;
 };
 
-/** 首次启动生成随机密钥 —— 修掉"默认弱口令"的弱点 */
-export function ensureSecret(): string {
-  const current = settings?.bbmcp_secret?.value;
-  if (typeof current === "string" && current.length >= 16) return current;
+/** 令牌存在自己的 localStorage key 里(Blockbench 的 Setting 值在插件加载时还是默认值) */
+const TOKEN_STORAGE_KEY = "bbmcp_secret";
+
+function readStorage(key: string): string {
+  try {
+    return localStorage?.getItem(key) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeStorage(key: string, value: string): void {
+  try {
+    localStorage?.setItem(key, value);
+  } catch {
+    /* 存储不可用时退化为内存令牌 */
+  }
+}
+
+function randomSecret(): string {
   const bytes = new Uint8Array(24);
   const cryptoApi = (globalThis as any).crypto;
   if (cryptoApi?.getRandomValues) cryptoApi.getRandomValues(bytes);
   else for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
-  const secret = Array.from(bytes)
+  return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  // 必须用 Setting.set():直接赋 .value 只改内存,不会写进 Blockbench 的设置存储,
-  // 结果就是每次重载插件都生成新令牌,客户端配置第二天全部失效。
-  if (typeof settings?.bbmcp_secret?.set === "function") settings.bbmcp_secret.set(secret);
-  else if (settings?.bbmcp_secret) settings.bbmcp_secret.value = secret;
+}
+
+/**
+ * 令牌的单一事实源。
+ *
+ * 之前只写 Blockbench 的 Setting(而且还写错过),但**加载时从不读回来** ——
+ * 每次 Reload 都生成新令牌,客户端配置随即失效(真机验证时在 localStorage 里发现了 3 个不同值)。
+ * 现在:自己的 storage key 为准;用户在设置面板手改过就以手改的为准;都没有才生成。
+ */
+export function ensureSecret(): string {
+  const stored = readStorage(TOKEN_STORAGE_KEY);
+  const fromSetting =
+    typeof settings?.bbmcp_secret?.value === "string" ? settings.bbmcp_secret.value : "";
+  const userEdited = fromSetting.length >= 16 && fromSetting !== stored;
+
+  const secret = userEdited ? fromSetting : stored.length >= 16 ? stored : randomSecret();
+  if (secret !== stored) writeStorage(TOKEN_STORAGE_KEY, secret);
+  // 设置面板只用于"看":直接赋 .value 不会写存储,正好(存储的真相在上一行)
+  if (settings?.bbmcp_secret && fromSetting !== secret) settings.bbmcp_secret.value = secret;
   return secret;
 }
 

@@ -382,6 +382,13 @@ export function installMockBlockbench() {
     }
   };
 
+  const storage = new Map();
+  globalThis.localStorage = {
+    getItem: (key) => (storage.has(key) ? storage.get(key) : null),
+    setItem: (key, value) => storage.set(key, String(value)),
+    removeItem: (key) => storage.delete(key),
+  };
+
   globalThis.Blockbench = {
     version: "5.1.0",
     isApp: true,
@@ -579,7 +586,7 @@ export function installMockBlockbench() {
     state.lastDialog = null;
   };
 
-  return { state, reset, MockCube, MockGroup, MockTexture, MockAnimation, canvas };
+  return { state, reset, MockCube, MockGroup, MockTexture, MockAnimation, canvas, storage };
 }
 
 export { makeCanvas as canvas };

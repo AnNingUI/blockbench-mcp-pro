@@ -48,12 +48,18 @@ function statusText(status: number): string {
   )[status] ?? "Error";
 }
 
+const BUSY_TIMEOUT_MS = 120_000;
+
 function respond(
   socket: NetSocket,
   status: number,
   body?: string,
   extraHeaders: Record<string, string> = {},
 ): void {
+  // 幂等:一个连接只回一次(超时兜底与正常响应可能同时到达)
+  const tagged = socket as NetSocket & { __bbmcpReplied?: boolean };
+  if (tagged.__bbmcpReplied) return;
+  tagged.__bbmcpReplied = true;
   const payload = body ?? "";
   const headers = [`HTTP/1.1 ${status} ${statusText(status)}`, "Connection: close"];
   for (const [key, value] of Object.entries(extraHeaders)) headers.push(`${key}: ${value}`);
@@ -259,9 +265,25 @@ export function startHttpServer(config: RuntimeConfig): ServerHandle {
         return;
       }
       const body = new TextDecoder().decode(buffer.subarray(headerEnd, headerEnd + contentLength));
-      void onRequest(method, path, headers, body, socket).catch(() => {
-        respond(socket, 500, JSON.stringify({ error: "Internal error" }));
-      });
+      // Blockbench 的插件跑在渲染进程里:模态框(权限询问/文件对话框/未保存提示)会阻塞它,
+      // 这时请求会永远挂住。给一个兜底,把原因直接告诉客户端。
+      const busyTimer = setTimeout(() => {
+        respond(
+          socket,
+          503,
+          JSON.stringify({
+            error:
+              `Blockbench did not answer within ${BUSY_TIMEOUT_MS / 1000}s. It is probably showing a modal ` +
+              "dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer " +
+              "thread. Dismiss it in Blockbench and retry.",
+          }),
+        );
+      }, BUSY_TIMEOUT_MS);
+      void onRequest(method, path, headers, body, socket)
+        .catch(() => {
+          respond(socket, 500, JSON.stringify({ error: "Internal error" }));
+        })
+        .finally(() => clearTimeout(busyTimer));
     });
 
     socket.on("error", () => {

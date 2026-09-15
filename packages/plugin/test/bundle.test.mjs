@@ -40,12 +40,41 @@ test("the shipped bundle registers a desktop plugin with settings and menu actio
   expect(globalThis.settings.bbmcp_allow_execute_script, "execute_script gate registered").toBeTruthy();
   expect(globalThis.settings.bbmcp_secret.value, "a random token is generated on load").not.toBe("");
   expect(globalThis.settings.bbmcp_secret.value.length, "24 random bytes as hex").toBe(48);
-  // 关键回归:令牌必须经 Setting.set() 写进设置存储,
-  // 否则每次重载插件都换新令牌,客户端配置第二天全部失效
+  // 关键回归:令牌必须写进我们自己的 storage key。
+  // Blockbench 插件的 Setting 值在加载时并不会被恢复(实测:每次 Reload 都会拿到默认空值,
+  // 于是每次生成新令牌 —— localStorage 里一度堆了 3 个不同的值),所以真相放在这里。
   expect(
-    mock.state.persisted.bbmcp_secret,
-    "token is persisted through Setting.set()",
+    mock.storage.get("bbmcp_secret"),
+    "token is persisted to our own storage key",
   ).toBe(globalThis.settings.bbmcp_secret.value);
+});
+
+test("the token survives a plugin reload (regression: it used to change every load)", async () => {
+  const first = globalThis.settings.bbmcp_secret.value;
+  expect(first.length).toBe(48);
+  expect(mock.storage.get("bbmcp_secret"), "令牌写进了自己的 storage key").toBe(first);
+
+  // 模拟 Blockbench 重新加载插件:设置回到默认空值,但存储还在
+  globalThis.settings.bbmcp_secret.value = "";
+  registered.options.onunload();
+  registered.options.onload();
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  expect(globalThis.settings.bbmcp_secret.value, "重载后令牌必须不变").toBe(first);
+  expect(mock.storage.get("bbmcp_secret")).toBe(first);
+
+  // 用户在设置面板手改了令牌 → 以手改的为准
+  const manual = "f".repeat(48);
+  globalThis.settings.bbmcp_secret.value = manual;
+  registered.options.onunload();
+  registered.options.onload();
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  expect(globalThis.settings.bbmcp_secret.value, "手改的令牌被采纳").toBe(manual);
+  expect(mock.storage.get("bbmcp_secret")).toBe(manual);
+  // 复位,后面的用例继续用同一个实例
+  registered.options.onunload();
+  registered.options.onload();
+  await new Promise((resolve) => setTimeout(resolve, 300));
 });
 
 test("onload starts the in-process HTTP MCP server and reports a usable tool count", async () => {
