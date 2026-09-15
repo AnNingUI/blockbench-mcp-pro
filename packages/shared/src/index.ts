@@ -64,5 +64,4 @@ export * from "./pure/uv.js";
 export * from "./pure/generate.js";
 export * from "./pure/audit.js";
 
-export const PLUGIN_VERSION = "1.0.0";
 export const PROTOCOL_NAME = "blockbench-mcp-pro";

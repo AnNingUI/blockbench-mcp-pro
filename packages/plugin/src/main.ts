@@ -1,5 +1,6 @@
 /** 插件入口:注册、设置、菜单动作、生命周期 */
-import { MIN_BLOCKBENCH_VERSION, PLUGIN_VERSION } from "@bbmcp/shared";
+import { MIN_BLOCKBENCH_VERSION} from "@bbmcp/shared";
+import { PLUGIN_VERSION } from "./version.js";
 import { readConfig, registerSettings } from "./config.js";
 import { startHttpServer, type ServerHandle } from "./http.js";
 import { registeredToolNames } from "./dispatch.js";

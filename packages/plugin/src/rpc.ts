@@ -1,13 +1,13 @@
 /** MCP JSON-RPC 层:initialize / tools / resources / prompts,并把图片变成 image 内容块 */
 import {
   PROTOCOL_VERSION_MCP,
-  PLUGIN_VERSION,
   PROTOCOL_NAME,
   TOOL_SPECS,
   listToolsPayload,
   resolveGuide,
   GUIDE_TOPICS,
 } from "@bbmcp/shared";
+import { PLUGIN_VERSION } from "./version.js";
 import { runTool } from "./dispatch.js";
 import { toErrorPayload } from "./errors.js";
 import { session } from "./session.js";

@@ -8,11 +8,16 @@ import { test, expect, afterAll } from "vitest";
 import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const gatewayPath = path.join(here, "..", "index.mjs");
 const pluginDist = path.join(here, "..", "..", "packages", "plugin", "dist", "testing.mjs");
 const mockPath = path.join(here, "..", "..", "packages", "plugin", "test", "mock-blockbench.mjs");
+
+const pkgVersion = JSON.parse(
+  readFileSync(path.join(here, "..", "..", "packages", "plugin", "package.json"), "utf8"),
+).version;
 
 const mock = (await import(pathToFileURL(mockPath).href)).installMockBlockbench();
 const api = await import(pathToFileURL(pluginDist).href);
@@ -110,7 +115,7 @@ test("stdio gateway forwards the full MCP handshake and tool calls", async () =>
     const health = await gateway.next();
     const payload = JSON.parse(health.result.content[0].text);
     expect(payload.ok).toBe(true);
-    expect(payload.result.plugin_version).toBe("1.0.0");
+    expect(payload.result.plugin_version).toBe(pkgVersion);
 
     gateway.send({
       jsonrpc: "2.0",

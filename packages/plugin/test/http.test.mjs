@@ -4,6 +4,9 @@
  */
 import { test, expect, afterAll } from "vitest";
 import net from "node:net";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const CRLF = String.fromCharCode(13, 10);
 
@@ -24,6 +27,11 @@ function rawRequest(port, requestLine, headers, body = "") {
     });
   });
 }
+
+// 注意:本文件后面有 const URL,会遮蔽全局 URL,所以这里用 fileURLToPath
+const pkgVersion = JSON.parse(
+  readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"),
+).version;
 
 const mock = (await import("./mock-blockbench.mjs")).installMockBlockbench();
 const api = await import("../dist/testing.mjs");
@@ -158,7 +166,7 @@ test("tools/call runs a tool end to end and returns an envelope", async () => {
   expect(body.result.isError).toBe(false);
   const payload = JSON.parse(body.result.content[0].text);
   expect(payload.ok).toBe(true);
-  expect(payload.result.plugin_version).toBe("1.0.0");
+  expect(payload.result.plugin_version).toBe(pkgVersion);
   expect(payload.result.capabilities.includes("geometry")).toBeTruthy();
 });
 

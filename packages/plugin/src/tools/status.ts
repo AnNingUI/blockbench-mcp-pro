@@ -2,7 +2,6 @@
 import {
   PROTOCOL_VERSION,
   DEFAULTS,
-  PLUGIN_VERSION,
   PROTOCOL_NAME,
   checkSides,
   nameSide,
@@ -11,6 +10,7 @@ import {
   MIN_BLOCKBENCH_VERSION,
   type CapabilityId,
 } from "@bbmcp/shared";
+import { PLUGIN_VERSION } from "../version.js";
 import { CommandError } from "../errors.js";
 import {
   currentFormatId,

@@ -7,7 +7,8 @@
  *   4. 拒绝非回环 Host 头(DNS rebinding)
  *   5. POST 必须是 application/json,体积上限 8MB
  */
-import { PROTOCOL_NAME, PLUGIN_VERSION } from "@bbmcp/shared";
+import { PROTOCOL_NAME} from "@bbmcp/shared";
+import { PLUGIN_VERSION } from "./version.js";
 import { requireNodeModule, toast } from "./host.js";
 import { handleMcp } from "./rpc.js";
 import type { RuntimeConfig } from "./config.js";

@@ -4,6 +4,13 @@
  *   pnpm --filter @anningui/blockbench-mcp test
  */
 import { test, expect, afterAll } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const pkgVersion = JSON.parse(
+  readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"),
+).version;
 
 const mock = (await import("./mock-blockbench.mjs")).installMockBlockbench();
 
@@ -24,7 +31,7 @@ await new Promise((resolve) => setTimeout(resolve, 400));
 test("the shipped bundle registers a desktop plugin with settings and menu actions", () => {
   expect(registered.id).toBe("blockbench_mcp");
   expect(registered.options.variant).toBe("desktop");
-  expect(registered.options.version).toBe("1.0.0");
+  expect(registered.options.version).toBe(pkgVersion);
   expect(registered.options.min_version).toMatch(/^5\./);
   expect(typeof registered.options.onload).toBe("function");
   expect(typeof registered.options.onunload).toBe("function");
