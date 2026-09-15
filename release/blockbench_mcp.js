@@ -5929,17 +5929,29 @@ Work is not done because you looked at your own screenshot.
 			}
 			panels.forEach(([a, b, nm], index) => {
 				const stagger = index % 2 === 0 ? 0 : membraneThickness * .2;
+				const inset = (lo, hi) => {
+					const span = Math.abs(hi - lo);
+					const margin = Math.min(.35, Math.max(.1, span * .15));
+					if (span <= margin * 2) {
+						const mid = (lo + hi) / 2;
+						return [mid - .05, mid + .05];
+					}
+					return [Math.min(lo, hi) + margin, Math.max(lo, hi) - margin];
+				};
+				const [x0, x1] = inset(a[0], b[0]);
+				const [y0, y1] = inset(a[1], b[1]);
+				const [z0, z1] = inset(a[2], b[2]);
 				cubes.push({
 					name: nm,
 					from: [
-						Math.min(a[0], b[0]),
-						Math.min(a[1], b[1]),
-						Math.min(a[2], b[2]) + stagger
+						x0,
+						y0,
+						z0 + stagger
 					],
 					to: [
-						Math.max(a[0], b[0]),
-						Math.max(a[1], b[1]) + .01,
-						Math.max(a[2], b[2]) + membraneThickness + stagger
+						x1,
+						Math.max(y0 + .05, y1),
+						z1 + membraneThickness + stagger
 					],
 					parent: `${bones}_forearm`,
 					inflate: 0

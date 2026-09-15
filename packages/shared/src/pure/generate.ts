@@ -794,18 +794,25 @@ export function addWing(params: WingParams): GeneratorResult {
     }
     panels.forEach(([a, b, nm], index) => {
       const stagger = index % 2 === 0 ? 0 : membraneThickness * 0.2;
+      // 膜片不能顶到指骨端点:否则它的包围盒会和指骨 cube 完全重合,
+      // check_model 会判为 COPLANAR_OVERLAP(真机实测 wing_right_finger2_bone|membrane2)。
+      // 每个轴内缩一点,让骨头露出来。
+      const inset = (lo: number, hi: number): [number, number] => {
+        const span = Math.abs(hi - lo);
+        const margin = Math.min(0.35, Math.max(0.1, span * 0.15));
+        if (span <= margin * 2) {
+          const mid = (lo + hi) / 2;
+          return [mid - 0.05, mid + 0.05];
+        }
+        return [Math.min(lo, hi) + margin, Math.max(lo, hi) - margin];
+      };
+      const [x0, x1] = inset(a[0], b[0]);
+      const [y0, y1] = inset(a[1], b[1]);
+      const [z0, z1] = inset(a[2], b[2]);
       cubes.push({
         name: nm,
-        from: [
-          Math.min(a[0], b[0]),
-          Math.min(a[1], b[1]),
-          Math.min(a[2], b[2]) + stagger,
-        ],
-        to: [
-          Math.max(a[0], b[0]),
-          Math.max(a[1], b[1]) + 0.01,
-          Math.max(a[2], b[2]) + membraneThickness + stagger,
-        ],
+        from: [x0, y0, z0 + stagger],
+        to: [x1, Math.max(y0 + 0.05, y1), z1 + membraneThickness + stagger],
         parent: `${bones}_forearm`,
         inflate: 0,
       });

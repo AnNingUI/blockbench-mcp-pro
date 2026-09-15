@@ -395,7 +395,11 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
   expect(typeof written.result.revision === "string", "返回 revision");
   const read = await ok("get_face_grid", { cube: "bip_head_cube", face: "north" });
   expectEqual(read.result.rows[0].length, read0.result.width, "像素往返:宽度一致");
-  expect(read.result.rows[0][0]).toMatch(/^#[0-9a-f]{8}$/);
+  const firstCell = read.result.rows?.[0]?.[0];
+  expect(
+    typeof firstCell === "string" && /^#[0-9a-f]{8}$/.test(firstCell),
+    `rows[0][0] 应为 hex,实际 ${JSON.stringify(firstCell)}(rows=${read.result.rows?.length},w=${read.result.width},h=${read.result.height})`,
+  ).toBe(true);
   expect(read.result.width).toBe(read0.result.width);
 
   const revision = await ok("get_texture_revision");
@@ -650,7 +654,7 @@ test("边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace", as
 
 test("边缘:UV/贴图 越界与错误输入", async () => {
   await fails("get_face_grid", { cube: "no_such_cube", face: "north" }, "E_NOT_FOUND");
-  await fails("get_face_grid", { cube: "bip_body_cube", face: "nope" }, "E_NOT_FOUND");
+  await fails("get_face_grid", { cube: "bip_body_cube", face: "nope" }, "E_INVALID_PARAM");
   await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["x"], palette: { x: "#fff" } }, "E_INVALID_PARAM");
   await fails("paint_face_grid", { cube: "bip_body_cube", face: "north", rows: ["a"], palette: { ab: "#fff" } }, "E_INVALID_PARAM");
   await fails("flood_fill_texture", { x: -5, y: 0, color: "#fff" }, "E_INVALID_PARAM");

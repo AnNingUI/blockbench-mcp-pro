@@ -1,59 +1,45 @@
 {
-  "when": "2026-09-15T17:43:16.493Z",
+  "when": "2026-09-15T17:45:06.642Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 26,
-  "failed": 8,
+  "passed": 0,
+  "failed": 2,
   "skipped": [],
   "failures": [
     {
-      "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
-      "error": "check_model errors: 期望 0,实际 5",
-      "stack": "Error: check_model errors: 期望 0,实际 5\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:297:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
-      "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
-      "error": "check_model 无 error: 期望 0,实际 5",
-      "stack": "Error: check_model 无 error: 期望 0,实际 5\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:309:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
       "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 8x8 face-local texels (rows=3, widths=3/3/3).",
-      "stack": "Error: paint_face_grid 失败: E_INVALID_PARAM Grid must be exactly 8x8 face-local texels (rows=3, widths=3/3/3).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:382:19)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
-      "case": "动画:generate_animation → inspect → transform → 时间轴",
-      "error": "upsert_animation 失败: E_NOT_FOUND Group/bone not found: torso",
-      "stack": "Error: upsert_animation 失败: E_NOT_FOUND Group/bone not found: torso\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:451:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
-      "case": "作用域:授权后可保存 .bbmodel 与导出几何",
-      "error": "propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben",
-      "stack": "Error: propose_scoped_directory: HTTP 503 {\"error\":\"Blockbench did not answer within 120s. It is probably showing a modal dialog (network permission, file dialog, unsaved-changes prompt) that blocks the renderer thread. Dismiss it in Blockben\n    at raw (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:76:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:94:13)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:581:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
-      "case": "纹理 PNG 导入导出(作用域内)",
-      "error": "export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).",
-      "stack": "Error: export_texture_png 失败: E_SCOPE_DENIED Call propose_scoped_directory first and get the user's approval (the user must click Allow).\n    at ok (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:95:20)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:593:20)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
-    },
-    {
-      "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
-      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"b1abab5f-c28c-08ec-fa15-77802d1b9f40\",\"7d159c26-8243-9d3f-1216-637e6291fa08\"]}",
-      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"b1abab5f-c28c-08ec-fa15-77802d1b9f40\",\"7d159c26-8243-9d3f-1216-637e6291fa08\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:52:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:103:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:630:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
+      "error": "Cannot read properties of undefined (reading 'toMatch')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'toMatch')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:398:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:757:5"
     },
     {
       "case": "边缘:UV/贴图 越界与错误输入",
       "error": "get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"",
-      "stack": "Error: get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:56:11)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:640:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:744:5"
+      "stack": "Error: get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:105:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:653:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:757:5"
     }
   ],
   "artifacts": [
     {
       "file": "live-report.json",
-      "bytes": 38010
+      "bytes": 5400
+    },
+    {
+      "file": "live-texture.png",
+      "bytes": 6135
+    },
+    {
+      "file": "live.bbmodel",
+      "bytes": 60782
+    },
+    {
+      "file": "live.geo.json",
+      "bytes": 7907
+    },
+    {
+      "file": "live.gltf",
+      "bytes": 2
     },
     {
       "file": "reference-compare-9.png",
-      "bytes": 5396
+      "bytes": 5887
     },
     {
       "file": "uvmap-1.png",
@@ -61,31 +47,31 @@
     },
     {
       "file": "views-2.png",
-      "bytes": 8131
+      "bytes": 8692
     },
     {
       "file": "views-3.png",
-      "bytes": 8945
+      "bytes": 9132
     },
     {
       "file": "views-4.png",
-      "bytes": 8641
+      "bytes": 8396
     },
     {
       "file": "views-5.png",
-      "bytes": 8674
+      "bytes": 8405
     },
     {
       "file": "views-6.png",
-      "bytes": 8214
+      "bytes": 8419
     },
     {
       "file": "views-7.png",
-      "bytes": 8949
+      "bytes": 8593
     },
     {
       "file": "views-8.png",
-      "bytes": 14837
+      "bytes": 13851
     }
   ]
 }

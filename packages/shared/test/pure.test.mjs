@@ -362,6 +362,32 @@ test("addWing builds a bone chain, finger bones and a membrane", () => {
   expect(names.filter((n) => n.includes("finger")).length).toBe(4);
   expect(wing.cubes.some((c) => c.name.includes("membrane"))).toBeTruthy();
   expect(wing.points.finger_tips).toBeTruthy();
+  // 膜片不能与指骨 cube 完全重合(真机 check_model 报过 COPLANAR_OVERLAP)
+  {
+    const bones = wing.cubes.filter((c) => c.name.includes("finger") && c.name.endsWith("_bone"));
+    const membranes = wing.cubes.filter((c) => c.name.includes("membrane"));
+    const volume = (c) =>
+      [0, 1, 2].reduce((v, i) => v * Math.abs(c.to[i] - c.from[i]), 1);
+    const contained = (inner, outer) =>
+      [0, 1, 2].every(
+        (i) =>
+          inner.from[i] >= outer.from[i] - 1e-6 && inner.to[i] <= outer.to[i] + 1e-6,
+      );
+    for (const bone of bones)
+      for (const membrane of membranes) {
+        const inter = [0, 1, 2].reduce(
+          (v, i) =>
+            v *
+            Math.max(
+              0,
+              Math.min(bone.to[i], membrane.to[i]) - Math.max(bone.from[i], membrane.from[i]),
+            ),
+          1,
+        );
+        const ratio = inter / Math.min(volume(bone), volume(membrane));
+        expect(ratio < 0.97 || !contained(bone, membrane), `膜片与 ${bone.name} 完全重合`).toBe(true);
+      }
+  }
   const left = addWing({ side: "left", base_origin: [-3, 22, 2], fingers: 4 });
   expect(left.groups[0].origin[0] < 0).toBeTruthy();
   expect(left.cubes[0].from[0] < wing.cubes[0].from[0], "sides are mirrored").toBeTruthy();
