@@ -353,6 +353,8 @@ export function installMockBlockbench() {
     redoCalls: 0,
     announcements: [],
     registered: null,
+    settingsSaved: 0,
+    persisted: {},
   };
 
   const canvas = makeCanvas(1, 1);
@@ -402,7 +404,12 @@ export function installMockBlockbench() {
     add: (id, options) => {
       globalThis.settings[id] = options;
     },
+    save: () => {
+      state.settingsSaved += 1;
+    },
   };
+  // 真 Setting 的 set() 会写存储;mock 里记录调用次数以便断言"令牌确实被持久化"
+  state.persisted = {};
 
   const formats = {
     bedrock: { id: "bedrock", name: "Bedrock", box_uv: true },
@@ -477,11 +484,18 @@ export function installMockBlockbench() {
   modes.options.edit.select();
   globalThis.Painter = { edit: () => {} };
   globalThis.Codecs = { project: { id: "project", compile: () => JSON.stringify({ meta: { format: "bedrock" } }) } };
+  const settingObject = (id, value) => ({
+    value,
+    set(next) {
+      this.value = next;
+      state.persisted[id] = next;
+    },
+  });
   globalThis.settings = {
-    bbmcp_allow_execute_script: { value: false },
-    bbmcp_autostart: { value: true },
-    bbmcp_port: { value: 39742 },
-    bbmcp_secret: { value: "" },
+    bbmcp_allow_execute_script: settingObject("bbmcp_allow_execute_script", false),
+    bbmcp_autostart: settingObject("bbmcp_autostart", true),
+    bbmcp_port: settingObject("bbmcp_port", 39742),
+    bbmcp_secret: settingObject("bbmcp_secret", ""),
   };
   globalThis.Screencam = {
     NoAAPreview: {

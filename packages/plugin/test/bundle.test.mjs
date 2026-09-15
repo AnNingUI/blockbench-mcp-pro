@@ -40,6 +40,12 @@ test("the shipped bundle registers a desktop plugin with settings and menu actio
   expect(globalThis.settings.bbmcp_allow_execute_script, "execute_script gate registered").toBeTruthy();
   expect(globalThis.settings.bbmcp_secret.value, "a random token is generated on load").not.toBe("");
   expect(globalThis.settings.bbmcp_secret.value.length, "24 random bytes as hex").toBe(48);
+  // 关键回归:令牌必须经 Setting.set() 写进设置存储,
+  // 否则每次重载插件都换新令牌,客户端配置第二天全部失效
+  expect(
+    mock.state.persisted.bbmcp_secret,
+    "token is persisted through Setting.set()",
+  ).toBe(globalThis.settings.bbmcp_secret.value);
 });
 
 test("onload starts the in-process HTTP MCP server and reports a usable tool count", async () => {

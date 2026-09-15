@@ -19,7 +19,10 @@ export function ensureSecret(): string {
   const secret = Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  if (settings?.bbmcp_secret) settings.bbmcp_secret.value = secret;
+  // 必须用 Setting.set():直接赋 .value 只改内存,不会写进 Blockbench 的设置存储,
+  // 结果就是每次重载插件都生成新令牌,客户端配置第二天全部失效。
+  if (typeof settings?.bbmcp_secret?.set === "function") settings.bbmcp_secret.set(secret);
+  else if (settings?.bbmcp_secret) settings.bbmcp_secret.value = secret;
   return secret;
 }
 
