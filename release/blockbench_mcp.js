@@ -5937,7 +5937,7 @@ Work is not done because you looked at your own screenshot.
 			}
 			const normalAxis = plane === "horizontal" ? 1 : 2;
 			const planeCoord = base[normalAxis];
-			const boneHalf = thickness / 2;
+			const boneHalf = thickness / 4;
 			panels.forEach(([a, b, nm], index) => {
 				const stagger = index % 2 === 0 ? 0 : membraneThickness * .2;
 				const inset = (lo, hi) => {

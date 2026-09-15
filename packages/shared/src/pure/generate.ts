@@ -805,7 +805,9 @@ export function addWing(params: WingParams): GeneratorResult {
     // 膜要挂在骨头的**下方**(垂直于翼面),否则薄膜会整个落在指骨 AABB 里 → COPLANAR
     const normalAxis = plane === "horizontal" ? 1 : 2;
     const planeCoord = base[normalAxis];
-    const boneHalf = thickness / 2;
+    // 指骨 cube 的半高是 thickness/4(与上面手指 cube 的 half 保持一致),
+    // 用 thickness/2 会在膜与骨之间留出 0.5 的缝(离线自检发现)。
+    const boneHalf = thickness / 4;
 
     panels.forEach(([a, b, nm], index) => {
       const stagger = index % 2 === 0 ? 0 : membraneThickness * 0.2;
