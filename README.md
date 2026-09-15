@@ -592,10 +592,33 @@ blockbench-mcp-pro/
 
 ## 开发与验证
 
+npm 与 pnpm 都支持(仓库里提交的是 `pnpm-lock.yaml`;用 npm 时它会自己生成 `package-lock.json`):
+
 ```bash
+# npm
 npm install
-npm run verify     # build → typecheck → test(一步跑完全部)
+npm run verify          # build → typecheck → test
+
+# pnpm(本仓库用 pnpm 开发)
+pnpm install
+pnpm run verify
 ```
+
+**pnpm 的两个必要配置**(已写进 `pnpm-workspace.yaml`,否则会踩坑):
+
+| 配置 | 为什么必须 |
+|---|---|
+| `packages: [packages/*, gateway]` + `linkWorkspacePackages: true` | pnpm 不认 package.json 的 `"workspaces"` 字段;没有这个文件,`@bbmcp/shared` 会被当成外部依赖去 registry 找 → `ERR_PNPM_FETCH_404` |
+| `strictDepBuilds: false` | pnpm 11 默认 `true`:任何"被忽略的构建脚本"都会直接中断安装(`ERR_PNPM_IGNORED_BUILDS`)。我们对 `electron`(blockbench-types 的依赖)是**有意忽略**的,只取它的 `.d.ts` |
+
+安装时看到这一段是预期的、无害的:
+
+```
+Ignored build scripts: electron@40.10.6.
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+```
+
+> 根脚本用 `npm --prefix <dir> run …` 而不是 `npm run -w <name>`,这样 npm 与 pnpm 两种 node_modules 布局下都能跑。
 
 - `npm run build` — shared(tsc)+ `rolldown -c rolldown.config.ts`(插件/测试入口/网关三份产物)
 - `npm run typecheck` — 三个包的 TS 检查(strict)
@@ -612,7 +635,7 @@ npm run verify     # build → typecheck → test(一步跑完全部)
 调试插件时可只跑单个套件,例如:
 
 ```bash
-# 最快的一次冒烟(约 2s):确认交付产物能加载、能起服务、CLI 可用
+# 最快的一次冒烟(约 1s):确认交付产物能加载、能起服务、CLI 可用
 node --test packages/plugin/test/bundle.test.mjs packages/plugin/test/package.test.mjs
 ```
 

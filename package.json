@@ -9,16 +9,17 @@
     "gateway"
   ],
   "scripts": {
-    "build": "npm run build -w @bbmcp/shared && npm run build -w @anningui/blockbench-mcp && npm run build -w @bbmcp/gateway",
-    "typecheck": "npm run typecheck -w @bbmcp/shared && npm run typecheck -w @anningui/blockbench-mcp && npm run typecheck -w @bbmcp/gateway",
-    "test:unit": "npm run test -w @bbmcp/shared && npm run test -w @anningui/blockbench-mcp && npm run test -w @bbmcp/gateway",
+    "build": "npm --prefix packages/shared run build && npm --prefix packages/plugin run build && npm --prefix gateway run build",
+    "typecheck": "npm --prefix packages/shared run typecheck && npm --prefix packages/plugin run typecheck && npm --prefix gateway run typecheck",
+    "test:unit": "npm --prefix packages/shared run test && npm --prefix packages/plugin run test && npm --prefix gateway run test",
     "test": "npm run build && npm run test:unit",
     "verify": "npm run build && npm run typecheck && npm run test:unit",
-    "pack:check": "npm pack -w @anningui/blockbench-mcp --dry-run",
-    "publish": "npm publish -w @anningui/blockbench-mcp --access public"
+    "pack:check": "npm --prefix packages/plugin pack --dry-run",
+    "publish": "npm --prefix packages/plugin publish --access public"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "pnpm@11.10.0"
 }

@@ -1,0 +1,20 @@
+# pnpm 工作区声明(pnpm 不认 package.json 的 "workspaces" 字段)
+# 有这个文件,pnpm 才会把 @bbmcp/shared 链接成本地包,而不是去 registry 找它
+packages:
+  - packages/*
+  - gateway
+
+# "*" 形式的 workspace 依赖要显式开启链接
+linkWorkspacePackages: true
+
+# blockbench-types 依赖 electron,它的 postinstall 会去下 Electron 二进制。
+# 这里只需要它的 .d.ts,忽略构建脚本,避免几十 MB 的无谓下载。
+ignoredBuiltDependencies:
+  - electron
+
+allowBuilds:
+  electron: set this to true or false
+
+# pnpm 11 起 strictDepBuilds 默认为 true:只要有任何被忽略的构建脚本就直接报错并中断安装。
+# 我们对 electron 的处理是"有意忽略",所以关掉这个严格模式。
+strictDepBuilds: false
