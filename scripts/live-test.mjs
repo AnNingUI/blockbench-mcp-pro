@@ -479,15 +479,22 @@ test("capture_views: 全部 7 个视角都出图", async () => {
   });
   expectEqual(views.result.views.length, 7, "视角数");
   expect(views.images.length === 7, "7 张图片");
-  saveImages(views.images, "views");
+  // 逐视角命名保存:north 那张会被后面的参考图用例当成参考图
+  views.result.views.forEach((v, i) => {
+    if (views.images[i]) saveImages([views.images[i]], `live-${v.view}`);
+  });
   const silhouette = await ok("analyze_view_silhouette", { views: ["north", "iso"], max_edge: 256 });
   expect(silhouette.result.summary.empty_views === 0, "没有空视角(模型在画面里)");
 });
 
 test("参考图:load → get → compare(IoU) → clear", async () => {
-  // 用刚才的 north 截图当参考图,合理应得到很高的匹配度
-  const north = readdirSync(OUT).filter((f) => f.startsWith("views-")).sort()[0];
-  expect(north, "先有 north 截图");
+  // 用**刚刚**保存的 north 截图当参考图(原来取的是目录里最老的文件 → 上一次运行的旧模型)
+  const saved = readdirSync(OUT)
+    .filter((f) => f.startsWith("live-north-"))
+    .map((f) => ({ f, t: statSync(path.join(OUT, f)).mtimeMs }))
+    .sort((a, b) => b.t - a.t);
+  const north = saved[0]?.f;
+  expect(north, "先有本次运行的 north 截图(live-north-*.png)");
   const dataUrl = `data:image/png;base64,${readFileSync(path.join(OUT, north)).toString("base64")}`;
   await ok("load_reference", { data_url: dataUrl, name: "self" });
   const list = await ok("list_references");
@@ -667,6 +674,7 @@ test("边缘:UV/贴图 越界与错误输入", async () => {
 });
 
 test("边缘:参考图 / 人审 / 动作 的错误路径", async () => {
+  await ok("clear_references"); // 参考图是会话状态,先清空才能验证"没有参考图时报错"
   await fails("compare_reference", {}, "E_NOT_FOUND");
   await fails("wait_review", { review_id: "rev-does-not-exist" }, "E_NOT_FOUND");
   await fails("run_action", { id: "nope" }, "E_NOT_FOUND");

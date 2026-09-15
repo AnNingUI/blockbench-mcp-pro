@@ -1,5 +1,5 @@
 {
-  "when": "2026-09-15T17:51:54.744Z",
+  "when": "2026-09-15T17:56:10.459Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
   "passed": 30,
   "failed": 4,
@@ -8,22 +8,22 @@
     {
       "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
       "error": "check_model errors: 期望 0,实际 1",
-      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
+      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
     },
     {
       "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
       "error": "check_model 无 error: 期望 0,实际 1",
-      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
+      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
     },
     {
-      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "Cannot read properties of undefined (reading 'toBe')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'toBe')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:403:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
+      "case": "参考图:load → get → compare(IoU) → clear",
+      "error": "自比对的 IoU=15.7",
+      "stack": "Error: 自比对的 IoU=15.7\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:498:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
     },
     {
-      "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
-      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"65816f98-ac8c-e69c-015e-69af907a6112\",\"2158289e-bad4-2b87-c7b4-3c4f0d5ce57e\"]}",
-      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"65816f98-ac8c-e69c-015e-69af907a6112\",\"2158289e-bad4-2b87-c7b4-3c4f0d5ce57e\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:648:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:762:5"
+      "case": "边缘:参考图 / 人审 / 动作 的错误路径",
+      "error": "compare_reference 本应失败却成功了: {\"match_percent\":15.8,\"aspect_delta_pct\":96.5,\"ref_only_pct\":71.4,\"model_only_pct\":73.8,\"verdict\":\"poor\",\"advice\":[\"Add mass where the reference has silhouette ",
+      "stack": "Error: compare_reference 本应失败却成功了: {\"match_percent\":15.8,\"aspect_delta_pct\":96.5,\"ref_only_pct\":71.4,\"model_only_pct\":73.8,\"verdict\":\"poor\",\"advice\":[\"Add mass where the reference has silhouette \n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:670:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:763:5"
     }
   ],
   "artifacts": [
@@ -33,15 +33,15 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 5724
+      "bytes": 4132
     },
     {
       "file": "live-texture.png",
-      "bytes": 5996
+      "bytes": 6047
     },
     {
       "file": "live.bbmodel",
-      "bytes": 60608
+      "bytes": 60676
     },
     {
       "file": "live.geo.json",
@@ -49,7 +49,7 @@
     },
     {
       "file": "live.gltf",
-      "bytes": 115871
+      "bytes": 115939
     },
     {
       "file": "probe2.gltf",
@@ -60,8 +60,20 @@
       "bytes": 5887
     },
     {
+      "file": "texture-3.png",
+      "bytes": 4670
+    },
+    {
+      "file": "texture-region-2.png",
+      "bytes": 423
+    },
+    {
       "file": "uvmap-1.png",
       "bytes": 107700
+    },
+    {
+      "file": "views-10.png",
+      "bytes": 13730
     },
     {
       "file": "views-2.png",
@@ -73,23 +85,27 @@
     },
     {
       "file": "views-4.png",
-      "bytes": 8367
+      "bytes": 8694
     },
     {
       "file": "views-5.png",
-      "bytes": 8462
+      "bytes": 9119
     },
     {
       "file": "views-6.png",
-      "bytes": 8550
+      "bytes": 8367
     },
     {
       "file": "views-7.png",
-      "bytes": 8767
+      "bytes": 8467
     },
     {
       "file": "views-8.png",
-      "bytes": 13718
+      "bytes": 8550
+    },
+    {
+      "file": "views-9.png",
+      "bytes": 8767
     }
   ]
 }
