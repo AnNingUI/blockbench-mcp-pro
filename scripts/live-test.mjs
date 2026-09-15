@@ -399,7 +399,7 @@ test("贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检", 
   expect(
     typeof firstCell === "string" && /^#[0-9a-f]{8}$/.test(firstCell),
     `rows[0][0] 应为 hex,实际 ${JSON.stringify(firstCell)}(rows=${read.result.rows?.length},w=${read.result.width},h=${read.result.height})`,
-  ).toBe(true);
+  );
   expect(read.result.width).toBe(read0.result.width);
 
   const revision = await ok("get_texture_revision");
@@ -584,7 +584,8 @@ test("人审门:request_review 返回 pending(卡片会自己到期关闭)", asy
 
 /* ------------------------------- 8. 文件与作用域 ------------------------------- */
 
-test("作用域:未授权时保存被拒", async () => {
+test("作用域:未授权时保存被拒(先显式撤销,保证确定性)", async () => {
+  await ok("revoke_scope");
   await fails("save_project", { path: path.join(SCOPED, "blocked.bbmodel") }, "E_SCOPE_DENIED");
 });
 

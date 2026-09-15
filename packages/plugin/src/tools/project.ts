@@ -24,8 +24,17 @@ function codecFor(name?: string): { id: string; codec: any } {
 
 function serialize(content: unknown): string | Uint8Array {
   if (typeof content === "string" || content instanceof Uint8Array) return content;
+  // 二进制 codec(.glb 等)会返回 ArrayBuffer
+  if (typeof ArrayBuffer !== "undefined" && content instanceof ArrayBuffer)
+    return new Uint8Array(content);
   if (content === undefined || content === null)
     throw new CommandError("E_BLOCKBENCH_ERROR", "Codec returned no content.");
+  if (typeof content === "object" && "then" in (content as object))
+    // 真机踩过:Codecs.gltf.compile 是 async,不 await 会 JSON.stringify(Promise) → "{}" 两字节
+    throw new CommandError(
+      "E_BLOCKBENCH_ERROR",
+      "Codec returned a Promise; it must be awaited before serializing.",
+    );
   return JSON.stringify(content, null, 2);
 }
 
@@ -132,18 +141,29 @@ export const projectTools: Record<string, ToolHandler> = {
     return { scoped_directory: resolved, confirmed: true };
   },
 
-  save_project: (args: { path: string; overwrite?: boolean }) => {
+  revoke_scope: () => {
+    const previous = session.scopedDirectory;
+    session.scopedDirectory = null;
+    return {
+      ok: true,
+      revoked: previous,
+      scoped_directory: null,
+      note: "File access revoked for this session; call propose_scoped_directory again when you need it.",
+    };
+  },
+
+  save_project: async (args: { path: string; overwrite?: boolean }) => {
     requireProject();
     const codec = Codecs?.project;
     const id = "project";
     if (!codec?.compile)
       throw new CommandError("E_UNSUPPORTED_FORMAT", "The .bbmodel project codec is unavailable.");
-    const data = serialize(codec.compile());
+    const data = serialize(await codec.compile());
     const written = writeScopedFile(args.path, data, args.overwrite);
     return { ok: true, codec: id, ...written };
   },
 
-  export_model: (args: {
+  export_model: async (args: {
     path: string;
     overwrite?: boolean;
     codec?: string;
@@ -154,7 +174,8 @@ export const projectTools: Record<string, ToolHandler> = {
     const { codec, id } = codecFor(args?.codec);
     if (typeof codec.compile !== "function")
       throw new CommandError("E_UNSUPPORTED_FORMAT", `Codec "${id}" cannot compile.`);
-    const data = serialize(codec.compile());
+    // 必须 await:Codecs.gltf.compile 是 async(真机实测:不 await 会写出 2 字节的 "{}")
+    const data = serialize(await codec.compile(args?.options ?? {}));
     const written = writeScopedFile(args.path, data, args.overwrite);
     return {
       ok: true,

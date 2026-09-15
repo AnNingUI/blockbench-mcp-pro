@@ -136,6 +136,13 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
 
   /* ---------------- geometry ---------------- */
   spec(
+    "revoke_scope",
+    "project",
+    "Drop the folder approved with propose_scoped_directory: every file tool (save/export/PNG import-export/load_reference) then requires a fresh approval. Use it when you are done with disk work.",
+    z.object({}).strict(),
+    { mutation: true },
+  ),
+  spec(
     "apply_geometry_batch",
     "geometry",
     "Create groups and cubes in ONE undo step. Parent references may point at groups created earlier in the same call (build a posed skeleton at once). The whole batch is validated before anything is written — a missing parent or a side violation fails loudly instead of half-applying. Pass side:'left'|'right' and the tool refuses coordinates that contradict it (model faces -Z so its own right is +X).",

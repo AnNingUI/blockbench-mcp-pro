@@ -1,7 +1,7 @@
 # Blockbench MCP Pro
 
 > 读完 `./repos/` 下五个 Blockbench MCP 项目后,把它们的优点全部吸收、缺点全部修掉,重新写的一个最完善的实现。
-> **95 个工具**、**插件内进程 HTTP MCP**(无需额外 Node 进程)+ **stdio 网关** 双通道、**强制随机 Bearer 鉴权**、**文件作用域**、**全量 undo 集成**、**程序化生成器**、**质量门**、**人审门**、**参考图 IoU 比对**。
+> **96 个工具**、**插件内进程 HTTP MCP**(无需额外 Node 进程)+ **stdio 网关** 双通道、**强制随机 Bearer 鉴权**、**文件作用域**、**全量 undo 集成**、**程序化生成器**、**质量门**、**人审门**、**参考图 IoU 比对**。
 
 - 协议:MCP 2024-11-05(Streamable HTTP / JSON),另附 stdio 转发网关
 - 宿主:Blockbench Desktop ≥ 5.1.0
@@ -144,13 +144,13 @@ health → get_project_summary → get_guide { topic: "modeling" }
 
 ---
 
-## 工具总览(95)
+## 工具总览(96)
 
 | 组 | 数量 | 工具 |
 |---|---|---|
 | 状态与发现 | 7 | `health`, `get_guide`, `list_formats`, `get_project_summary`, `get_elements`, `list_textures`, `list_animations` |
 | 方向(左右) | 3 | `get_orientation`, `which_side`, `check_sides` |
-| 工程与文件 | 5 | `create_project`, `set_project_meta`, `save_project`, `export_model`, `propose_scoped_directory` |
+| 工程与文件 | 6 | `create_project`, `set_project_meta`, `save_project`, `export_model`, `propose_scoped_directory`, `revoke_scope` |
 | 几何 | 12 | `apply_geometry_batch`, `update_elements`, `delete_elements`, `transform_elements`, `mirror_elements`, `array_cubes`, `radial_array_cubes`, `duplicate_hierarchy`, `create_limb`, `scaffold_biped`, `measure_model`, `audit_symmetry` |
 | 程序化生成器 | 5 | `voxelize_matrix`, `add_hollow_volume`, `generate_array`, `extrude_chain`, `add_wing` |
 | UV | 7 | `auto_uv_cubes`, `pack_box_uv`, `get_uv_layout`, `get_uv_map`, `set_face_uv`, `transform_uv_islands`, `resize_texture` |
@@ -212,7 +212,7 @@ health → get_project_summary → get_guide { topic: "modeling" }
 | 会话管理 / 保活 | ❌ | 🟡(session id) | ✅(SSE keepalive) | ❌ | ❌ | 🟡(session id,无 SSE) |
 | 逃生舱 execute_script | ✅(默认开) | ❌(明确非目标) | ✅ | ✅ | ❌ | ✅(**默认关**) |
 | 危险 UI 点击类工具 | ❌ | ❌ | ⚠️(emulate_clicks/risky_eval) | ❌ | ❌ | ❌(故意不做) |
-| 自动化测试 | 🟡(工具目录) | ✅(协议+宿主 mock) | ❌(无) | 🟡 | ❌ | ✅(**102 个** Vitest,含交付产物/真实 HTTP/stdio) |
+| 自动化测试 | 🟡(工具目录) | ✅(协议+宿主 mock) | ❌(无) | 🟡 | ❌ | ✅(**109 个** Vitest,含交付产物/真实 HTTP/stdio) |
 | 许可 | MIT | MIT | **GPL-3.0** | **GPL-3.0** | ISC | **MIT** |
 
 ---
@@ -275,7 +275,7 @@ health → get_project_summary → get_guide { topic: "modeling" }
 - ❌ **GPL-3.0** → 本项目全部重写为 MIT
 - ❌ `emulate_clicks` / `trigger_action` / `risky_eval` 这类模拟点击/任意求值的工具 → **不做**;需要覆盖时用 `list_actions` + `run_action`(命令级,不是鼠标级)
 - ❌ 无鉴权 → 强制 Bearer + Origin/Host 校验
-- ❌ 没有测试 → 102 个自动化测试(Vitest)
+- ❌ 没有测试 → 109 个自动化测试(Vitest)
 - ❌ 工具名与参数风格不统一 → 统一为动词_名词 + zod 契约
 
 ### 4. `vasyacullin-Blockbench-mcp`
@@ -305,7 +305,7 @@ health → get_project_summary → get_guide { topic: "modeling" }
 - ❌ 只有 5 个工具 → 95 个
 - ❌ Socket.IO 传输(额外依赖 + 无标准 MCP)→ 标准 HTTP MCP + stdio 网关
 - ❌ 无鉴权、无 undo、无质量门 → 全部补齐
-- ❌ 无测试 → 102 个(Vitest)
+- ❌ 无测试 → 109 个(Vitest)
 
 ---
 
@@ -644,7 +644,7 @@ blockbench-mcp-pro/
 │       ├── src/http.ts     # net 上的 HTTP + 鉴权 + Origin/Host 校验
 │       ├── src/rpc.ts      # MCP JSON-RPC + resources + prompts + 图片内容块
 │       ├── src/dispatch.ts # 校验 → 执行 → 统一信封
-│       ├── src/tools/      # 按域拆分的 95 个工具
+│       ├── src/tools/      # 按域拆分的 96 个工具
 │       ├── types.d.ts      # 宿主类型:官方 blockbench-types + 少量浏览器 API 补齐(无 any 全局)
 │       ├── bin/            # npm bin:blockbench-mcp(网关 + --plugin-path/--cdn-url)
 │       ├── build/           # rolldown.config.ts + 它自己的 tsconfig(types: node)
@@ -668,7 +668,7 @@ blockbench-mcp-pro/
 | `scripts/configure-pi-mcp.mjs` | 从 Blockbench 设置存储里读令牌,自动写 `~/.pi/agent/mcp.json`(先备份) |
 
 
-**先说清楚自动化测试的边界**:`pnpm test` 里的 102 个测试跑的是**纯逻辑 + 我写的 mock 宿主**
+**先说清楚自动化测试的边界**:`pnpm test` 里的 109 个测试跑的是**纯逻辑 + 我写的 mock 宿主**
 (假的 `Cube`/`Group`/`Texture`/`Codecs`,假的截图 data URL)。它验证的是
 参数校验、批次语义、UV 打包数学、审计规则、HTTP/鉴权/MCP 协议、交付产物能否加载,
 **不验证**真 Blockbench 的 `mapAutoUV`、`Texture.edit`、undo 行为、离屏渲染、权限对话框与文件导出。
@@ -739,14 +739,14 @@ Run "pnpm approve-builds" to pick which dependencies should be allowed to run sc
 
 - `pnpm run build` — shared(tsc)+ `rolldown -c build/rolldown.config.ts`(插件/测试入口/网关三份产物)
 - `npm run typecheck` — 三个包的 TS 检查(strict)
-- `pnpm test` — **102 个测试**(shared 30 / plugin 69 / gateway 3),Vitest 并行跑,**全套约 3 秒**:
+- `pnpm test` — **109 个测试**(shared 31 / plugin 75 / gateway 3),Vitest 并行跑,**全套约 3 秒**:
 
 测试跑在 **Vitest**(`vitest run`,每个测试文件独立进程 + 全局 mock 隔离),文件之间并行,整套约 3 秒。
 
 | 套件 | 数量 | 验证内容 |
 |---|---|---|
-| `packages/shared/test/pure.test.mjs` | 30 | 向量/旋转、颜色、UV 映射与翻转、shelf 打包不重叠、体素化/壳体/阵列/骨链/翼、check_model、复杂度门、左右门、骨架门、测量、轮廓 IoU、revision 哈希、面质检、工具目录完整性 |
-| `packages/plugin/test/dispatch.test.mjs` | 45 | 用 mock 宿主**真实执行**每个工具:批量几何单步 undo、side 拒绝、生成器落地、pack UV 不重叠、面局部绘制的像素往返(revision 一致)、过期 revision 被拒、贴图质检、动画生成的对侧相位、审查 pending→回答、参考图比对、action 桥、设置/插件/历史 |
+| `packages/shared/test/pure.test.mjs` | 31 | 向量/旋转、颜色、UV 映射与翻转、shelf 打包不重叠、体素化/壳体/阵列/骨链/翼、check_model、复杂度门、左右门、骨架门、测量、轮廓 IoU、revision 哈希、面质检、工具目录完整性 |
+| `packages/plugin/test/dispatch.test.mjs` | 51 | 用 mock 宿主**真实执行**每个工具:批量几何单步 undo、side 拒绝、生成器落地、pack UV 不重叠、面局部绘制的像素往返(revision 一致)、过期 revision 被拒、贴图质检、动画生成的对侧相位、审查 pending→回答、参考图比对、action 桥、设置/插件/历史 |
 | `packages/plugin/test/http.test.mjs` | 18 | **真实 net 服务器 + fetch/原始 socket**:无令牌 401、错令牌 401、Origin 403、Host(DNS rebinding)403、非 JSON 415、initialize/session id、tools/list schema、tools/call 信封、图片内容块、resources/prompts、JSON-RPC 错误码、202/204/405 |
 | `packages/plugin/test/package.test.mjs` | 4 | **打包体检**:文件名 ↔ 插件 id 必须一致(Blockbench 硬性要求)、CLI 各开关、CLI 真的把 stdio 转成 HTTP(踩过坑,故加断言) |
 | `packages/plugin/test/bundle.test.mjs` | 2(快) | **直接加载交付产物** `dist/blockbench_mcp.js`,调用 Blockbench 会调的 `onload`,再访问它真的起在回环上的端点(令牌随机生成、401、tools/list) |

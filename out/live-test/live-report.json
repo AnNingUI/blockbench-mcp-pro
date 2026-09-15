@@ -1,25 +1,49 @@
 {
-  "when": "2026-09-15T17:45:06.642Z",
+  "when": "2026-09-15T17:46:56.900Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
-  "passed": 0,
-  "failed": 2,
+  "passed": 28,
+  "failed": 6,
   "skipped": [],
   "failures": [
     {
-      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
-      "error": "Cannot read properties of undefined (reading 'toMatch')",
-      "stack": "TypeError: Cannot read properties of undefined (reading 'toMatch')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:398:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:757:5"
+      "case": "scaffold_biped 建出可用骨架并返回 check 摘要",
+      "error": "check_model errors: 期望 0,实际 1",
+      "stack": "Error: check_model errors: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:300:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
     },
     {
-      "case": "边缘:UV/贴图 越界与错误输入",
-      "error": "get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"",
-      "stack": "Error: get_face_grid 的错误码: 期望 \"E_NOT_FOUND\",实际 \"E_INVALID_PARAM\"\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:105:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:653:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:757:5"
+      "case": "质量门:check_model / check_sides / check_rig / audit_complexity / measure / symmetry",
+      "error": "check_model 无 error: 期望 0,实际 1",
+      "stack": "Error: check_model 无 error: 期望 0,实际 1\n    at expectEqual (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:57:11)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:312:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+    },
+    {
+      "case": "贴图:shade_model_base → 面局部绘制 → 网格往返 → 质检",
+      "error": "Cannot read properties of undefined (reading 'toBe')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'toBe')\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:402:4)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+    },
+    {
+      "case": "作用域:未授权时保存被拒",
+      "error": "save_project 本应失败却成功了: {\"ok\":true,\"codec\":\"project\",\"path\":\"D:\\\\Dev-Project\\\\t\\\\blockbench-mcp-research\\\\blockbench-mcp-pro\\\\out\\\\live-test\\\\blocked.bbmodel\",\"bytes\":60782}",
+      "stack": "Error: save_project 本应失败却成功了: {\"ok\":true,\"codec\":\"project\",\"path\":\"D:\\\\Dev-Project\\\\t\\\\blockbench-mcp-research\\\\blockbench-mcp-pro\\\\out\\\\live-test\\\\blocked.bbmodel\",\"bytes\":60782}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:588:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+    },
+    {
+      "case": "作用域:授权后可保存 .bbmodel 与导出几何",
+      "error": "glTF 导出 2B",
+      "stack": "Error: glTF 导出 2B\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:604:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
+    },
+    {
+      "case": "边缘:非均匀缩放旋转体 / 镜像轴非法 / 缺动画 replace",
+      "error": "transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"cc4c8b63-9b83-1774-a413-a2096103274d\",\"3e99bbfe-8a95-11bf-f8df-3c1829642fa7\"]}",
+      "stack": "Error: transform_elements 本应失败却成功了: {\"ok\":true,\"undo_label\":\"transform_elements\",\"updated\":[\"cc4c8b63-9b83-1774-a413-a2096103274d\",\"3e99bbfe-8a95-11bf-f8df-3c1829642fa7\"]}\n    at expect (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:53:20)\n    at fails (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:104:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.fn (file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:647:3)\n    at async file:///D:/Dev-Project/t/blockbench-mcp-research/blockbench-mcp-pro/scripts/live-test.mjs:761:5"
     }
   ],
   "artifacts": [
     {
+      "file": "blocked.bbmodel",
+      "bytes": 60782
+    },
+    {
       "file": "live-report.json",
-      "bytes": 5400
+      "bytes": 2449
     },
     {
       "file": "live-texture.png",

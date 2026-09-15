@@ -110,12 +110,43 @@ test("propose_scoped_directory asks once, then remembers the approved folder", a
   api.session.scopedDirectory = null;
 });
 
+test("export_model awaits async codecs (regression: glTF used to write 2 bytes)", async () => {
+  mock.reset();
+  newProject();
+  mock.state.autoAnswerDialogs = true;
+  const dir = path.resolve(process.cwd(), "out/mock-scope");
+  mkdirSync(dir, { recursive: true });
+  await ok("propose_scoped_directory", { path: dir });
+  const gltf = await ok("export_model", {
+    path: path.join(dir, "probe.gltf"),
+    overwrite: true,
+    codec: "gltf",
+  });
+  expect(gltf.bytes, "async codec 的返回值必须被 await 后写出").toBeGreaterThan(50);
+  const project = await ok("save_project", { path: path.join(dir, "probe.bbmodel"), overwrite: true });
+  expect(project.bytes).toBeGreaterThan(10);
+  mock.state.autoAnswerDialogs = false;
+  api.session.scopedDirectory = null;
+});
+
 test("save_project / export_model are refused until a directory is approved", async () => {
   mock.reset();
   newProject();
+  await ok("revoke_scope"); // 确保这条用例不受之前用例批准过的目录影响
   const error = await fails("save_project", { path: "C:/tmp/a.bbmodel" }, "E_SCOPE_DENIED");
   expect(error.message).toMatch(/propose_scoped_directory/);
   await fails("export_model", { path: "C:/tmp/a.json" }, "E_SCOPE_DENIED");
+
+  // 授权 → 撤销 → 必须再次被拒
+  mock.state.autoAnswerDialogs = true;
+  const dir = path.resolve(process.cwd(), "out/mock-scope");
+  mkdirSync(dir, { recursive: true });
+  await ok("propose_scoped_directory", { path: dir });
+  const revoked = await ok("revoke_scope");
+  expect(revoked.revoked).toBeTruthy();
+  expect(revoked.scoped_directory).toBe(null);
+  await fails("save_project", { path: path.join(dir, "x.bbmodel") }, "E_SCOPE_DENIED");
+  mock.state.autoAnswerDialogs = false;
 });
 
 /* --------------------------------------------------------- geometry */

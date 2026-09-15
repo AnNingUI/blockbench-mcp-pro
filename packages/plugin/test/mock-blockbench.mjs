@@ -579,7 +579,17 @@ export function installMockBlockbench() {
   globalThis.Modes = modes;
   modes.options.edit.select();
   globalThis.Painter = { edit: () => {} };
-  globalThis.Codecs = { project: { id: "project", compile: () => JSON.stringify({ meta: { format: "bedrock" } }) } };
+  globalThis.Codecs = {
+    project: { id: "project", compile: () => JSON.stringify({ meta: { format: "bedrock" } }) },
+    // 真机行为:gltf codec 的 compile 是 async → 不 await 就会写出 "{}"(2 字节)
+    gltf: {
+      id: "gltf",
+      name: "GLTF Model",
+      extension: "gltf",
+      compile: async (options) =>
+        JSON.stringify({ asset: { version: "2.0" }, options: options ?? {}, scenes: [{}], buffers: [{ byteLength: 1024 }] }),
+    },
+  };
   const settingObject = (id, value) => ({
     value,
     set(next) {
@@ -623,6 +633,7 @@ export function installMockBlockbench() {
     globalThis.Project = null;
     state.dialogs = [];
     state.lastDialog = null;
+    state.autoAnswerDialogs = false;
     calls.animationSelects.length = 0;
   };
 
