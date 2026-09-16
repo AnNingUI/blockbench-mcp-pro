@@ -716,6 +716,59 @@ test("人审门:卡片能写意见、能选参考图(程序化点击,不依赖�
     );
     await ok("clear_references");
   }
+  // 5) 声明式卡片(components):多控件一起填,值必须原样回到 values
+  const form = await ok("request_review", {
+    title: "自动化声明式表单",
+    question: "测试自己填,不打扰你。",
+    components: [
+      { type: "text", text: "细节保留?", style: "warn" },
+      { type: "views", views: ["north"] },
+      { type: "multi_choice", id: "keep", options: ["hood", "lantern"], default: ["hood"] },
+      { type: "number", id: "budget", label: "预算", min: 0, max: 500 },
+      { type: "toggle", id: "flat", label: "扁平贴图" },
+      { type: "color", id: "accent", label: "主色" },
+      { type: "select", id: "mode", label: "UV 模式", options: ["box", "face"] },
+      { type: "text_input", id: "name", label: "名字" },
+      { type: "choices", id: "verdict", options: ["Approve", "Needs changes"] },
+    ],
+    wait_seconds: 1,
+    timeout_seconds: 60,
+  });
+  const formId = form.result.review_id;
+  const filled = await ok("execute_script", {
+    code: `
+      const d = document.querySelector("#${formId}");
+      const set = (sel, fn) => { const el = d.querySelector(sel); if (el) fn(el); };
+      set('input[type=checkbox][name="keep"][value="lantern"]', (el) => { el.checked = true; });
+      set('input[type=checkbox][name="keep"][value="hood"]', (el) => { el.checked = false; });
+      set("#${formId}__budget", (el) => { el.value = "128"; });
+      set("#${formId}__flat", (el) => { el.checked = true; });
+      set("#${formId}__accent", (el) => { el.value = "#112233"; });
+      set("#${formId}__mode", (el) => { el.value = "face"; });
+      set("#${formId}__name", (el) => { el.value = "wanderer"; });
+      set('input[name="verdict"][value="Approve"]', (el) => { el.checked = true; });
+      d.querySelector("input[type=text]").value = d.querySelector("input[type=text]").value;
+      const buttons = d.querySelectorAll(".dialog_buttons button, .dialog_buttons .button, dialog button");
+      const hasImage = Boolean(d.querySelector("img"));
+      if (buttons[0]) buttons[0].click();
+      return { hasImage, controls: d.querySelectorAll("input, select, textarea").length };
+    `,
+  });
+  expect(filled.result.result.hasImage === true, "views 组件把渲染图内联进了卡片");
+  const formResult = await ok("wait_review", { review_id: formId, wait_seconds: 6 });
+  expect(formResult.result.answered === true, "表单已提交");
+  const values = formResult.result.values ?? {};
+  expectEqual(values.name, "wanderer", "text_input");
+  expectEqual(Number(values.budget), 128, "number");
+  expectEqual(values.flat, true, "toggle");
+  expectEqual(values.accent, "#112233", "color");
+  expectEqual(values.mode, "face", "select");
+  expectEqual(values.verdict, "Approve", "choices");
+  expect(
+    Array.isArray(values.keep) && values.keep.length === 1 && values.keep[0] === "lantern",
+    `multi_choice 应为 ["lantern"],实际 ${JSON.stringify(values.keep)}`,
+  );
+
   await ok("set_setting", { id: "bbmcp_allow_execute_script", value: false });
 });
 

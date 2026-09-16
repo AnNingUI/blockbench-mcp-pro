@@ -112,6 +112,10 @@ export const GUIDE_VFX = `
 - Parent each sheet to a bone so it animates. animation with step interpolation for a strobing flame.
 `.trim();
 
+import { GUIDE_UI } from "./ui.js";
+
+export { GUIDE_UI };
+
 export const GUIDE_TOPICS = [
   "modeling",
   "detailing",
@@ -121,6 +125,7 @@ export const GUIDE_TOPICS = [
   "animation",
   "review",
   "reference",
+  "ui",
 ] as const;
 export type GuideTopic = (typeof GUIDE_TOPICS)[number];
 
@@ -133,6 +138,7 @@ const GUIDES: Record<GuideTopic, string> = {
   animation: GUIDE_ANIMATION,
   review: GUIDE_REVIEW,
   reference: GUIDE_REFERENCE,
+  ui: GUIDE_UI,
 };
 
 export function resolveGuide(topic?: string): { topic: GuideTopic; text: string } {

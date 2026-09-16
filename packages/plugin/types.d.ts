@@ -112,12 +112,18 @@ type HTMLImageElement = Image;
 
 // 人审卡片要读用户填的文本框/选的文件,所以 shim 需要这几个成员(只声明真正用到的)
 type BbInputElement = {
-  value: string;
+  value?: string;
+  checked?: boolean;
   files?: { 0?: { name: string } } & ArrayLike<{ name: string }>;
+  classList?: { add(name: string): void };
+  querySelector(selector: string): BbInputElement | null;
+  style?: { display: string };
 };
 declare const document: {
   createElement(tag: string): BbCanvas;
   getElementById(id: string): BbInputElement | null;
+  querySelector(selector: string): BbInputElement | null;
+  querySelectorAll(selector: string): ArrayLike<BbInputElement>;
 };
 declare const FileReader: {
   new (): {

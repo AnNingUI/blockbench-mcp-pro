@@ -63,5 +63,6 @@ export * from "./pure/color.js";
 export * from "./pure/uv.js";
 export * from "./pure/generate.js";
 export * from "./pure/audit.js";
+export * from "./ui.js";
 
 export const PROTOCOL_NAME = "blockbench-mcp-pro";

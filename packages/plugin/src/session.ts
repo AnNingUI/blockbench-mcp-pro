@@ -11,12 +11,18 @@ export type PendingReview = {
   createdAt: number;
   expiresAt: number;
   /** 已经回答时存在 */
-  answer?: { index: number; option: string; comment?: string; at: number };
+  answer?: { index: number; option: string; comment?: string; values?: Record<string, unknown>; at: number };
   /** 用户直接关掉了对话框(不算回答) */
   dismissed?: boolean;
   /** 用户在卡片上当场选了参考图(文件名),已自动加载 */
   loadedReference?: string;
-  resolve?: (answer: { index: number; option: string; comment?: string; at: number }) => void;
+  resolve?: (answer: {
+    index: number;
+    option: string;
+    comment?: string;
+    values?: Record<string, unknown>;
+    at: number;
+  }) => void;
 };
 
 export type ReferenceImage = {
@@ -159,6 +165,7 @@ export function answerReview(
   id: string,
   index: number,
   comment?: string,
+  values?: Record<string, unknown>,
 ): PendingReview | undefined {
   const review = session.pending.get(id);
   if (!review) return undefined;
@@ -168,7 +175,7 @@ export function answerReview(
     return review;
   }
   const option = review.options[index] ?? String(index);
-  review.answer = { index, option, comment, at: Date.now() };
+  review.answer = { index, option, comment, values, at: Date.now() };
   review.resolve?.(review.answer);
   return review;
 }
@@ -195,6 +202,8 @@ export function reviewPayload(review: PendingReview, waitSeconds: number) {
     answer: review.answer?.option ?? null,
     answer_index: review.answer?.index ?? null,
     comment: review.answer?.comment ?? null,
+    /** 声明式卡片各控件的值(见 get_guide topic ui) */
+    values: review.answer?.values ?? null,
     /** 用户在卡上选了图的话,这里会给出文件名(那张图已作为参考图加载) */
     loaded_reference: review.loadedReference ?? null,
     pending: !review.answer,

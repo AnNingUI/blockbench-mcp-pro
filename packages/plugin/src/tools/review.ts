@@ -2,6 +2,8 @@
 import { CommandError } from "../errors.js";
 import { requireProject } from "../bb.js";
 import { captureView, showBlockingDialog } from "../host.js";
+import { resolveCard, type CardImages } from "../ui/card.js";
+import type { CardComponent } from "@bbmcp/shared";
 import { referenceTools } from "./reference.js";
 import {
   answerReview,
@@ -22,13 +24,19 @@ async function showCard(
   title: string,
   question: string,
   details: string | undefined,
+  components: CardComponent[] = [],
+  images: CardImages = {},
 ): Promise<void> {
   const dialog = showBlockingDialog({
     id: review.id,
     title,
     message: `${question}${details ? `\n\n${details}` : ""}`,
-    lines: ["<i>下面是可选的:写意见,或者选一张参考图。</i>"],
+    lines: [
+      "<i>下面是可选的:写意见,或者选一张参考图。</i>",
+    ],
     buttons: review.options,
+    components,
+    images,
     // 人要点“Needs changes”时得能说清楚哪里不对 —— 以前只有两个按钮,意见无处可输
     comment: { label: "意见 / 哪里不对(可留空)", placeholder: "例如:披风太宽、腿太短……" },
     // “把图片拖进面板”这种话别再写了:卡上直接给选文件
@@ -56,7 +64,7 @@ async function showCard(
       /* 图片载不进去也不能把人的回答弄丢 */
     }
   }
-  answerReview(review.id, result.index, result.comment);
+  answerReview(review.id, result.index, result.comment, result.values);
 }
 
 export const reviewTools: Record<string, ToolHandler> = {
@@ -66,20 +74,32 @@ export const reviewTools: Record<string, ToolHandler> = {
     details?: string;
     options?: string[];
     views?: string[];
+    components?: CardComponent[];
     wait_seconds?: number;
     timeout_seconds?: number;
   }) => {
-    const options = args?.options?.length ? args.options : ["Yes", "No"];
+    const card = resolveCard(
+      args?.components ?? [],
+      args?.options?.length ? args.options : ["Yes", "No"],
+    );
     const waitSeconds = Math.min(args?.wait_seconds ?? 25, 120);
     const review = openReview({
       kind: "question",
       title: args?.title ?? "Blockbench MCP — question",
       question: args?.question,
-      options,
+      options: card.buttons,
       timeoutSeconds: args?.timeout_seconds ?? 900,
     });
-    void showCard(review, args?.title ?? "Question from the AI", args?.question, args?.details);
-    const views = await captureViewsSafe(args?.views);
+    // 先截屏再弹卡:卡片里的 views 组件要用这些图
+    const views = await captureViewsSafe(args?.views, undefined, undefined, card.rest);
+    void showCard(
+      review,
+      args?.title ?? "Question from the AI",
+      args?.question,
+      args?.details,
+      card.rest,
+      cardImages(views),
+    );
     await waitForReview(review, waitSeconds);
     return {
       ...reviewPayload(review, waitSeconds),
@@ -100,26 +120,33 @@ export const reviewTools: Record<string, ToolHandler> = {
     animation?: string;
     times?: number[];
     options?: string[];
+    components?: CardComponent[];
     wait_seconds?: number;
     timeout_seconds?: number;
   }) => {
     requireProject();
-    const options = args?.options?.length ? args.options : REVIEW_OPTIONS;
+    const card = resolveCard(
+      args?.components ?? [],
+      args?.options?.length ? args.options : REVIEW_OPTIONS,
+    );
     const waitSeconds = Math.min(args?.wait_seconds ?? 25, 120);
     const review = openReview({
       kind: "review",
       title: args?.title ?? "Blockbench MCP — review",
       question: args?.question,
-      options,
+      options: card.buttons,
       timeoutSeconds: args?.timeout_seconds ?? 900,
     });
+    // 先截屏再弹卡(卡片里的 views 组件要显示渲染结果)
+    const views = await captureViewsSafe(args?.views, args?.animation, args?.times, card.rest);
     void showCard(
       review,
       args?.title ?? "Please review the current model",
       args?.question,
       args?.details,
+      card.rest,
+      cardImages(views),
     );
-    const views = await captureViewsSafe(args?.views, args?.animation, args?.times);
     await waitForReview(review, waitSeconds);
     return {
       ...reviewPayload(review, waitSeconds),
@@ -155,18 +182,55 @@ export const reviewTools: Record<string, ToolHandler> = {
   },
 };
 
+/** 卡片里的 views 组件要哪些视角/时间点 */
+function viewRequests(components: CardComponent[]): {
+  views: string[];
+  animation?: string;
+  times?: number[];
+} {
+  const component = components.find(
+    (item): item is Extract<CardComponent, { type: "views" }> => item.type === "views",
+  );
+  if (!component) return { views: [] };
+  return { views: component.views, animation: component.animation, times: component.times };
+}
+
+/** captures 以 `${view}` / `${view}@${time}` 为 key,供卡片内联显示 */
+function cardImages(views: Array<Record<string, unknown>>): CardImages {
+  const captures: Record<string, string> = {};
+  for (const entry of views) {
+    const key =
+      entry.time === null || entry.time === undefined
+        ? String(entry.view)
+        : `${entry.view}@${entry.time}`;
+    if (typeof entry.data_url === "string") captures[key] = entry.data_url;
+  }
+  return {
+    captures,
+    references: session.references.map((reference) => ({
+      name: reference.name,
+      data_url: reference.data_url,
+    })),
+  };
+}
+
 async function captureViewsSafe(
   views?: string[],
   animation?: string,
   times?: number[],
+  components: CardComponent[] = [],
 ): Promise<Array<Record<string, unknown>>> {
-  const wanted = views?.length ? views : ["north", "east"];
+  const requested = viewRequests(components);
+  const wantedViews = [...new Set([...(views ?? []), ...requested.views])];
+  const wantedAnimation = animation ?? requested.animation;
+  const wantedTimes = times ?? requested.times;
+  const wanted = wantedViews.length ? wantedViews : ["north", "east"];
   const out: Array<Record<string, unknown>> = [];
-  for (const time of animation ? (times?.length ? times : [0]) : [null]) {
+  for (const time of wantedAnimation ? (wantedTimes?.length ? wantedTimes : [0]) : [null]) {
     if (time !== null) {
       try {
-        if (animation) {
-          Animation.all.find((item) => item.name === animation)?.select();
+        if (wantedAnimation) {
+          Animation.all.find((item) => item.name === wantedAnimation)?.select();
         }
         Timeline.setTime(time);
       } catch {

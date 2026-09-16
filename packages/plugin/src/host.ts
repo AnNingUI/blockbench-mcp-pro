@@ -523,13 +523,24 @@ function framing(view: string): { preset: AnglePreset; span: number } {
   };
 }
 
+import { renderCard, readCardValues, missingRequired, type CardField, type CardImages } from "./ui/card.js";
+import type { CardComponent } from "@bbmcp/shared";
+
+/** comment 组件(textarea id=comment)的值单独拎出来,方便旧调用方 */
+function commentOf(values: Record<string, unknown>): string | undefined {
+  const raw = values.comment;
+  return typeof raw === "string" && raw.trim() ? raw : undefined;
+}
+
 /* --------------------------------------------------------------- ui dialogs */
 
 export type DialogResult = {
   index: number;
   comment?: string;
-  /** 用户在卡上选的文件(已读成 data URL);只在 filePick 打开时可能出现 */
+  /** 用户在卡上选的文件(已读成 data URL);只在有 file 组件时可能出现 */
   file?: { name: string; dataUrl: string };
+  /** 声明式卡片各控件的值:values[component.id] */
+  values?: Record<string, unknown>;
 };
 
 /**
@@ -549,72 +560,79 @@ export function showBlockingDialog(opts: {
   message: string;
   lines?: string[];
   buttons: string[];
-  /** 加一个文本框,用户写下的内容会回到 result.comment */
+  /** 声明式控件(A2UI 子集);见 @bbmcp/shared 的 GUIDE_UI */
+  components?: CardComponent[];
+  /** views / references 组件要用的图片 */
+  images?: CardImages;
+  /** 语法糖:textarea(id=comment)。等价于 components 里加一个 textarea */
   comment?: { label?: string; placeholder?: string };
-  /** 加一个选文件按钮(真机验证过:Dialog 支持 input[type=file]) */
+  /** 语法糖:file(id=file, 自动当参考图加载) */
   filePick?: { label?: string; accept?: string };
 }): DialogHandle {
   let close = () => {
     /* 由下面赋值 */
   };
-  // 输入控件的 id 用对话框 id 派生,结束后从 DOM 读值(Blockbench 的自定义按钮不回传表单)
-  const commentId = `${opts.id}_comment`;
-  const fileId = `${opts.id}_file`;
-  const inputs: string[] = [];
-  if (opts.comment) {
-    inputs.push(
-      `<label style="display:block;margin-top:8px">${opts.comment.label ?? "意见(可留空)"}</label>` +
-        `<textarea id="${commentId}" placeholder="${opts.comment.placeholder ?? "哪里不对?想改什么?"}" style="width:100%;min-height:72px"></textarea>`,
-    );
+  // 语法糖展开成组件,渲染只有一条路径
+  const components: CardComponent[] = [...(opts.components ?? [])];
+  if (opts.comment && !components.some((c) => c.type === "textarea" && c.id === "comment")) {
+    components.push({
+      type: "textarea",
+      id: "comment",
+      label: opts.comment.label ?? "意见(可留空)",
+      placeholder: opts.comment.placeholder ?? "哪里不对?想改什么?",
+    });
   }
-  if (opts.filePick) {
-    inputs.push(
-      `<label style="display:block;margin-top:8px">${opts.filePick.label ?? "选一张图片(可选)"}</label>` +
-        `<input type="file" id="${fileId}" accept="${opts.filePick.accept ?? "image/*"}" style="width:100%">`,
-    );
+  if (opts.filePick && !components.some((c) => c.type === "file")) {
+    components.push({
+      type: "file",
+      id: "file",
+      label: opts.filePick.label ?? "参考图(可选,选了就直接加载)",
+      accept: opts.filePick.accept ?? "image/*",
+    });
   }
-  const readInputs = async (): Promise<{ comment?: string; file?: { name: string; dataUrl: string } }> => {
-    const out: { comment?: string; file?: { name: string; dataUrl: string } } = {};
-    try {
-      const textarea = document.getElementById(commentId);
-      if (textarea) out.comment = textarea.value.trim() || undefined;
-      const input = document.getElementById(fileId);
-      const chosen = input?.files?.[0];
-      if (chosen) {
-        out.file = await new Promise((resolveFile) => {
-          const reader = new FileReader();
-          reader.onload = () =>
-            resolveFile({ name: chosen.name, dataUrl: String(reader.result ?? "") });
-          reader.onerror = () => resolveFile({ name: chosen.name, dataUrl: "" });
-          reader.readAsDataURL(chosen);
-        });
-      }
-    } catch {
-      /* 读不到就当用户没填 */
-    }
-    return out;
-  };
+  const card = components.length
+    ? renderCard(components, { dialogId: opts.id, images: opts.images })
+    : { html: "", fields: [] as CardField[] };
   const result = new Promise<DialogResult>((resolve) => {
-    // 1) 原生 Dialog(支持 HTML,可放 <img>、<textarea>、<input type=file>)
+    // 1) 原生 Dialog(支持 HTML:图片、textarea、input[type=file] 都在真机上验证过)
     if (typeof Dialog === "function") {
       try {
         let settled = false;
         const finish = (index: number) => {
           if (settled) return;
-          settled = true;
-          void readInputs().then((extra) => {
+          void readCardValues(opts.id, card.fields).then(({ values, file }) => {
+            const missing = index < 0 ? [] : missingRequired(card.fields, values);
+            if (missing.length) {
+              // 必填项没填:不结算,标红提示(否则用户点了确认却什么都没发生)
+              try {
+                for (const id of missing) {
+                  const holder = document.querySelector(`[data-field="${id}"]`);
+                  (holder as { classList?: { add(name: string): void } } | null)?.classList?.add(
+                    "bbmcp_field_missing",
+                  );
+                  const hint = (holder as { querySelector?: (selector: string) => unknown } | null)?.querySelector?.(
+                    ".bbmcp_missing",
+                  ) as { style?: { display: string } } | null;
+                  if (hint?.style) hint.style.display = "block";
+                }
+              } catch {
+                /* 提示失败也要让人能继续 */
+              }
+              return;
+            }
+            settled = true;
             try {
               dialog.hide?.();
             } catch {
               /* ignore */
             }
-            resolve({ index, ...extra });
+            resolve({ index, values, file, comment: commentOf(values) });
           });
         };
         const dialog = new Dialog({
           id: opts.id,
           title: opts.title,
-          lines: [opts.message, ...(opts.lines ?? []), ...inputs],
+          lines: [opts.message, ...(opts.lines ?? []), ...(card.html ? [card.html] : [])],
           buttons: opts.buttons,
           onButton: (index: number) => finish(index),
           onCancel: () => finish(-1),
