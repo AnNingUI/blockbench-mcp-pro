@@ -110,7 +110,23 @@ type CanvasRenderingContext2D = Bb2DContext;
 type ImageData = BbImageData;
 type HTMLImageElement = Image;
 
-declare const document: { createElement(tag: string): BbCanvas };
+// 人审卡片要读用户填的文本框/选的文件,所以 shim 需要这几个成员(只声明真正用到的)
+type BbInputElement = {
+  value: string;
+  files?: { 0?: { name: string } } & ArrayLike<{ name: string }>;
+};
+declare const document: {
+  createElement(tag: string): BbCanvas;
+  getElementById(id: string): BbInputElement | null;
+};
+declare const FileReader: {
+  new (): {
+    result: string | ArrayBuffer | null;
+    onload: (() => void) | null;
+    onerror: (() => void) | null;
+    readAsDataURL(file: unknown): void;
+  };
+};
 declare const localStorage: {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;

@@ -525,7 +525,12 @@ function framing(view: string): { preset: AnglePreset; span: number } {
 
 /* --------------------------------------------------------------- ui dialogs */
 
-export type DialogResult = { index: number; comment?: string };
+export type DialogResult = {
+  index: number;
+  comment?: string;
+  /** 用户在卡上选的文件(已读成 data URL);只在 filePick 打开时可能出现 */
+  file?: { name: string; dataUrl: string };
+};
 
 /**
  * 显示一个阻塞式对话框并等待用户选择。
@@ -544,29 +549,72 @@ export function showBlockingDialog(opts: {
   message: string;
   lines?: string[];
   buttons: string[];
+  /** 加一个文本框,用户写下的内容会回到 result.comment */
+  comment?: { label?: string; placeholder?: string };
+  /** 加一个选文件按钮(真机验证过:Dialog 支持 input[type=file]) */
+  filePick?: { label?: string; accept?: string };
 }): DialogHandle {
   let close = () => {
     /* 由下面赋值 */
   };
+  // 输入控件的 id 用对话框 id 派生,结束后从 DOM 读值(Blockbench 的自定义按钮不回传表单)
+  const commentId = `${opts.id}_comment`;
+  const fileId = `${opts.id}_file`;
+  const inputs: string[] = [];
+  if (opts.comment) {
+    inputs.push(
+      `<label style="display:block;margin-top:8px">${opts.comment.label ?? "意见(可留空)"}</label>` +
+        `<textarea id="${commentId}" placeholder="${opts.comment.placeholder ?? "哪里不对?想改什么?"}" style="width:100%;min-height:72px"></textarea>`,
+    );
+  }
+  if (opts.filePick) {
+    inputs.push(
+      `<label style="display:block;margin-top:8px">${opts.filePick.label ?? "选一张图片(可选)"}</label>` +
+        `<input type="file" id="${fileId}" accept="${opts.filePick.accept ?? "image/*"}" style="width:100%">`,
+    );
+  }
+  const readInputs = async (): Promise<{ comment?: string; file?: { name: string; dataUrl: string } }> => {
+    const out: { comment?: string; file?: { name: string; dataUrl: string } } = {};
+    try {
+      const textarea = document.getElementById(commentId);
+      if (textarea) out.comment = textarea.value.trim() || undefined;
+      const input = document.getElementById(fileId);
+      const chosen = input?.files?.[0];
+      if (chosen) {
+        out.file = await new Promise((resolveFile) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            resolveFile({ name: chosen.name, dataUrl: String(reader.result ?? "") });
+          reader.onerror = () => resolveFile({ name: chosen.name, dataUrl: "" });
+          reader.readAsDataURL(chosen);
+        });
+      }
+    } catch {
+      /* 读不到就当用户没填 */
+    }
+    return out;
+  };
   const result = new Promise<DialogResult>((resolve) => {
-    // 1) 原生 Dialog(支持 HTML,可放 <img>)
+    // 1) 原生 Dialog(支持 HTML,可放 <img>、<textarea>、<input type=file>)
     if (typeof Dialog === "function") {
       try {
         let settled = false;
         const finish = (index: number) => {
           if (settled) return;
           settled = true;
-          try {
-            dialog.hide?.();
-          } catch {
-            /* ignore */
-          }
-          resolve({ index });
+          void readInputs().then((extra) => {
+            try {
+              dialog.hide?.();
+            } catch {
+              /* ignore */
+            }
+            resolve({ index, ...extra });
+          });
         };
         const dialog = new Dialog({
           id: opts.id,
           title: opts.title,
-          lines: [opts.message, ...(opts.lines ?? [])],
+          lines: [opts.message, ...(opts.lines ?? []), ...inputs],
           buttons: opts.buttons,
           onButton: (index: number) => finish(index),
           onCancel: () => finish(-1),

@@ -2,6 +2,7 @@
 import { CommandError } from "../errors.js";
 import { requireProject } from "../bb.js";
 import { captureView, showBlockingDialog } from "../host.js";
+import { referenceTools } from "./reference.js";
 import {
   answerReview,
   dismissReview,
@@ -26,7 +27,12 @@ async function showCard(
     id: review.id,
     title,
     message: `${question}${details ? `\n\n${details}` : ""}`,
+    lines: ["<i>下面是可选的:写意见,或者选一张参考图。</i>"],
     buttons: review.options,
+    // 人要点“Needs changes”时得能说清楚哪里不对 —— 以前只有两个按钮,意见无处可输
+    comment: { label: "意见 / 哪里不对(可留空)", placeholder: "例如:披风太宽、腿太短……" },
+    // “把图片拖进面板”这种话别再写了:卡上直接给选文件
+    filePick: { label: "参考图(可选,选了就直接加载)", accept: "image/*" },
   });
   // 卡片到期必须自己消失,否则会在 Blockbench 里越堆越多
   const expiry = setTimeout(
@@ -38,6 +44,18 @@ async function showCard(
   );
   const result = await dialog.result;
   clearTimeout(expiry);
+  if (result.file?.dataUrl) {
+    // 用户当场选的图 
+    try {
+      await referenceTools.load_reference({
+        data_url: result.file.dataUrl,
+        name: result.file.name.replace(/\.[^.]+$/, ""),
+      });
+      review.loadedReference = result.file.name;
+    } catch {
+      /* 图片载不进去也不能把人的回答弄丢 */
+    }
+  }
   answerReview(review.id, result.index, result.comment);
 }
 

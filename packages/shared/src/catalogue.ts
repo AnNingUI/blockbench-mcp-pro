@@ -130,8 +130,8 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec(
     "propose_scoped_directory",
     "project",
-    "Ask the USER to approve ONE folder for AI file access this session. Every file read/write is confined to it; nothing outside is reachable. Call before save_project / export_model / PNG import-export.",
-    z.object({ path: S }).strict(),
+    "Ask the USER to approve ONE folder for AI file access this session. Every file read/write is confined to it; nothing outside is reachable. Call before save_project / export_model / PNG import-export. Pass reason so the dialog tells the user WHAT the access is for — an unexplained permission request gets blind-clicked.",
+    z.object({ path: S, reason: S.optional(), purpose: S.optional() }).strict(),
   ),
 
   /* ---------------- geometry ---------------- */
@@ -684,13 +684,13 @@ export const TOOL_SPECS: Record<string, ToolSpec> = Object.fromEntries([
   spec(
     "ask_user",
     "review",
-    "Ask the user a question through a dialog inside Blockbench and wait for the answer without ending your turn — for decisions that are genuinely theirs. Optional one-click options and reference views. Returns pending:true + review_id when unanswered; keep polling with wait_review (pending is not an answer).",
+    "Ask the user a question through a dialog inside Blockbench and wait for the answer without ending your turn — for decisions that are genuinely theirs. The card has a free-text box (comes back as comment) and a file picker (a chosen image is loaded as a reference automatically) — so never tell the user to 'drag the image somewhere' or to use a panel that may not exist. Optional one-click options and reference views. Returns pending:true + review_id when unanswered; keep polling with wait_review (pending is not an answer).",
     z.object({ question: S, title: S.optional(), details: S.optional(), options: z.array(S).optional(), views: z.array(S).optional(), wait_seconds: N.optional(), timeout_seconds: N.optional() }).strict(),
   ),
   spec(
     "request_review",
     "review",
-    "Show the user your current work in a dialog inside Blockbench and WAIT for their verdict (Approve / Needs changes). Call it after every user-visible milestone and before claiming a task is finished. Run the objective gates first — do not spend the user's attention on something a tool would catch. pending or a timeout is NOT approval.",
+    "Show the user your current work in a dialog inside Blockbench and WAIT for their verdict (Approve / Needs changes). The card has a free-text box: when the user picks Needs changes they can say exactly what is wrong — read comment and fix that, do not guess or argue. Call it after every user-visible milestone and before claiming a task is finished. Run the objective gates first — do not spend the user's attention on something a tool would catch. pending or a timeout is NOT approval.",
     z.object({ question: S, title: S.optional(), details: S.optional(), views: z.array(S).optional(), animation: S.optional(), times: z.array(N).optional(), options: z.array(S).optional(), wait_seconds: N.optional(), timeout_seconds: N.optional() }).strict(),
   ),
   spec("wait_review", "review", "Keep waiting for a review/question the user has not answered yet. Call in a loop with the review_id — that is how a minutes-long human review fits inside a client's request timeout.", z.object({ review_id: S.optional(), wait_seconds: N.optional() }).strict()),

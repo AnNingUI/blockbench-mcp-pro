@@ -640,22 +640,83 @@ test("execute_script 默认关闭,打开后可用,再关掉", async () => {
 
 /* ------------------------------- 7. 人审门 ------------------------------- */
 
-test("人审门:request_review 返回 pending(卡片会自己到期关闭)", async () => {
+test("人审门:卡片能写意见、能选参考图(程序化点击,不依赖真人)", async () => {
+  await ok("set_setting", { id: "bbmcp_allow_execute_script", value: true });
   const review = await ok("request_review", {
-    question: "这条是自动化测试弹出的人审批次(点不点都行),它会在几秒后自动关闭。",
+    title: "自动化人审",
+    question: "这条由测试自己点,不会打扰你。",
     wait_seconds: 1,
-    timeout_seconds: 5,
+    timeout_seconds: 60,
     views: ["north"],
   });
-  // 卡片是人点的:可能被点到 → 两种结果都接受,只断言契约
-  expect(typeof review.result.review_id === "string", "拿到 review_id");
+  const id = review.result.review_id;
+  expect(typeof id === "string", "拿到 review_id");
+  expect(review.result.pending === true, "还没人点 → pending:true(不是批准)");
+
+  // 1) 卡片上真的有输入框和选图按钮(以前只有两个按钮,意见无处可写 —— 用户实测反馈)
+  const dom = await ok("execute_script", {
+    code: `
+      const d = document.querySelector("#${id}");
+      return {
+        found: Boolean(d),
+        textarea: Boolean(d && d.querySelector("textarea")),
+        file: Boolean(d && d.querySelector("input[type=file]")),
+        buttons: d ? d.querySelectorAll(".dialog_buttons button, .dialog_buttons .button, dialog button").length : 0,
+      };
+    `,
+  });
+  expect(dom.result.result.found, "卡片 id = review_id");
+  expect(dom.result.result.textarea, "卡片有意见输入框");
+  expect(dom.result.result.file, "卡片有参考图选择按钮");
+  expect(dom.result.result.buttons >= 2, `按钮数 ${dom.result.result.buttons}`);
+
+  // 2) 填意见 + 塞一张真图片 + 点第一个按钮
+  const clicked = await ok("execute_script", {
+    code: `
+      const d = document.querySelector("#${id}");
+      const ta = d && d.querySelector("textarea");
+      if (ta) ta.value = "测试意见:腿太短,披风太宽";
+      const fileInput = d && d.querySelector("input[type=file]");
+      let attached = false;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 8; canvas.height = 8;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#c0392b"; ctx.fillRect(0, 0, 8, 8);
+        const url = canvas.toDataURL("image/png");
+        const bin = atob(url.split(",")[1]);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const dt = new DataTransfer();
+        dt.items.add(new File([bytes], "probe-ref.png", { type: "image/png" }));
+        fileInput.files = dt.files;
+        attached = fileInput.files.length === 1;
+      } catch (e) { attached = "fail:" + String(e && e.message || e); }
+      const buttons = d ? d.querySelectorAll(".dialog_buttons button, .dialog_buttons .button, dialog button") : [];
+      if (buttons[0]) buttons[0].click();
+      return { attached, clicked: buttons.length > 0 };
+    `,
+  });
+  expect(clicked.result.result.clicked, "点到了按钮");
+
+  // 3) 意见必须透传回来(否则"Needs changes"就是个空话)
+  const waited = await ok("wait_review", { review_id: id, wait_seconds: 6 });
+  expect(waited.result.answered === true, `应已回答,实际 pending=${waited.result.pending}`);
   expect(
-    review.result.pending === true || typeof review.result.answer === "string",
-    "要么 pending:true,要么已经有人回答",
+    String(waited.result.comment ?? "").includes("腿太短"),
+    `意见透传失败:${JSON.stringify(waited.result.comment)}`,
   );
-  const waited = await ok("wait_review", { review_id: review.result.review_id, wait_seconds: 1 });
-  if (waited.result.answer === null) expect(waited.result.pending === true, "超时未回答时仍是 pending");
-  else expect(typeof waited.result.answer === "string", "有人点了卡片 → 返回决定");
+  // 4) 卡上选的图要自动变成参考图
+  if (clicked.result.result.attached === true) {
+    const refs = await ok("list_references");
+    expect(refs.result.count >= 1, "选了图 → 参考图已加载");
+    expect(
+      JSON.stringify(refs.result.references).includes("probe-ref"),
+      `参考图名字应来自文件名:${JSON.stringify(refs.result.references)}`,
+    );
+    await ok("clear_references");
+  }
+  await ok("set_setting", { id: "bbmcp_allow_execute_script", value: false });
 });
 
 /* ------------------------------- 8. 文件与作用域 ------------------------------- */

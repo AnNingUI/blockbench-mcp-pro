@@ -118,7 +118,7 @@ export const projectTools: Record<string, ToolHandler> = {
     );
   },
 
-  propose_scoped_directory: async (args: { path: string }) => {
+  propose_scoped_directory: async (args: { path: string; reason?: string; purpose?: string }) => {
     const paths = pathApi();
     if (!paths.isAbsolute(args?.path))
       throw new CommandError("E_INVALID_PARAM", "Scoped directory must be an absolute path.");
@@ -128,10 +128,12 @@ export const projectTools: Record<string, ToolHandler> = {
     // 同一目录本会话已批准过 → 直接用,不再弹框(否则每次文件操作都要用户点一次)
     if (session.scopedDirectory === resolved)
       return { scoped_directory: resolved, confirmed: true, already_approved: true };
+    // 卡上必须写清楚"为什么要授权" —— 否则用户只能盲点 Allow
+    const reason = (args?.reason ?? args?.purpose ?? "").trim();
     const scopeDialog = showBlockingDialog({
       id: "bbmcp_scope",
       title: "Blockbench MCP — file access",
-      message: `Allow MCP file access for this session?\n\n${resolved}\n\nOnly this folder becomes readable/writable by AI tools; nothing outside it is reachable.`,
+      message: `${reason ? `AI 想干什么:${reason}\n\n` : ""}Allow MCP file access for this session?\n\n${resolved}\n\nOnly this folder becomes readable/writable by AI tools; nothing outside it is reachable.`,
       buttons: ["Allow this folder", "Deny"],
     });
     const result = await scopeDialog.result;

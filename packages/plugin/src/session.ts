@@ -14,6 +14,8 @@ export type PendingReview = {
   answer?: { index: number; option: string; comment?: string; at: number };
   /** 用户直接关掉了对话框(不算回答) */
   dismissed?: boolean;
+  /** 用户在卡片上当场选了参考图(文件名),已自动加载 */
+  loadedReference?: string;
   resolve?: (answer: { index: number; option: string; comment?: string; at: number }) => void;
 };
 
@@ -193,6 +195,8 @@ export function reviewPayload(review: PendingReview, waitSeconds: number) {
     answer: review.answer?.option ?? null,
     answer_index: review.answer?.index ?? null,
     comment: review.answer?.comment ?? null,
+    /** 用户在卡上选了图的话,这里会给出文件名(那张图已作为参考图加载) */
+    loaded_reference: review.loadedReference ?? null,
     pending: !review.answer,
     dismissed: Boolean(review.dismissed),
     waited_seconds: waitSeconds,
