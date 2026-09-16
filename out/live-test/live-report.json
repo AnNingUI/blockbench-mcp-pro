@@ -1,5 +1,5 @@
 {
-  "when": "2026-09-15T23:24:08.243Z",
+  "when": "2026-09-16T00:53:31.792Z",
   "endpoint": "http://127.0.0.1:39742/mcp",
   "passed": 34,
   "failed": 0,
@@ -60,7 +60,7 @@
     },
     {
       "file": "live-report.json",
-      "bytes": 3232
+      "bytes": 3124
     },
     {
       "file": "live-south-3.png",

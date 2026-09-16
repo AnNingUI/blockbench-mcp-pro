@@ -1,6 +1,6 @@
 {
   "name": "@anningui/blockbench-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Blockbench 的 MCP 服务器与插件:95 个工具,插件内进程 HTTP MCP + stdio 网关,建模/程序化细节/贴图/动画/质量门/人审/参考图比对",
   "keywords": [
     "mcp",
